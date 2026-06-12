@@ -298,6 +298,7 @@ export default function WhatToExpect() {
             </div>
 
           </motion.div>
+        </div>
 
         {/* Before & After Trust Subsections */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-16 border-t border-near-black/5">
