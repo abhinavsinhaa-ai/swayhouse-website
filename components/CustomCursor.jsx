@@ -5,6 +5,8 @@ import gsap from 'gsap';
 
 export default function CustomCursor() {
   const cursorRef = useRef(null);
+  const mouseX = useRef(-100);
+  const mouseY = useRef(-100);
 
   useEffect(() => {
     // Hide cursor on touch devices
@@ -13,68 +15,120 @@ export default function CustomCursor() {
     const cursor = cursorRef.current;
     if (!cursor) return;
 
-    // Initial positioning
-    gsap.set(cursor, { xPercent: -50, yPercent: -50, scale: 1, x: -100, y: -100 });
-
-    const xSetter = gsap.quickSetter(cursor, "x", "px");
-    const ySetter = gsap.quickSetter(cursor, "y", "px");
+    // Initial positioning via transform
+    cursor.style.transform = `translate3d(-100px, -100px, 0) translate(-50%, -50%)`;
 
     const onMouseMove = (e) => {
-      xSetter(e.clientX);
-      ySetter(e.clientY);
+      mouseX.current = e.clientX;
+      mouseY.current = e.clientY;
     };
 
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
 
-    // Scale up and change fill on hovering clickable items
-    const onMouseEnterClickable = () => {
-      gsap.to(cursor, { 
-        scale: 4, 
-        backgroundColor: 'rgba(255, 107, 53, 0.15)', 
-        border: '1.5px solid #FF6B35',
-        duration: 0.25, 
-        ease: 'power2.out' 
-      });
+    let animationFrameId;
+    const updateCursor = () => {
+      cursor.style.transform = `translate3d(${mouseX.current}px, ${mouseY.current}px, 0) translate(-50%, -50%)`;
+      animationFrameId = requestAnimationFrame(updateCursor);
+    };
+    animationFrameId = requestAnimationFrame(updateCursor);
+
+    let currentCursorType = 'default'; // default | hover | view
+
+    const onMouseOver = (e) => {
+      const target = e.target;
+      if (!target) return;
+
+      const viewTarget = typeof target.closest === 'function' ? target.closest('[data-cursor="view"]') : null;
+      const clickableTarget = typeof target.closest === 'function' ? target.closest('a, button, [role="button"], .clickable') : null;
+
+      if (viewTarget) {
+        if (currentCursorType !== 'view') {
+          currentCursorType = 'view';
+          gsap.to(cursor, {
+            width: 80,
+            height: 80,
+            backgroundColor: '#FF6B35',
+            border: 'none',
+            borderRadius: '50%',
+            duration: 0.3,
+            ease: 'power3.out',
+            overwrite: 'auto'
+          });
+          const span = cursor.querySelector('span');
+          if (span) {
+            span.style.opacity = '1';
+            span.style.display = 'block';
+          }
+        }
+      } else if (clickableTarget) {
+        if (currentCursorType !== 'hover') {
+          currentCursorType = 'hover';
+          gsap.to(cursor, {
+            width: 40,
+            height: 40,
+            backgroundColor: 'rgba(255, 107, 53, 0.15)',
+            border: '1.5px solid #FF6B35',
+            borderRadius: '50%',
+            duration: 0.25,
+            ease: 'power2.out',
+            overwrite: 'auto'
+          });
+          const span = cursor.querySelector('span');
+          if (span) {
+            span.style.opacity = '0';
+            span.style.display = 'none';
+          }
+        }
+      } else {
+        if (currentCursorType !== 'default') {
+          currentCursorType = 'default';
+          gsap.to(cursor, {
+            width: 10,
+            height: 10,
+            backgroundColor: '#FF6B35',
+            border: 'none',
+            borderRadius: '50%',
+            duration: 0.25,
+            ease: 'power2.out',
+            overwrite: 'auto'
+          });
+          const span = cursor.querySelector('span');
+          if (span) {
+            span.style.opacity = '0';
+            span.style.display = 'none';
+          }
+        }
+      }
     };
 
-    const onMouseLeaveClickable = () => {
-      gsap.to(cursor, { 
-        scale: 1, 
-        backgroundColor: '#FF6B35', 
-        border: 'none',
-        duration: 0.25, 
-        ease: 'power2.out' 
-      });
-    };
-
-    const attachHoverStates = () => {
-      const clickables = document.querySelectorAll('a, button, [role="button"], .clickable');
-      clickables.forEach((el) => {
-        // Avoid duplicate listeners
-        el.removeEventListener('mouseenter', onMouseEnterClickable);
-        el.removeEventListener('mouseleave', onMouseLeaveClickable);
-        
-        el.addEventListener('mouseenter', onMouseEnterClickable);
-        el.addEventListener('mouseleave', onMouseLeaveClickable);
-      });
-    };
-
-    attachHoverStates();
-
-    // Use MutationObserver to capture elements rendered dynamically (like roster cards or modals)
-    const observer = new MutationObserver(attachHoverStates);
-    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('mouseover', onMouseOver, { passive: true });
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
-      observer.disconnect();
+      window.removeEventListener('mouseover', onMouseOver);
+      cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
   return (
-    <div 
-      ref={cursorRef} 
-      className="w-2.5 h-2.5 bg-coral rounded-full fixed pointer-events-none z-[9999] hidden md:block transition-transform duration-75"
-    />
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .custom-cursor-view-text {
+          animation: spin-slow 8s linear infinite;
+        }
+      `}} />
+      <div 
+        ref={cursorRef} 
+        className="fixed pointer-events-none z-[9999] hidden md:flex items-center justify-center text-white text-[10px] font-bold tracking-widest overflow-hidden rounded-full w-2.5 h-2.5 bg-coral"
+      >
+        <span className="custom-cursor-view-text opacity-0 hidden" style={{ transition: 'opacity 0.2s ease' }}>
+          VIEW
+        </span>
+      </div>
+    </>
   );
 }

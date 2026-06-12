@@ -50,7 +50,7 @@
   <div class="noise-bg"></div>
 
   <!-- Custom Cursor Dot -->
-  <div class="custom-cursor" id="customCursor"></div>
+  <div class="w-2.5 h-2.5 bg-coral rounded-full fixed pointer-events-none z-[9999] hidden md:block" id="customCursor" style="top:0;left:0;transition:transform 0.07s linear;"></div>
 
   <!-- ===== HEADER / NAVIGATION ===== -->
   <header id="header" class="fixed top-0 left-0 w-full h-[72px] z-[1000] flex items-center transition-all duration-500">
@@ -144,24 +144,26 @@
       
       <!-- Headline Container -->
       <h1 class="hero__headline font-cormorant text-[clamp(2.75rem,8vw,5.5rem)] font-light leading-[1.05] tracking-tight text-near-black mb-8 select-none">
-        <span class="line-outer block overflow-hidden h-[1.15em] py-1">
+        <!-- "You Create." — JS will split this letter by letter -->
+        <span class="line-outer block overflow-hidden py-1">
           <span class="line-inner inline-block">You Create.</span>
         </span>
-        <span class="line-outer block text-coral relative inline-block pb-3 mt-1">
+        <!-- "We Elevate." — JS fades this in at 0.9s -->
+        <span class="line-outer block text-coral relative inline-block pb-3 mt-1" style="opacity:0;transform:translateY(20px);">
           <span class="line-inner inline-block">We Elevate.</span>
           <!-- Bottom underline drawing -->
           <div class="hero__underline"></div>
         </span>
       </h1>
 
-      <!-- Subtitle -->
-      <p id="heroSubtitle" class="text-base md:text-lg text-neutral-500 leading-snug max-w-[650px] mb-12 opacity-0 transform translate-y-6 transition-all duration-700 ease-out">
+      <!-- Subtitle — JS animates at 2.1s -->
+      <p id="heroSubtitle" class="text-base md:text-lg text-neutral-500 leading-snug max-w-[650px] mb-12" style="opacity:0;transform:translateY(25px);">
         SwayHouse is a creator management company built for the new era of content. 
         We handle the business so you never have to stop creating.
       </p>
 
-      <!-- CTA -->
-      <div id="heroCta" class="flex flex-col sm:flex-row items-center gap-4 md:gap-6 justify-center opacity-0 transform translate-y-6 transition-all duration-700 ease-out mt-4 w-full">
+      <!-- CTA — JS animates at 2.3s -->
+      <div id="heroCta" class="flex flex-col sm:flex-row items-center gap-4 md:gap-6 justify-center mt-4 w-full" style="opacity:0;transform:translateY(20px);">
         <!-- Explore Our Creators -->
         <a href="#creators" class="relative overflow-hidden px-8 py-4 rounded-full bg-coral text-white text-xs font-bold uppercase tracking-wider hover:shadow-[0_8px_30px_rgba(255,107,53,0.25)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group min-w-[200px] text-center clickable">
           <div class="absolute inset-0 bg-coral-hover scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"></div>
@@ -178,10 +180,8 @@
         <a href="#services" class="relative overflow-hidden px-8 py-4 rounded-full bg-white border border-near-black/10 text-near-black text-xs font-bold uppercase tracking-wider hover:border-coral hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group min-w-[200px] text-center clickable">
           <span class="relative z-10 flex items-center justify-center gap-2">
             Our Services
-            <svg class="w-4 h-4 text-coral transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-              <polyline points="2 17 12 22 22 17"/>
-              <polyline points="2 12 12 17 22 12"/>
+            <svg class="w-4 h-4 text-coral" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
             </svg>
           </span>
         </a>
@@ -190,7 +190,7 @@
         <a href="#contact" class="relative overflow-hidden px-8 py-4 rounded-full bg-white border border-near-black/10 text-near-black text-xs font-bold uppercase tracking-wider hover:border-coral hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group min-w-[200px] text-center clickable">
           <span class="relative z-10 flex items-center justify-center gap-2">
             Contact Us
-            <svg class="w-4 h-4 text-coral transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="w-4 h-4 text-coral" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
           </span>
@@ -380,33 +380,79 @@
 
 
   <!-- ===== SECTION 4 — CREATORS ===== -->
-  <section id="creators" class="py-24 md:py-36">
-    <div class="w-full max-w-[1200px] mx-auto px-6 md:px-10 flex flex-col items-center">
-      
-      <div class="text-center mb-16 select-none">
-        <h2 class="reveal font-cormorant text-4xl md:text-5xl font-light text-near-black mb-3">
+  <section id="creators" class="py-24 md:py-36 bg-white overflow-hidden">
+    <div class="w-full max-w-[800px] mx-auto px-6 md:px-10 flex flex-col items-center">
+      <!-- Section Header -->
+      <div class="text-center mb-16 select-none reveal w-full">
+        <div class="flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-widest text-coral font-inter mb-4">
+          <span class="w-8 h-[1px] bg-coral"></span>
+          <span>OUR ROSTER</span>
+          <span class="w-8 h-[1px] bg-coral"></span>
+        </div>
+        <h2 class="font-cormorant text-4xl md:text-5xl font-light text-near-black mb-3">
           Our Roster
         </h2>
-        <p class="reveal text-base text-neutral-500">
+        <p class="text-base text-neutral-500">
           Every creator we manage is chosen deliberately. Quality over quantity, always.
         </p>
       </div>
 
-      <!-- Creators Container (Compact Cards rendered by main.js) -->
-      <div class="roster-grid w-full mb-12" id="creatorsContainer"></div>
+      <!-- Creators Container -->
+      <div class="w-full flex justify-center mb-12" id="creatorsContainer">
+        <!-- Aditi Card -->
+        <a href="creators/aditi.html" class="w-full max-w-[460px] bg-white border border-near-black/5 rounded-2xl p-6 shadow-lg hover:-translate-y-2 hover:shadow-xl transition-all duration-350 cursor-pointer clickable group block no-underline">
+          <!-- Image -->
+          <div class="w-full h-[300px] rounded-xl bg-coral/10 border border-near-black/5 overflow-hidden mb-6 relative">
+            <div class="absolute inset-0 border border-transparent group-hover:border-coral/25 rounded-xl transition-all z-10 pointer-events-none"></div>
+            <img src="assets/aditi-pfp.jpg" alt="Aditi" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]" loading="eager" />
+          </div>
+          <!-- Details -->
+          <div class="text-left">
+            <span class="inline-block text-[10px] font-bold uppercase tracking-wider text-coral bg-coral/10 px-2.5 py-0.5 rounded mb-3 select-none">Managed by SwayHouse</span>
+            <h3 class="font-cormorant text-3xl font-semibold text-near-black mb-4">Aditi</h3>
+            <div class="flex flex-wrap gap-6 mb-4 pb-4 border-b border-near-black/5">
+              <div class="flex flex-col">
+                <span class="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Niche</span>
+                <span class="text-xs font-semibold text-near-black mt-0.5">Lifestyle &amp; Feel Good</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Platform</span>
+                <span class="inline-flex items-center gap-1 text-xs font-semibold text-near-black mt-0.5">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 text-coral flex-shrink-0">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                  Instagram
+                </span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Location</span>
+                <span class="text-xs font-semibold text-near-black mt-0.5">Bangalore, India</span>
+              </div>
+            </div>
+            <p class="text-xs md:text-sm text-neutral-500 leading-relaxed mb-5">
+              I'm passionate about creating content that inspires, connects, and adds value to everyday life. Lifestyle &amp; Feel Good creator based in Bangalore.
+            </p>
+            <!-- View Profile arrow -->
+            <div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-coral group-hover:gap-3 transition-all duration-300">
+              <span>View Profile</span>
+              <svg class="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+      </div>
 
-      <!-- Creators Footer -->
-      <div class="text-center mt-6">
-        <p class="reveal text-sm italic text-neutral-500 mb-4">
-          Roster intentionally small. Growing by design.
-        </p>
-        <div class="reveal text-xs md:text-sm text-neutral-400">
-          Are you a creator? 
-          <a href="#contact" class="text-coral hover:text-coral-hover font-bold ml-1 border-b border-coral/30 hover:border-coral transition-all pb-0.5 clickable">
-            Apply for management below
-          </a>
+      <!-- Footer note -->
+      <div class="text-center reveal">
+        <p class="text-sm italic text-neutral-500 mb-4 select-none">Roster intentionally small. Growing by design.</p>
+        <div class="text-xs md:text-sm text-neutral-400">
+          Are you a creator? <a href="#contact" class="text-coral hover:text-coral-hover font-bold ml-1 border-b border-coral/30 hover:border-coral transition-all pb-0.5 clickable">Apply for management below</a>
         </div>
       </div>
+
     </div>
   </section>
 
@@ -1130,16 +1176,86 @@
     // Custom Cursor tracking logic using GSAP for buttery smooth movement
     const cursor = document.getElementById('customCursor');
     if (cursor && window.innerWidth > 768) {
-      gsap.set(cursor, { xPercent: -50, yPercent: -50 });
-      window.addEventListener('mousemove', (e) => {
-        gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.1, ease: 'power2.out' });
-      });
+      if (!window.matchMedia('(pointer: coarse)').matches) {
+        gsap.set(cursor, { xPercent: -50, yPercent: -50, x: -100, y: -100 });
 
-      // Hover triggers to scale cursor dot
-      document.querySelectorAll('a, button, [style*="cursor: pointer"], .clickable').forEach(el => {
-        el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
-        el.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
-      });
+        const xSetter = gsap.quickSetter(cursor, "x", "px");
+        const ySetter = gsap.quickSetter(cursor, "y", "px");
+
+        window.addEventListener('mousemove', (e) => {
+          xSetter(e.clientX);
+          ySetter(e.clientY);
+        }, { passive: true });
+
+        let currentCursorType = 'default';
+
+        window.addEventListener('mouseover', (e) => {
+          const target = e.target;
+          if (!target) return;
+
+          const viewTarget = typeof target.closest === 'function' ? target.closest('[data-cursor="view"]') : null;
+          const clickableTarget = typeof target.closest === 'function' ? target.closest('a, button, [role="button"], .clickable') : null;
+
+          if (viewTarget) {
+            if (currentCursorType !== 'view') {
+              currentCursorType = 'view';
+              gsap.to(cursor, {
+                width: 80,
+                height: 80,
+                backgroundColor: '#FF6B35',
+                border: 'none',
+                borderRadius: '50%',
+                duration: 0.3,
+                ease: 'power3.out',
+                overwrite: 'auto'
+              });
+              const span = cursor.querySelector('span');
+              if (span) {
+                span.style.opacity = '1';
+                span.style.display = 'block';
+              }
+            }
+          } else if (clickableTarget) {
+            if (currentCursorType !== 'hover') {
+              currentCursorType = 'hover';
+              gsap.to(cursor, {
+                width: 40,
+                height: 40,
+                backgroundColor: 'rgba(255, 107, 53, 0.15)',
+                border: '1.5px solid #FF6B35',
+                borderRadius: '50%',
+                duration: 0.25,
+                ease: 'power2.out',
+                overwrite: 'auto'
+              });
+              const span = cursor.querySelector('span');
+              if (span) {
+                span.style.opacity = '0';
+                span.style.display = 'none';
+              }
+            }
+          } else {
+            if (currentCursorType !== 'default') {
+              currentCursorType = 'default';
+              gsap.to(cursor, {
+                width: 10,
+                height: 10,
+                backgroundColor: '#FF6B35',
+                border: 'none',
+                borderRadius: '50%',
+                duration: 0.25,
+                ease: 'power2.out',
+                overwrite: 'auto'
+              });
+              const span = cursor.querySelector('span');
+              if (span) {
+                span.style.opacity = '0';
+                span.style.display = 'none';
+              }
+            }
+          }
+        }, { passive: true });
+      }
     }
 
     // Connect Form success overlay button
@@ -1157,5 +1273,8 @@
     }
 
   </script>
+  
+  <!-- Dynamic Creator Dashboard Modal Placeholder -->
+  <div id="creatorModalContainer" class="relative z-[2000]"></div>
 </body>
 </html>

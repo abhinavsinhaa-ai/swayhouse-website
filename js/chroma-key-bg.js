@@ -19,7 +19,6 @@
     // Load official 2D logo image
     const img = new Image();
     img.src = '/assets/swayhouse-logo.png';
-    img.crossOrigin = 'anonymous';
     
     img.onload = () => {
       // Create a temporary hidden canvas to key out the white background once

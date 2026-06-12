@@ -59,7 +59,9 @@
   <div class="noise-bg"></div>
 
   <!-- Custom Cursor -->
-  <div class="custom-cursor" id="customCursor"></div>
+  <div class="custom-cursor hidden md:flex items-center justify-center text-white text-[10px] font-bold tracking-widest overflow-hidden" id="customCursor">
+    <span class="custom-cursor-view-text opacity-0 hidden" style="transition: opacity 0.2s ease;">VIEW</span>
+  </div>
 
   <!-- ===== FIXED HEADER ===== -->
   <header class="fixed top-0 left-0 w-full h-[72px] z-[1000] flex items-center bg-white/80 backdrop-blur-md border-b border-near-black/5">
@@ -361,17 +363,89 @@
     }
     requestAnimationFrame(raf);
 
-    // Custom Cursor tracking logic
+    // Custom Cursor tracking logic using GSAP for buttery smooth movement
     const cursor = document.getElementById('customCursor');
     if (cursor && window.innerWidth > 768) {
-      gsap.set(cursor, { xPercent: -50, yPercent: -50 });
-      window.addEventListener('mousemove', (e) => {
-        gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.1, ease: 'power2.out' });
-      });
-      document.querySelectorAll('a, button, .clickable').forEach(el => {
-        el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
-        el.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
-      });
+      if (!window.matchMedia('(pointer: coarse)').matches) {
+        gsap.set(cursor, { xPercent: -50, yPercent: -50, x: -100, y: -100 });
+
+        const xSetter = gsap.quickSetter(cursor, "x", "px");
+        const ySetter = gsap.quickSetter(cursor, "y", "px");
+
+        window.addEventListener('mousemove', (e) => {
+          xSetter(e.clientX);
+          ySetter(e.clientY);
+        }, { passive: true });
+
+        let currentCursorType = 'default';
+
+        window.addEventListener('mouseover', (e) => {
+          const target = e.target;
+          if (!target) return;
+
+          const viewTarget = typeof target.closest === 'function' ? target.closest('[data-cursor="view"]') : null;
+          const clickableTarget = typeof target.closest === 'function' ? target.closest('a, button, [role="button"], .clickable') : null;
+
+          if (viewTarget) {
+            if (currentCursorType !== 'view') {
+              currentCursorType = 'view';
+              gsap.to(cursor, {
+                width: 80,
+                height: 80,
+                backgroundColor: '#FF6B35',
+                border: 'none',
+                borderRadius: '50%',
+                duration: 0.3,
+                ease: 'power3.out',
+                overwrite: 'auto'
+              });
+              const span = cursor.querySelector('span');
+              if (span) {
+                span.style.opacity = '1';
+                span.style.display = 'block';
+              }
+            }
+          } else if (clickableTarget) {
+            if (currentCursorType !== 'hover') {
+              currentCursorType = 'hover';
+              gsap.to(cursor, {
+                width: 40,
+                height: 40,
+                backgroundColor: 'rgba(255, 107, 53, 0.15)',
+                border: '1.5px solid #FF6B35',
+                borderRadius: '50%',
+                duration: 0.25,
+                ease: 'power2.out',
+                overwrite: 'auto'
+              });
+              const span = cursor.querySelector('span');
+              if (span) {
+                span.style.opacity = '0';
+                span.style.display = 'none';
+              }
+            }
+          } else {
+            if (currentCursorType !== 'default') {
+              currentCursorType = 'default';
+              gsap.to(cursor, {
+                width: 10,
+                height: 10,
+                backgroundColor: '#FF6B35',
+                border: 'none',
+                borderRadius: '50%',
+                duration: 0.25,
+                ease: 'power2.out',
+                overwrite: 'auto'
+              });
+              const span = cursor.querySelector('span');
+              if (span) {
+                span.style.opacity = '0';
+                span.style.display = 'none';
+              }
+            }
+          }
+        }, { passive: true });
+      }
     }
 
     // Lightbox handlers

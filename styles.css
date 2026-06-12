@@ -134,17 +134,14 @@ html.lenis, html.lenis body {
   pointer-events: auto;
 }
 
-/* Hero Animations */
+/* Hero Animations — JS controls opacity/transform via inline styles */
 .hero__headline .line-inner {
   display: inline-block;
-  opacity: 0;
-  transform: translateY(100%);
-  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.hero__headline .line-inner.animate {
-  opacity: 1;
-  transform: translateY(0);
+/* Individual letter spans animated by JS */
+.letter-char {
+  display: inline-block;
 }
 
 .hero__underline {
@@ -156,11 +153,16 @@ html.lenis, html.lenis body {
   background-color: var(--coral);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.5s;
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hero__headline .line-inner.animate ~ .hero__underline {
   transform: scaleX(1);
+}
+
+#heroSubtitle,
+#heroCta {
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #heroSubtitle.animate,
@@ -169,55 +171,51 @@ html.lenis, html.lenis body {
   transform: translateY(0);
 }
 
-/* Scroll reveals */
+/* Scroll reveals — initial state set by JS inline styles, CSS provides the transition */
 .reveal {
-  opacity: 0;
-  transform: translateY(40px);
   transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal.revealed {
-  opacity: 1;
-  transform: translateY(0);
+  opacity: 1 !important;
+  transform: none !important;
 }
 
 .reveal-child {
-  opacity: 0;
-  transform: translateY(50px);
   transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal-child.revealed {
-  opacity: 1;
-  transform: translateY(0);
+  opacity: 1 !important;
+  transform: none !important;
 }
 
-/* SVG Line Drawing on Scroll */
-.reveal-child svg path,
-.reveal-child svg circle,
-.reveal-child svg polygon,
-.reveal-child svg line {
+/* SVG Line Drawing — ONLY for value pillar icons (Deep Focus, Real Strategy, Honest Partnership) */
+/* These have .svg-path-1/.svg-path-2 etc. classes. Service card icons do NOT and won't be affected. */
+.reveal-child .svg-path-1,
+.reveal-child .svg-path-2,
+.reveal-child .svg-path-3,
+.reveal-child .svg-path-4 {
   stroke-dasharray: 1000;
   stroke-dashoffset: 1000;
-  transition: stroke-dashoffset 2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.reveal-child.revealed svg path,
-.reveal-child.revealed svg circle,
-.reveal-child.revealed svg polygon,
-.reveal-child.revealed svg line {
+.reveal-child.revealed .svg-path-1 {
   stroke-dashoffset: 0;
 }
-
-.reveal-child.revealed svg .svg-path-2 {
+.reveal-child.revealed .svg-path-2 {
+  stroke-dashoffset: 0;
   transition-delay: 0.2s;
 }
-.reveal-child.revealed svg .svg-path-3 {
+.reveal-child.revealed .svg-path-3 {
+  stroke-dashoffset: 0;
   transition-delay: 0.4s;
 }
-.reveal-child.revealed svg .svg-path-4 {
+.reveal-child.revealed .svg-path-4 {
+  stroke-dashoffset: 0;
   transition-delay: 0.6s;
 }
 
@@ -227,142 +225,86 @@ html.lenis, html.lenis body {
 
 .roster-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 28px;
-  justify-items: center;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  width: 100%;
 }
 
-.roster-card {
+/* Size-based layout overrides */
+.roster-grid.roster-size-1 {
   display: flex;
-  flex-direction: column;
-  background: #FFFFFF;
-  border: 1px solid rgba(26, 26, 26, 0.06);
-  border-radius: 16px;
-  overflow: hidden;
+  justify-content: center;
+}
+
+.roster-grid.roster-size-1 a {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+}
+
+@media (min-width: 768px) {
+  /* Only apply the complex bento layout when there are multiple creators */
+  .roster-grid.roster-size-multi {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, 240px);
+    grid-template-areas:
+      "large1 large1 small1"
+      "large1 large1 small2"
+      "small3 large2 large2"
+      "small4 large2 large2";
+    grid-auto-flow: dense;
+  }
+  
+  /* Bento template grid area mappings */
+  .roster-grid.roster-size-multi .card-grid-0 { grid-area: large1; }
+  .roster-grid.roster-size-multi .card-grid-1 { grid-area: small1; }
+  .roster-grid.roster-size-multi .card-grid-2 { grid-area: small2; }
+  .roster-grid.roster-size-multi .card-grid-3 { grid-area: small3; }
+  .roster-grid.roster-size-multi .card-grid-4 { grid-area: small4; }
+  .roster-grid.roster-size-multi .card-grid-5 { grid-area: large2; }
+  
+  .roster-grid.roster-size-multi a {
+    min-height: 100%;
+  }
+
+  /* 2 Creators Grid Layout */
+  .roster-grid.roster-size-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .roster-grid.roster-size-2 a {
+    height: auto;
+  }
+
+  /* 3 Creators Grid Layout */
+  .roster-grid.roster-size-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .roster-grid.roster-size-3 a {
+    height: auto;
+  }
+}
+
+/* Roster card transitions — JS handles reveal via inline styles */
+.roster-grid a {
   text-decoration: none;
   color: inherit;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.3s ease;
-  max-width: 340px;
-  width: 100%;
-}
-
-.roster-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 4px 20px rgba(255, 107, 53, 0.06);
-  border-color: rgba(255, 107, 53, 0.15);
-}
-
-/* Compact Photo Area */
-.roster-card__photo {
-  width: 100%;
-  height: 220px;
   overflow: hidden;
+  border-radius: 24px;
   position: relative;
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(255, 154, 92, 0.08) 100%);
 }
 
-.roster-card__photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.roster-card:hover .roster-card__photo img {
-  transform: scale(1.04);
-}
-
-.roster-card__placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--coral);
-  opacity: 0.5;
-}
-
-.roster-card__placeholder svg {
-  width: 48px;
-  height: 48px;
-}
-
-/* Card Info Area */
-.roster-card__info {
-  padding: 20px 22px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.roster-card__tag {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--coral);
-  background: rgba(255, 107, 53, 0.08);
-  padding: 3px 8px;
-  border-radius: 4px;
-  align-self: flex-start;
-  margin-bottom: 2px;
-}
-
-.roster-card__name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.65rem;
-  font-weight: 600;
-  color: var(--near-black);
-  line-height: 1.15;
-  margin: 0;
-}
-
-.roster-card__age {
-  font-size: 12px;
-  font-weight: 500;
-  color: #999;
-  letter-spacing: 0.01em;
-}
-
-.roster-card__bio {
-  font-size: 13px;
-  color: #777;
-  line-height: 1.5;
-  margin-top: 4px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.roster-card__view-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--coral);
-  margin-top: 10px;
-  transition: gap 0.3s ease;
-}
-
-.roster-card:hover .roster-card__view-link {
-  gap: 10px;
-}
-
-.roster-card__view-link svg {
-  width: 14px;
-  height: 14px;
-  transition: transform 0.3s ease;
-}
-
-.roster-card:hover .roster-card__view-link svg {
-  transform: translateX(3px);
+/* Static creator card — always visible */
+#creatorsContainer > a {
+  opacity: 1 !important;
+  transform: none !important;
+  clip-path: none !important;
+  pointer-events: auto !important;
 }
 
 /* Empty state */
@@ -791,4 +733,15 @@ input:focus, textarea:focus {
 .chroma-bg-container.hidden-state {
   opacity: 0 !important;
 }
+
+/* Custom Cursor Spin Animation */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.custom-cursor-view-text {
+  animation: spin-slow 8s linear infinite;
+}
+
 

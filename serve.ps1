@@ -1,4 +1,4 @@
-$port = 3000
+$port = 3001
 $localPath = "D:\swayhouse.in"
 $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add("http://localhost:$port/")

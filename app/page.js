@@ -2,47 +2,25 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Instagram, Mail, ShieldAlert, Award, Compass, HeartHandshake } from 'lucide-react';
 import ContactForm from '@/components/ContactForm';
-import CreatorModal from '@/components/CreatorModal';
 import WhatToExpect from '@/components/WhatToExpect';
+import CreatorModal from '@/components/CreatorModal';
+import { ROSTER } from '@/utils/roster';
 
 // Register GSAP plugins
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// Creator Roster data (Aditi details)
-const ROSTER = [
-  {
-    id: "aditi",
-    name: "Aditi",
-    age: 18,
-    location: "Bangalore, India",
-    instagram: "_aditichandan",
-    niche: "Lifestyle & Feel Good",
-    bio: "I’m passionate about creating content that inspires, connects, and adds value to everyday life. Lifestyle & Feel Good creator based in Bangalore, India.",
-    message: "Hii I’m Aditi\n\nI’m passionate about creating content that inspires, connects, and adds value to everyday life. This space is a reflection of my experiences, interests, and the lessons I’m learning along the way.\n\nThis space was created to share the things that bring me joy, inspire me, and make everyday life a little more beautiful. From special milestones to simple moments, I love documenting the journey and bringing you along with me.\n\nMy hope is that whenever you visit this page, you leave feeling inspired, uplifted, or simply reminded to appreciate the little things. Life moves quickly, and I believe there’s something special in finding joy, gratitude, and beauty in the everyday.\n\nThank you for being here. Your support means more than you know, and I’m excited for everything we’ll continue to create and experience together.\n\nWith love,\naditi 🤍",
-    images: [
-      "/assets/aditi-pfp.jpg",
-      "/assets/aditi-gallery-1.jpg",
-      "/assets/aditi-gallery-2.jpg",
-      "/assets/aditi-gallery-3.jpg",
-      "/assets/aditi-gallery-4.jpg",
-      "/assets/aditi-gallery-5.jpg",
-      "/assets/aditi-gallery-6.jpg",
-      "/assets/aditi-gallery-7.jpg",
-      "/assets/aditi-gallery-8.jpg"
-    ]
-  }
-];
-
 export default function Home() {
-  const [activeCreator, setActiveCreator] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [activeCreator, setActiveCreator] = useState(null);
   
   const heroRef = useRef(null);
   const aboutHeadingRef = useRef(null);
@@ -443,7 +421,7 @@ export default function Home() {
               className="flex flex-col gap-4 group"
             >
               <div className="w-10 h-10 text-coral">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="w-8 h-8">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8">
                   <motion.polygon 
                     points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" 
                     initial={{ pathLength: 0 }}
@@ -482,7 +460,7 @@ export default function Home() {
               className="flex flex-col gap-4 group"
             >
               <div className="w-10 h-10 text-coral">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="w-8 h-8">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8">
                   <motion.path 
                     d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" 
                     initial={{ pathLength: 0 }}
@@ -625,117 +603,181 @@ export default function Home() {
 
 
       {/* ===== SECTION 4 — CREATORS ===== */}
-      <section id="creators" className="py-24 md:py-36">
-        <div className="w-full max-w-[800px] mx-auto px-6 md:px-10 flex flex-col items-center">
-          
-          <div className="text-center mb-16 select-none">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="font-cormorant text-4xl md:text-5xl font-light text-near-black mb-3"
-            >
-              Our Roster
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.15, duration: 0.8, ease: 'easeOut' }}
-              className="text-base text-neutral-500"
-            >
-              Every creator we manage is chosen deliberately. Quality over quantity, always.
-            </motion.p>
+      <section id="creators" className="py-24 md:py-36 bg-white overflow-hidden">
+        {/* Injecting dynamic bento styles */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          .roster-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            width: 100%;
+          }
+          .roster-grid.roster-size-1 {
+            display: flex;
+            justify-content: center;
+          }
+          .roster-grid.roster-size-1 a {
+            width: 100%;
+            max-width: 420px;
+            height: auto;
+          }
+          @media (min-width: 768px) {
+            .roster-grid.roster-size-multi {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              grid-template-rows: repeat(4, 240px);
+              grid-template-areas:
+                "large1 large1 small1"
+                "large1 large1 small2"
+                "small3 large2 large2"
+                "small4 large2 large2";
+              grid-auto-flow: dense;
+            }
+            /* Named template grid areas for bento-style reflow */
+            .roster-grid.roster-size-multi .card-grid-0 { grid-area: large1; }
+            .roster-grid.roster-size-multi .card-grid-1 { grid-area: small1; }
+            .roster-grid.roster-size-multi .card-grid-2 { grid-area: small2; }
+            .roster-grid.roster-size-multi .card-grid-3 { grid-area: small3; }
+            .roster-grid.roster-size-multi .card-grid-4 { grid-area: small4; }
+            .roster-grid.roster-size-multi .card-grid-5 { grid-area: large2; }
+            
+            .roster-grid.roster-size-multi a {
+              min-height: 100%;
+            }
+            
+            /* 2 Creators Grid Layout */
+            .roster-grid.roster-size-2 {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              max-width: 800px;
+              margin-left: auto;
+              margin-right: auto;
+            }
+            .roster-grid.roster-size-2 a {
+              height: auto;
+            }
+            
+            /* 3 Creators Grid Layout */
+            .roster-grid.roster-size-3 {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+            }
+            .roster-grid.roster-size-3 a {
+              height: auto;
+            }
+          }
+        `}} />
+
+        <div className="w-full max-w-[1200px] mx-auto px-6 md:px-10">
+          {/* Header Spread */}
+          <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-16 border-b border-near-black/5 pb-8">
+            <div>
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-coral font-inter mb-4">
+                <span>OUR ROSTER</span>
+                <span className="w-8 h-[1px] bg-coral"></span>
+              </div>
+              <h2 className="font-cormorant text-5xl md:text-7xl font-light text-near-black leading-none">
+                The talent.
+              </h2>
+            </div>
+            <div className="text-left md:text-right text-xs md:text-sm text-neutral-400 font-inter italic">
+              Intentionally small. Exceptionally managed.
+            </div>
           </div>
 
-          {/* Creators Container (Dynamic Cards) */}
-          <div className="w-full flex justify-center mb-12" id="creatorsContainer">
-            {ROSTER.map((creator) => (
-              <motion.div 
-                key={creator.id}
-                initial={{ opacity: 0, y: 60 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                onClick={() => setActiveCreator(creator)}
-                className="w-full max-w-[460px] bg-white border border-near-black/5 rounded-2xl p-6 shadow-lg hover:-translate-y-2 hover:shadow-xl transition-all duration-350 cursor-pointer clickable group"
-              >
-                {/* Image Wrap */}
-                <div className="w-full h-[280px] rounded-xl bg-coral/10 border border-near-black/5 overflow-hidden mb-6 relative flex items-center justify-center">
-                  {/* Shimmer Border overlay */}
-                  <div className="absolute inset-0 border border-transparent group-hover:border-coral/25 rounded-xl transition-all z-10 pointer-events-none" />
-                  
-                  {creator.images && creator.images.length > 0 ? (
-                    <img 
-                      src={creator.images[0]} 
-                      alt={creator.name} 
-                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]" 
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-coral opacity-60">
-                      <svg className="w-16 h-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                      </svg>
+          {/* Asymmetric bento-style grid */}
+          <div className={`roster-grid mb-20 roster-size-${ROSTER.length > 3 ? 'multi' : ROSTER.length}`}>
+            {ROSTER.map((creator, index) => {
+              const cardGridClass = `card-grid-${index % 6}`;
+              const isLarge = (index % 6 === 0 || index % 6 === 5);
+              return (
+                <Link 
+                  key={creator.id}
+                  href={`/creators/${creator.id}`}
+                  data-cursor="view"
+                  className={`w-full group rounded-[24px] bg-white border border-near-black/5 p-5 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col ${cardGridClass}`}
+                >
+                  <motion.div 
+                    initial={{ clipPath: "inset(100% 0% 0% 0%)", opacity: 0, y: 40 }}
+                    whileInView={{ clipPath: "inset(0% 0% 0% 0%)", opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: (index % 6) * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                    className="w-full flex flex-col"
+                  >
+                    {/* Image container */}
+                    <div className="w-full aspect-[4/3.2] relative overflow-hidden rounded-xl bg-neutral-100 flex-shrink-0">
+                      <Image 
+                        src={creator.images[0]} 
+                        alt={creator.name} 
+                        fill
+                        priority={index === 0}
+                        sizes={isLarge ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 100vw, 33vw"}
+                        className="object-cover group-hover:scale-[1.03] transition-all duration-500 ease-in-out"
+                      />
                     </div>
-                  )}
-                </div>
 
-                {/* Details */}
-                <div className="text-left">
-                  <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-coral bg-coral/10 px-2.5 py-0.5 rounded mb-3">
-                    Managed by SwayHouse
-                  </span>
-                  <h3 className="font-cormorant text-3xl font-semibold text-near-black mb-4">
-                    {creator.name}
-                  </h3>
-
-                  <div className="flex gap-6 mb-4 pb-4 border-b border-near-black/5">
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Niche</span>
-                      <span className="text-xs font-semibold text-near-black">{creator.niche}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Platform</span>
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-near-black">
-                        <Instagram className="w-3.5 h-3.5 text-coral" />
-                        Instagram
+                    {/* Content Section below the picture */}
+                    <div className="mt-5 flex flex-col items-start text-left w-full">
+                      {/* Managed Badge */}
+                      <span className="inline-block text-[9px] font-bold uppercase tracking-wider text-coral bg-coral/5 px-3 py-1 rounded-md mb-3 select-none">
+                        Managed by SwayHouse
                       </span>
-                    </div>
-                  </div>
+                      
+                      {/* Name */}
+                      <h3 className="font-cormorant text-[32px] font-bold text-near-black leading-tight mb-2">
+                        {creator.name}
+                      </h3>
 
-                  <p className="text-xs md:text-sm text-neutral-500 leading-relaxed">
-                    {creator.bio}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+                      {/* Details row */}
+                      <div className="flex items-center gap-8 text-[11px] uppercase tracking-wider mb-2 font-inter">
+                        <div>
+                          <div className="text-[9px] font-bold text-neutral-400 tracking-wider">NICHE</div>
+                          <div className="font-bold text-near-black mt-0.5">{creator.niche}</div>
+                        </div>
+                        <div>
+                          <div className="text-[9px] font-bold text-neutral-400 tracking-wider">PLATFORM</div>
+                          <div className="font-bold text-near-black mt-0.5 flex items-center gap-1.5">
+                            <Instagram className="w-3.5 h-3.5 text-coral" />
+                            Instagram
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="w-full h-[1px] bg-near-black/5 my-3" />
+
+                      {/* Short Bio */}
+                      <p className="text-xs text-neutral-500 leading-relaxed font-inter">
+                        {creator.bio}
+                      </p>
+                    </div>
+                  </motion.div>
+                </Link>
+              );
+            })}
           </div>
 
-          {/* Creators Footer */}
-          <div className="text-center mt-6">
-            <motion.p 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-sm italic text-neutral-500 mb-4"
-            >
-              Roster intentionally small. Growing by design.
-            </motion.p>
+          {/* Editorial Closing Spread */}
+          <div className="text-center flex flex-col items-center mt-12">
+            {/* Animated Horizontal Rule */}
             <motion.div 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="text-xs md:text-sm text-neutral-400"
+              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+              className="w-1/4 h-[1px] bg-coral/30 mb-8"
+            />
+            
+            <p className="font-cormorant italic text-lg md:text-xl text-neutral-500 mb-8 select-none">
+              Roster growing by design — not by volume.
+            </p>
+
+            <Link 
+              href="#contact" 
+              className="inline-block border border-coral text-coral hover:bg-coral hover:text-white px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 clickable"
             >
-              Are you a creator? 
-              <a href="#contact" className="text-coral hover:text-coral-hover font-bold ml-1 border-b border-coral/30 hover:border-coral transition-all pb-0.5 clickable">
-                Apply for management below
-              </a>
-            </motion.div>
+              Apply for Management &rarr;
+            </Link>
           </div>
 
         </div>
@@ -903,7 +945,7 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Dynamic Gallery Modal Overlay */}
+      {/* Creator profile dashboard modal overlay */}
       <CreatorModal 
         creator={activeCreator} 
         onClose={() => setActiveCreator(null)} 
