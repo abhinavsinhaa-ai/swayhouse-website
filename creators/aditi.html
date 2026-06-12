@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aditi — SwayHouse Creator Profile</title>
+  <meta name="description" content="Official creator profile template for Aditi on SwayHouse.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- GSAP for scroll animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  
+  <!-- Lenis for smooth scroll -->
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.36/dist/lenis.min.js"></script>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            coral: '#FF6B35',
+            'coral-hover': '#E55A2B',
+            peach: '#FF9A5C',
+            'soft-white': '#FAFAFA',
+            'near-black': '#1A1A1A',
+            'linen': '#FBF9F6',
+          },
+          fontFamily: {
+            cormorant: ['"Cormorant Garamond"', 'serif'],
+            inter: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="../styles.css">
+  
+  <style>
+    .masonry-item {
+      break-inside: avoid;
+      margin-bottom: 24px;
+    }
+    
+    .lightbox-active {
+      overflow: hidden !important;
+    }
+  </style>
+</head>
+<body class="bg-soft-white text-near-black font-inter selection:bg-coral selection:text-white overflow-x-hidden antialiased">
+
+  <!-- Noise Overlay -->
+  <div class="noise-bg"></div>
+
+  <!-- Custom Cursor -->
+  <div class="custom-cursor" id="customCursor"></div>
+
+  <!-- ===== FIXED HEADER ===== -->
+  <header class="fixed top-0 left-0 w-full h-[72px] z-[1000] flex items-center bg-white/80 backdrop-blur-md border-b border-near-black/5">
+    <div class="w-full max-w-[1200px] mx-auto px-6 md:px-10 flex items-center justify-between">
+      <!-- Back Link -->
+      <a href="../index.html#creators" class="profile-back clickable flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back to Roster
+      </a>
+
+      <!-- SwayHouse Logo -->
+      <a href="../index.html" class="flex items-center gap-2 group logo-element clickable">
+        <svg class="w-[30px] h-[26px] text-coral" viewBox="0 0 40 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 32 V19 L20 11 L28 19 V32 H12 Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" fill="none" />
+          <path d="M3 24 C 13 13, 27 33, 37 22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" />
+        </svg>
+        <span class="font-inter text-sm font-extrabold tracking-tight text-near-black">SwayHouse</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ===== CREATOR HERO SECTION ===== -->
+  <!-- TO DUPLICATE: Replace placeholders below with actual creator data -->
+  <section class="pt-[110px] pb-16 md:pb-24 max-w-[1200px] mx-auto px-6 md:px-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+      
+      <!-- Left: Photo (Span 5) -->
+      <div class="lg:col-span-5 relative group overflow-hidden rounded-2xl border border-near-black/5 bg-neutral-100 flex items-center justify-center aspect-[4/5] shadow-md">
+        <img src="../assets/aditi-pfp.jpg" alt="Aditi" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]">
+      </div>
+
+      <!-- Right: Creator Info & Metrics (Span 7) -->
+      <div class="lg:col-span-7 flex flex-col justify-center">
+        <!-- Managed Badge -->
+        <span class="self-start text-[10px] font-bold uppercase tracking-wider text-coral bg-coral/10 px-3 py-1 rounded-full mb-5 select-none">
+          Managed by SwayHouse
+        </span>
+        
+        <!-- Creator Name -->
+        <h1 class="font-cormorant text-5xl md:text-7xl font-light text-near-black tracking-tight leading-tight mb-2">
+          Aditi
+        </h1>
+        
+        <!-- Category & Location -->
+        <p class="text-xs md:text-sm font-bold uppercase tracking-widest text-neutral-400 mb-8 flex flex-wrap items-center gap-3">
+          <span>Lifestyle & Feel Good</span>
+          <span class="text-neutral-300">•</span>
+          <span>Based in Bangalore, India</span>
+        </p>
+
+
+        <!-- Social CTA Button & Handle -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <a 
+            href="https://www.instagram.com/_aditichandan/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="relative overflow-hidden px-8 py-3.5 rounded-full bg-coral text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 group clickable shadow-md hover:shadow-lg transition-all"
+          >
+            <div class="absolute inset-0 bg-coral-hover scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"></div>
+            <span class="relative z-10 flex items-center gap-2">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+              Follow @_aditichandan
+            </span>
+          </a>
+          
+          <div class="text-xs text-neutral-400">
+            Reach out through SwayHouse for campaign briefs.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===== "FROM ADITI" SECTION (Editorial Card Placeholders) ===== -->
+  <!-- TO DUPLICATE: Swap these blockquote/paragraph placeholders with actual text later -->
+  <section class="bg-linen py-20 border-t border-b border-near-black/5 relative overflow-hidden">
+    <div class="w-full max-w-[1000px] mx-auto px-6 md:px-10 flex flex-col items-center text-center">
+      
+      <!-- Section Title -->
+      <span class="text-[9px] font-bold uppercase tracking-widest text-coral mb-4 select-none">● From Aditi</span>
+      <h2 class="font-cormorant text-4xl md:text-5xl font-light text-near-black mb-10">
+        Personal Philosophy
+      </h2>
+
+      <!-- Card container -->
+      <div class="relative bg-white border border-near-black/5 rounded-2xl p-8 md:p-14 shadow-md max-w-[800px] text-left">
+        <!-- Floating quote icon decoration -->
+        <span class="absolute -top-6 -left-3 font-cormorant text-8xl text-coral/15 select-none leading-none pointer-events-none">“</span>
+        
+        <blockquote class="font-cormorant italic text-lg md:text-2xl text-neutral-600 leading-relaxed relative z-10 mb-6">
+          "Hii I’m Aditi<br><br>I’m passionate about creating content that inspires, connects, and adds value to everyday life. This space is a reflection of my experiences, interests, and the lessons I’m learning along the way."
+        </blockquote>
+
+        <p class="text-xs md:text-sm text-neutral-500 leading-relaxed mb-6 font-inter">
+          This space was created to share the things that bring me joy, inspire me, and make everyday life a little more beautiful. From special milestones to simple moments, I love documenting the journey and bringing you along with me.
+        </p>
+
+        <p class="text-xs md:text-sm text-neutral-500 leading-relaxed mb-6 font-inter">
+          My hope is that whenever you visit this page, you leave feeling inspired, uplifted, or simply reminded to appreciate the little things. Life moves quickly, and I believe there’s something special in finding joy, gratitude, and beauty in the everyday.
+        </p>
+
+        <p class="text-xs md:text-sm text-neutral-500 leading-relaxed font-inter">
+          Thank you for being here. Your support means more than you know, and I’m excited for everything we’ll continue to create and experience together.
+        </p>
+
+        <!-- Editorial signature line -->
+        <div class="mt-8 pt-6 border-t border-near-black/5 flex justify-between items-center">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-neutral-400">With love,</span>
+            <p class="text-sm font-semibold text-near-black mt-0.5">aditi 🤍</p>
+          </div>
+          <svg class="w-8 h-8 text-coral opacity-80" viewBox="0 0 40 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 32 V19 L20 11 L28 19 V32 H12 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none" />
+            <path d="M3 24 C 13 13, 27 33, 37 22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" />
+          </svg>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ===== CREATOR GALLERY SECTION (Masonry Lightbox Placeholders) ===== -->
+  <!-- TO DUPLICATE: Replace svg placeholders with actual <img> tags when photos are ready -->
+  <section class="py-24 max-w-[1200px] mx-auto px-6 md:px-10">
+    
+    <!-- Section Title -->
+    <div class="mb-16 select-none text-center">
+      <h2 class="font-cormorant text-4xl md:text-5xl font-light text-near-black mb-3">
+        Visual Storytelling
+      </h2>
+      <p class="text-xs md:text-sm text-neutral-400 tracking-wider uppercase font-semibold">
+        A look into lifestyle, brand collaboration, and creative direction
+      </p>
+    </div>
+
+    <!-- Masonry Layout Columns -->
+    <div class="columns-1 sm:columns-2 lg:columns-3 gap-6 w-full">
+      
+      <!-- Card 1 -->
+      <div class="masonry-item relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable" onclick="openLightbox('../assets/aditi-gallery-1.jpg', 'Appreciating the quiet, simple moments in everyday life.')">
+        <img src="../assets/aditi-gallery-1.jpg" alt="Gallery Photo 1" class="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-103">
+        <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <span class="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">Zoom View</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Editorial Quote Card -->
+      <div class="masonry-item bg-linen border border-near-black/5 p-8 rounded-xl shadow-sm">
+        <span class="text-[9px] font-bold uppercase tracking-wider text-coral">Perspective</span>
+        <p class="font-cormorant italic text-lg text-neutral-600 leading-relaxed mt-4 mb-4">
+          "Life moves quickly, and I believe there’s something special in finding joy, gratitude, and beauty in the everyday."
+        </p>
+        <span class="text-[10px] font-bold uppercase tracking-wider text-near-black/30">— Aditi</span>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="masonry-item relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable" onclick="openLightbox('../assets/aditi-gallery-2.jpg', 'Finding joy and connection in authentic self-expression.')">
+        <img src="../assets/aditi-gallery-2.jpg" alt="Gallery Photo 2" class="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-103">
+        <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <span class="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">Zoom View</span>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="masonry-item relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable" onclick="openLightbox('../assets/aditi-gallery-3.jpg', 'Surrounding myself with nature\'s beauty and colors.')">
+        <img src="../assets/aditi-gallery-3.jpg" alt="Gallery Photo 3" class="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-103">
+        <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <span class="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">Zoom View</span>
+        </div>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="masonry-item relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable" onclick="openLightbox('../assets/aditi-gallery-4.jpg', 'A gentle reminder to find warmth in small companions.')">
+        <img src="../assets/aditi-gallery-4.jpg" alt="Gallery Photo 4" class="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-103">
+        <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <span class="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">Zoom View</span>
+        </div>
+      </div>
+
+      <!-- Card 6: Text-based Impact Block -->
+      <div class="masonry-item bg-near-black text-white p-8 rounded-xl shadow-md flex flex-col justify-between min-h-[180px]">
+        <div>
+          <span class="text-[9px] font-bold uppercase tracking-wider text-coral">Audience Impact</span>
+          <h3 class="font-cormorant text-2xl font-light text-white leading-snug mt-4">
+            Creating content that drives genuine connection and high-quality reach.
+          </h3>
+        </div>
+        <p class="text-[10px] uppercase tracking-widest text-neutral-400 font-semibold mt-4">Lifestyle & Feel Good</p>
+      </div>
+
+      <!-- Card 7 -->
+      <div class="masonry-item relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable" onclick="openLightbox('../assets/aditi-gallery-5.jpg', 'Lost in a corner of blooms and visual inspirations.')">
+        <img src="../assets/aditi-gallery-5.jpg" alt="Gallery Photo 5" class="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-103">
+        <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <span class="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">Zoom View</span>
+        </div>
+      </div>
+
+      <!-- Card 8 -->
+      <div class="masonry-item relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable" onclick="openLightbox('../assets/aditi-gallery-6.jpg', 'Elegant shapes and sleek contrasts.')">
+        <img src="../assets/aditi-gallery-6.jpg" alt="Gallery Photo 6" class="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-103">
+        <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <span class="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">Zoom View</span>
+        </div>
+      </div>
+
+      <!-- Card 9 -->
+      <div class="masonry-item relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable" onclick="openLightbox('../assets/aditi-gallery-7.jpg', 'Vibrant shades and bold choices.')">
+        <img src="../assets/aditi-gallery-7.jpg" alt="Gallery Photo 7" class="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-103">
+        <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <span class="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">Zoom View</span>
+        </div>
+      </div>
+
+      <!-- Card 10 -->
+      <div class="masonry-item relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable" onclick="openLightbox('../assets/aditi-gallery-8.jpg', 'Confidence in every detail.')">
+        <img src="../assets/aditi-gallery-8.jpg" alt="Gallery Photo 8" class="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-103">
+        <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <span class="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">Zoom View</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== LIGHTBOX DIALOG OVERLAY (Vanilla JS popup) ===== -->
+  <div id="lightboxOverlay" class="fixed inset-0 bg-black/90 z-[3000] opacity-0 pointer-events-none flex flex-col items-center justify-center p-6 transition-all duration-350" onclick="closeLightbox()">
+    
+    <!-- Close icon button -->
+    <button class="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+      <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
+    <!-- Lightbox Image Wrapper -->
+    <div class="max-w-[90vw] max-h-[80vh] overflow-hidden rounded-xl border border-white/10 relative">
+      <img id="lightboxImage" src="" alt="Lightbox Zoom" class="w-auto h-auto max-w-full max-h-[80vh] object-contain" onclick="event.stopPropagation()" />
+    </div>
+
+    <!-- Lightbox Caption -->
+    <p id="lightboxCaption" class="text-white/80 font-cormorant italic text-lg text-center mt-6 max-w-xl" onclick="event.stopPropagation()"></p>
+  </div>
+
+
+  <!-- ===== MINI FOOTER ===== -->
+  <footer class="py-12 border-t border-near-black/5 mt-8 bg-white">
+    <div class="max-w-[1200px] mx-auto px-6 md:px-10 flex flex-col md:flex-row justify-between items-center gap-6">
+      
+      <!-- Brand Logo -->
+      <a href="../index.html" class="flex items-center gap-2 clickable">
+        <svg class="w-6 h-5 text-coral" viewBox="0 0 40 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 32 V19 L20 11 L28 19 V32 H12 Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" fill="none" />
+          <path d="M3 24 C 13 13, 27 33, 37 22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" />
+        </svg>
+        <span class="text-sm font-extrabold tracking-tight text-near-black">SwayHouse</span>
+      </a>
+
+      <!-- Quick Social Contact -->
+      <div class="flex items-center gap-6">
+        <a href="https://instagram.com/swayhousehq" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-coral transition-colors text-xs font-semibold uppercase tracking-wider clickable">
+          Instagram
+        </a>
+        <a href="mailto:hello@swayhouse.in" class="text-neutral-400 hover:text-coral transition-colors text-xs font-semibold uppercase tracking-wider clickable">
+          Contact
+        </a>
+      </div>
+
+      <!-- Copyright -->
+      <p class="text-[11px] text-neutral-400">
+        &copy; 2026 SwayHouse. All rights reserved.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    // Smooth Scroll initialization (Lenis)
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true
+    });
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    // Custom Cursor tracking logic
+    const cursor = document.getElementById('customCursor');
+    if (cursor && window.innerWidth > 768) {
+      gsap.set(cursor, { xPercent: -50, yPercent: -50 });
+      window.addEventListener('mousemove', (e) => {
+        gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.1, ease: 'power2.out' });
+      });
+      document.querySelectorAll('a, button, .clickable').forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+        el.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+      });
+    }
+
+    // Lightbox handlers
+    const lightbox = document.getElementById('lightboxOverlay');
+    const lightboxImg = document.getElementById('lightboxImage');
+    const lightboxCap = document.getElementById('lightboxCaption');
+
+    function openLightbox(src, caption) {
+      if (!lightbox || !lightboxImg || !lightboxCap) return;
+      lightboxImg.src = src;
+      lightboxCap.textContent = caption;
+      lightbox.classList.remove('pointer-events-none');
+      lightbox.style.opacity = '1';
+      document.body.classList.add('lightbox-active');
+    }
+
+    function closeLightbox() {
+      if (!lightbox) return;
+      lightbox.style.opacity = '0';
+      lightbox.classList.add('pointer-events-none');
+      document.body.classList.remove('lightbox-active');
+    }
+
+    // Close lightbox on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeLightbox();
+      }
+    });
+
+    // Simple Entrance animations with GSAP
+    gsap.from('section > div', { 
+      opacity: 0, 
+      y: 40, 
+      duration: 1, 
+      stagger: 0.15,
+      ease: 'power3.out', 
+      delay: 0.1 
+    });
+  </script>
+</body>
+</html>

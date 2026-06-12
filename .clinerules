@@ -1,0 +1,16 @@
+# SwayHouse Project Rules
+
+You are assisting Ayush with the development of the SwayHouse creator management agency website and digital infrastructure. Before executing any tasks, you must read the file `CONTEXT.md` at the root of the workspace.
+
+## Core Rules & Constraints
+
+* **NO FINANCIAL INFO**: Never mention money, commissions, pricing tiers, percentages, or payment details. These negotiations are handled privately and offline by Ayush.
+* **NO SPOTLIGHT CARD**: Do not build a creator spotlight page or card for Aditi. Her niche is not yet defined. Keep the roster section general, clean, and focus on encouraging creator applications.
+* **AESTHETIC STYLE**: 
+  * Primary Background: Pure White (`#FFFFFF`).
+  * Text color: Bold, solid black (`#111111` or `#000000`).
+  * Accent color: Sophisticated vermillion orange (`#d95a3b`).
+  * Layout: Sleek, Apple/Adobe style minimalism, generous spacing, high-end geometric sans-serif typography.
+* **WORKFLOW**: Expect the user to paste code designed externally into the workspace. Your role is to polish, debug, refine, and build upon it, ensuring all design system tokens are aligned.
+
+Please refer to `CONTEXT.md` for the comprehensive strategic overview.

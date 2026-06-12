@@ -1,0 +1,26 @@
+{
+  "name": "swayhouse-website",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@studio-freight/react-lenis": "^0.0.47",
+    "@supabase/supabase-js": "^2.43.4",
+    "autoprefixer": "^10.4.19",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.2.10",
+    "gsap": "^3.12.5",
+    "lucide-react": "^0.395.0",
+    "next": "^14.2.3",
+    "postcss": "^8.4.38",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss": "^3.4.3"
+  }
+}

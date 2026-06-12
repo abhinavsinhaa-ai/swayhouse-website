@@ -1,0 +1,794 @@
+/* SwayHouse Custom Premium CSS Design System */
+
+:root {
+  --coral: #FF6B35;
+  --coral-hover: #E55A2B;
+  --peach: #FF9A5C;
+  --soft-white: #FAFAFA;
+  --near-black: #1A1A1A;
+  --header-height: 72px;
+}
+
+body {
+  background-color: var(--soft-white);
+  color: var(--near-black);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scroll Smoothness support (Lenis) */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Custom Noise/Grain Overlay */
+.noise-bg {
+  position: fixed;
+  inset: -100%;
+  width: 300%;
+  height: 300%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  animation: grain 8s steps(10) infinite;
+}
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -10%); }
+  20% { transform: translate(-15%, 5%); }
+  30% { transform: translate(7%, -25%); }
+  40% { transform: translate(-5%, 25%); }
+  50% { transform: translate(-15%, 10%); }
+  60% { transform: translate(15%, 0%); }
+  75% { transform: translate(10%, -15%); }
+  90% { transform: translate(-10%, 10%); }
+}
+
+/* Custom Cursor Dot */
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  background-color: var(--coral);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease;
+}
+
+.custom-cursor.hovered {
+  width: 48px;
+  height: 48px;
+  background-color: rgba(255, 107, 53, 0.15);
+  border: 1.5px solid var(--coral);
+}
+
+/* Header Scrolled Logic */
+#header.scrolled {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid rgba(26, 26, 26, 0.05);
+}
+
+/* Link Hover Underline draws */
+.link-hover-draw {
+  position: relative;
+}
+
+.link-hover-draw::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background-color: var(--coral);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.link-hover-draw:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Mobile Hamburger Menu */
+#hamburger.active .line-1 {
+  transform: rotate(45deg) translateY(8px);
+}
+#hamburger.active .line-2 {
+  opacity: 0;
+  transform: scale(0);
+}
+#hamburger.active .line-3 {
+  transform: rotate(-45deg) translateY(-8px);
+}
+
+#mobileMenu {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+#mobileMenu.active {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Hero Animations */
+.hero__headline .line-inner {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero__headline .line-inner.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero__underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2.5px;
+  background-color: var(--coral);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.5s;
+}
+
+.hero__headline .line-inner.animate ~ .hero__underline {
+  transform: scaleX(1);
+}
+
+#heroSubtitle.animate,
+#heroCta.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Scroll reveals */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-child {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-child.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* SVG Line Drawing on Scroll */
+.reveal-child svg path,
+.reveal-child svg circle,
+.reveal-child svg polygon,
+.reveal-child svg line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  transition: stroke-dashoffset 2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-child.revealed svg path,
+.reveal-child.revealed svg circle,
+.reveal-child.revealed svg polygon,
+.reveal-child.revealed svg line {
+  stroke-dashoffset: 0;
+}
+
+.reveal-child.revealed svg .svg-path-2 {
+  transition-delay: 0.2s;
+}
+.reveal-child.revealed svg .svg-path-3 {
+  transition-delay: 0.4s;
+}
+.reveal-child.revealed svg .svg-path-4 {
+  transition-delay: 0.6s;
+}
+
+/* =============================================
+ * COMPACT ROSTER CARDS — Grid Layout
+ * ============================================= */
+
+.roster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 28px;
+  justify-items: center;
+}
+
+.roster-card {
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border: 1px solid rgba(26, 26, 26, 0.06);
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s ease;
+  max-width: 340px;
+  width: 100%;
+}
+
+.roster-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 4px 20px rgba(255, 107, 53, 0.06);
+  border-color: rgba(255, 107, 53, 0.15);
+}
+
+/* Compact Photo Area */
+.roster-card__photo {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(255, 154, 92, 0.08) 100%);
+}
+
+.roster-card__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.roster-card:hover .roster-card__photo img {
+  transform: scale(1.04);
+}
+
+.roster-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--coral);
+  opacity: 0.5;
+}
+
+.roster-card__placeholder svg {
+  width: 48px;
+  height: 48px;
+}
+
+/* Card Info Area */
+.roster-card__info {
+  padding: 20px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.roster-card__tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--coral);
+  background: rgba(255, 107, 53, 0.08);
+  padding: 3px 8px;
+  border-radius: 4px;
+  align-self: flex-start;
+  margin-bottom: 2px;
+}
+
+.roster-card__name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.65rem;
+  font-weight: 600;
+  color: var(--near-black);
+  line-height: 1.15;
+  margin: 0;
+}
+
+.roster-card__age {
+  font-size: 12px;
+  font-weight: 500;
+  color: #999;
+  letter-spacing: 0.01em;
+}
+
+.roster-card__bio {
+  font-size: 13px;
+  color: #777;
+  line-height: 1.5;
+  margin-top: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.roster-card__view-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin-top: 10px;
+  transition: gap 0.3s ease;
+}
+
+.roster-card:hover .roster-card__view-link {
+  gap: 10px;
+}
+
+.roster-card__view-link svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.3s ease;
+}
+
+.roster-card:hover .roster-card__view-link svg {
+  transform: translateX(3px);
+}
+
+/* Empty state */
+.creators__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.creators__empty-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--coral);
+  opacity: 0.4;
+  margin-bottom: 16px;
+}
+
+.creators__empty-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.creators__empty-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--near-black);
+  margin: 0;
+}
+
+.creators__empty-sub {
+  font-size: 13px;
+  color: #999;
+  margin-top: 4px;
+}
+
+
+/* =============================================
+ * DEDICATED CREATOR PROFILE PAGE STYLES
+ * ============================================= */
+
+.profile-page {
+  min-height: 100vh;
+  background: var(--soft-white);
+}
+
+/* Back navigation */
+.profile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #888;
+  text-decoration: none;
+  padding: 6px 0;
+  transition: color 0.25s ease, gap 0.3s ease;
+}
+
+.profile-back:hover {
+  color: var(--coral);
+  gap: 12px;
+}
+
+.profile-back svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+.profile-back:hover svg {
+  transform: translateX(-3px);
+}
+
+/* Hero Split Layout */
+.profile-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  min-height: 85vh;
+  align-items: stretch;
+}
+
+.profile-hero__photo {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(255, 154, 92, 0.08) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-hero__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.profile-hero__photo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--coral);
+  opacity: 0.35;
+}
+
+.profile-hero__photo-placeholder svg {
+  width: 80px;
+  height: 80px;
+}
+
+.profile-hero__photo-placeholder span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* Info Side */
+.profile-hero__info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 60px 80px 56px;
+}
+
+.profile-hero__tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--coral);
+  background: rgba(255, 107, 53, 0.08);
+  padding: 5px 12px;
+  border-radius: 4px;
+  align-self: flex-start;
+  margin-bottom: 16px;
+}
+
+.profile-hero__name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 300;
+  line-height: 1.05;
+  color: var(--near-black);
+  margin: 0 0 12px;
+}
+
+.profile-hero__meta {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 32px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid rgba(26, 26, 26, 0.06);
+}
+
+.profile-hero__meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-hero__meta-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #BBB;
+}
+
+.profile-hero__meta-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--near-black);
+}
+
+/* Bio Quote Block */
+.profile-hero__quote {
+  position: relative;
+  margin-bottom: 40px;
+}
+
+.profile-hero__quote-mark {
+  position: absolute;
+  top: -24px;
+  left: -6px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 5rem;
+  color: rgba(255, 107, 53, 0.1);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.profile-hero__quote-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: #666;
+  position: relative;
+  z-index: 1;
+}
+
+/* Instagram CTA Button */
+.profile-instagram-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: var(--coral);
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  align-self: flex-start;
+}
+
+.profile-instagram-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(255, 107, 53, 0.25);
+}
+
+.profile-instagram-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Full Bio Section */
+.profile-bio {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+
+.profile-bio__heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--near-black);
+  margin-bottom: 24px;
+}
+
+.profile-bio__text {
+  font-size: 15px;
+  line-height: 1.85;
+  color: #666;
+  max-width: 640px;
+}
+
+/* Photo Gallery Grid */
+.profile-gallery {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+.profile-gallery__heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--near-black);
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.profile-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.profile-gallery__item {
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.06) 0%, rgba(255, 154, 92, 0.06) 100%);
+}
+
+.profile-gallery__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.profile-gallery__item:hover img {
+  transform: scale(1.03);
+}
+
+.profile-gallery__empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 20px;
+}
+
+.profile-gallery__empty p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: #BBB;
+}
+
+
+/* =============================================
+ * CONTACT FORM & GENERAL UTILITIES
+ * ============================================= */
+
+/* Contact form choice chips styling (updated for coral contact card) */
+.form__choice-btn {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: transparent !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #FFFFFF !important;
+}
+
+.form__choice-btn.active {
+  background-color: #FFFFFF !important;
+  border-color: #FFFFFF !important;
+  color: var(--coral) !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Input Focus states */
+input:focus, textarea:focus {
+  background-color: #FFFFFF !important;
+  border-color: var(--coral) !important;
+}
+
+#formSuccess.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+/* Subtle Shimmer */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.95; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* =============================================
+ * MOBILE RESPONSIVE
+ * ============================================= */
+
+@media (max-width: 768px) {
+  .custom-cursor {
+    display: none !important;
+  }
+  
+  .roster-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .roster-card {
+    max-width: 100%;
+  }
+  
+  .roster-card__photo {
+    height: 200px;
+  }
+  
+  /* Profile page mobile */
+  .profile-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  
+  .profile-hero__photo {
+    height: 50vh;
+    min-height: 300px;
+  }
+  
+  .profile-hero__info {
+    padding: 40px 24px 48px;
+  }
+  
+  .profile-hero__name {
+    font-size: 2.2rem;
+  }
+  
+  .profile-hero__meta {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .profile-gallery__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+}
+
+/* =============================================
+ * PERSISTENT CHROMA BG CONTAINER
+ * ============================================= */
+.chroma-bg-container {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  object-fit: contain !important;
+  pointer-events: none !important;
+  z-index: -999 !important;
+  opacity: 0.08; /* Premium vermillion logo subtle watermark opacity */
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.chroma-bg-container.hidden-state {
+  opacity: 0 !important;
+}
+
