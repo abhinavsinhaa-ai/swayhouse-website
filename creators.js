@@ -21,7 +21,7 @@ With love,
 aditi 🤍`,
     profilePage: "creators/aditi.html",
     images: [
-      "assets/aditi-pfp.jpg",
+      "assets/aditi-pfp-v3.jpg",
       "assets/aditi-gallery-1.jpg",
       "assets/aditi-gallery-2.jpg",
       "assets/aditi-gallery-3.jpg",

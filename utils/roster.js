@@ -20,7 +20,7 @@ Thank you for being here. Your support means more than you know, and I’m excit
 With love,
 aditi 🤍`,
     images: [
-      "/assets/aditi-pfp.jpg",
+      "/assets/aditi-pfp-v3.jpg",
       "/assets/aditi-gallery-1.jpg",
       "/assets/aditi-gallery-2.jpg",
       "/assets/aditi-gallery-3.jpg",
