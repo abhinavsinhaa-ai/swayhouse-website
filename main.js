@@ -7,7 +7,7 @@
   document.addEventListener('DOMContentLoaded', init);
 
   function init() {
-    initLenis();
+
     heroAnimation();
     initScrollAnimations();
     initStickyHeader();
@@ -16,18 +16,7 @@
     initContactForm();
   }
 
-  /* =============================================
-   * LENIS SMOOTH SCROLL
-   * ============================================= */
-  function initLenis() {
-    if (typeof Lenis === 'undefined') return;
-    const lenis = new Lenis({ lerp: 0.08 });
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-  }
+
 
   /* =============================================
    * HERO ANIMATION — exact match to Vercel site

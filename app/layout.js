@@ -1,6 +1,5 @@
 import { Cormorant_Garamond, Inter } from 'next/font/google';
 import './globals.css';
-import LenisProvider from '@/components/LenisProvider';
 import ChromaBg from '@/components/ChromaBg';
 
 const cormorant = Cormorant_Garamond({
@@ -37,9 +36,7 @@ export default function RootLayout({ children }) {
       <body className="font-inter bg-soft-white text-near-black antialiased relative">
         <div className="noise-bg" />
         <ChromaBg />
-        <LenisProvider>
-          {children}
-        </LenisProvider>
+        {children}
       </body>
     </html>
   );
