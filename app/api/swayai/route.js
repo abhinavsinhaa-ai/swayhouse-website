@@ -4,7 +4,12 @@ export async function POST(req) {
   try {
     const { action, details } = await req.json();
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    // Use the environment variable if defined, otherwise fall back to the provided Google AI Studio key
+    let apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey.trim() === '' || apiKey === 'undefined') {
+      apiKey = 'AQ.Ab8RN6K3e_KLRLHkfz0MnAWAPQHLcPXn_DjMSAycCJi4WwMWow';
+    }
+
     if (!apiKey) {
       return NextResponse.json(
         { error: 'Gemini API key is not configured on the server.' },
@@ -47,13 +52,32 @@ Follow these strict output guidelines:
 3. Keep the email body under 150 words.
 4. Output ONLY the email template itself. Do not write intros or explanations before/after the template.
 `;
+    } else if (action === 'chat') {
+      const { message, history } = details;
+      prompt = `
+You are SwayAI, the virtual consultant for SwayHouse, a premium creator management agency. 
+We represent elite creators (launching with lifestyle creator Aditi Chandan, @__aditichandan on Instagram, based in Bangalore, India). 
+Our business is founded by Ayush, who handles all commercial and contract negotiations privately. 
+Our core services include Growth Strategy, Brand Deal Sourcing, Legal & Contract Negotiation, and Campaign Operations. We prioritize custom-tailored strategies over mass signing. The first call is 100% free, and money comes later—we focus on strategy first. We never disclose pricing or rates publicly.
+
+Conversation History:
+${history ? history.map(h => `${h.role === 'user' ? 'User' : 'SwayAI'}: ${h.text}`).join('\n') : ''}
+
+Current User Message: ${message}
+
+Follow these output guidelines:
+1. Keep the answer extremely brief, engaging, and focused on value (no long summaries or walls of text).
+2. Use bullet points and bold headers where appropriate.
+3. Keep the response under 180 words.
+4. If the user wants to collaborate or book a call, direct them to use the "Book a Call" function or fill out the Contact form on the homepage, or message us on Instagram @swayhousehq. Remind them the first call is free.
+`;
     } else {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
     // Call Gemini API
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {

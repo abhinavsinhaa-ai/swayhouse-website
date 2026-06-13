@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, Instagram, Mail, ShieldAlert, Award, Compass, HeartHandshake } from 'lucide-react';
+import { ArrowRight, Instagram, Mail, ShieldAlert, Award, Compass, HeartHandshake, MessageSquare } from 'lucide-react';
 import ContactForm from '@/components/ContactForm';
 import WhatToExpect from '@/components/WhatToExpect';
 import CreatorModal from '@/components/CreatorModal';
@@ -135,6 +135,22 @@ export default function Home() {
             ))}
             
             <a 
+              href="#swayai"
+              onClick={(e) => {
+                e.preventDefault();
+                window.dispatchEvent(new CustomEvent('open-swayai'));
+              }}
+              className="text-xs font-semibold uppercase tracking-wider text-coral hover:text-coral-hover transition-colors flex items-center gap-1.5 py-1 relative"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>SwayAI</span>
+              <span className="flex h-1.5 w-1.5 relative -top-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-coral opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-coral"></span>
+              </span>
+            </a>
+
+            <a 
               href="#what-to-expect" 
               className="relative overflow-hidden px-4 py-2 rounded-full bg-coral text-white text-[10px] font-bold uppercase tracking-wider hover:shadow-[0_4px_15px_rgba(255,107,53,0.2)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 group clickable"
             >
@@ -213,6 +229,21 @@ export default function Home() {
               className="px-6 py-2.5 rounded-full bg-coral text-white text-sm font-bold uppercase tracking-wider hover:bg-coral-hover transition-colors"
             >
               What to Expect
+            </motion.a>
+
+            <motion.a 
+              href="#swayai"
+              onClick={(e) => {
+                e.preventDefault();
+                setMobileMenuOpen(false);
+                window.dispatchEvent(new CustomEvent('open-swayai'));
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 6 * 0.08, duration: 0.5, ease: 'easeOut' }}
+              className="px-6 py-2.5 rounded-full border border-coral text-coral text-sm font-bold uppercase tracking-wider hover:bg-coral hover:text-white transition-colors"
+            >
+              Talk to SwayAI ✨
             </motion.a>
 
             <motion.div 

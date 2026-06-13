@@ -2,14 +2,35 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, ArrowLeft, ArrowRight, Instagram, Mail, Compass, HelpCircle, Loader2, Check } from 'lucide-react';
+import { Sparkles, X, ArrowLeft, ArrowRight, Instagram, Mail, Compass, HelpCircle, Loader2, Check, Mic, Send } from 'lucide-react';
 
 export default function SwayAI() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentScreen, setCurrentScreen] = useState('menu'); // menu | info | audit_form | pitch_form | result | loading
+  const [currentScreen, setCurrentScreen] = useState('menu'); // menu | info | audit_form | pitch_form | chat_session | loading
   const [resultText, setResultText] = useState('');
   const [errorText, setErrorText] = useState('');
-  const [actionType, setActionType] = useState(''); // audit | pitch
+  const [actionType, setActionType] = useState(''); // audit | pitch | chat
+
+  // Chat conversation history
+  const [chatInput, setChatInput] = useState('');
+  const [chatHistory, setChatHistory] = useState([
+    { role: 'model', text: 'Hii! I’m SwayAI. Ask me anything about SwayHouse, creator growth, or how we manage brand deals!' }
+  ]);
+  const [chatLoading, setChatLoading] = useState(false);
+
+  // Info section search input state
+  const [infoSearch, setInfoSearch] = useState('');
+  const [infoSearchResponse, setInfoSearchResponse] = useState('');
+  const [infoSearchLoading, setInfoSearchLoading] = useState(false);
+
+  // Floating notification bubble states
+  const [showCallout, setShowCallout] = useState(true);
+
+  // Speech Recognition states
+  const [isListening, setIsListening] = useState(false);
+  const [listeningTarget, setListeningTarget] = useState('chat'); // chat | info
+  const recognitionRef = useRef(null);
+  const listeningTargetRef = useRef('chat');
 
   // Audit Form States
   const [auditForm, setAuditForm] = useState({
@@ -28,12 +49,78 @@ export default function SwayAI() {
     reason: ''
   });
 
-  // Handle outside click to close
   const sidebarRef = useRef(null);
+  const chatBottomRef = useRef(null);
 
+  // Listen to custom toggle events from the navbar links
+  useEffect(() => {
+    const handleOpenAI = () => {
+      setIsOpen(true);
+      setShowCallout(false);
+    };
+    window.addEventListener('open-swayai', handleOpenAI);
+    return () => window.removeEventListener('open-swayai', handleOpenAI);
+  }, []);
+
+  // Hide callout bubble on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 150) {
+        setShowCallout(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Initialize Speech Recognition API
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+          setIsListening(true);
+        };
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          if (listeningTargetRef.current === 'info') {
+            setInfoSearch(prev => prev + (prev ? ' ' : '') + transcript);
+          } else {
+            setChatInput(prev => prev + (prev ? ' ' : '') + transcript);
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error', event);
+          setIsListening(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+  }, []);
+
+  // Scroll to bottom of chat
+  useEffect(() => {
+    if (chatBottomRef.current) {
+      chatBottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatHistory, chatLoading]);
+
+  // Handle outside click to close
   useEffect(() => {
     function handleOutsideClick(event) {
-      if (isOpen && sidebarRef.current && !sidebarRef.current.contains(event.target) && !event.target.closest('.ai-trigger-btn')) {
+      if (isOpen && sidebarRef.current && !sidebarRef.current.contains(event.target) && !event.target.closest('.ai-trigger-btn') && !event.target.closest('a[href="#swayai"]')) {
         setIsOpen(false);
       }
     }
@@ -41,15 +128,99 @@ export default function SwayAI() {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [isOpen]);
 
-  // Handle form submissions
+  const toggleListening = (target = 'chat') => {
+    listeningTargetRef.current = target;
+    setListeningTarget(target);
+    if (!recognitionRef.current) {
+      alert('Voice transcription is not supported in this browser. Please try Google Chrome, Safari, or Microsoft Edge.');
+      return;
+    }
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+    }
+  };
+
+  // Handle general chat message submission
+  const handleChatSend = async (textToSend) => {
+    const msg = textToSend || chatInput;
+    if (!msg.trim()) return;
+
+    // Add user message to history
+    const updatedHistory = [...chatHistory, { role: 'user', text: msg }];
+    setChatHistory(updatedHistory);
+    setChatInput('');
+    setChatLoading(true);
+    setCurrentScreen('chat_session');
+    setErrorText('');
+
+    try {
+      const response = await fetch('/api/swayai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'chat',
+          details: { message: msg, history: chatHistory.slice(-6) } // Send last 6 messages for context
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Connection error');
+
+      setChatHistory([...updatedHistory, { role: 'model', text: data.result }]);
+    } catch (err) {
+      setChatHistory([...updatedHistory, { role: 'model', text: `⚠️ Error: ${err.message}. Please check your connection.` }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  // Handle Ask Us Anything search inside the Info screen
+  const handleInfoSearchSubmit = async (e) => {
+    e.preventDefault();
+    if (!infoSearch.trim()) return;
+
+    setInfoSearchLoading(true);
+    setInfoSearchResponse('');
+    setErrorText('');
+
+    try {
+      const response = await fetch('/api/swayai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'chat',
+          details: { message: infoSearch, history: [] }
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Connection error');
+
+      setInfoSearchResponse(data.result);
+    } catch (err) {
+      setErrorText(err.message);
+    } finally {
+      setInfoSearchLoading(false);
+    }
+  };
+
+  // Handle specific form submissions
   const handleAuditSubmit = async (e) => {
     e.preventDefault();
     if (!auditForm.handle || !auditForm.followers || !auditForm.goal) return;
 
-    setCurrentScreen('loading');
+    setChatLoading(true);
     setActionType('audit');
     setErrorText('');
     setResultText('');
+    setCurrentScreen('chat_session');
+
+    // Add user prompt to chat log
+    const userMsg = `Generate personalized growth audit for handle: @${auditForm.handle}, followers: ${auditForm.followers}, niche: ${auditForm.niche}, frequency: ${auditForm.frequency}, goal: ${auditForm.goal}`;
+    const tempHistory = [...chatHistory, { role: 'user', text: userMsg }];
+    setChatHistory(tempHistory);
 
     try {
       const response = await fetch('/api/swayai', {
@@ -61,11 +232,11 @@ export default function SwayAI() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to generate audit');
 
-      setResultText(data.result);
-      setCurrentScreen('result');
+      setChatHistory([...tempHistory, { role: 'model', text: data.result }]);
     } catch (err) {
-      setErrorText(err.message || 'Something went wrong. Please try again.');
-      setCurrentScreen('audit_form');
+      setChatHistory([...tempHistory, { role: 'model', text: `⚠️ Error: ${err.message}. Please verify the server setup.` }]);
+    } finally {
+      setChatLoading(false);
     }
   };
 
@@ -73,10 +244,15 @@ export default function SwayAI() {
     e.preventDefault();
     if (!pitchForm.handle || !pitchForm.brand || !pitchForm.reason) return;
 
-    setCurrentScreen('loading');
+    setChatLoading(true);
     setActionType('pitch');
     setErrorText('');
     setResultText('');
+    setCurrentScreen('chat_session');
+
+    const userMsg = `Draft brand pitch email for handle: @${pitchForm.handle}, niche: ${pitchForm.niche}, target brand: ${pitchForm.brand}, value: ${pitchForm.reason}`;
+    const tempHistory = [...chatHistory, { role: 'user', text: userMsg }];
+    setChatHistory(tempHistory);
 
     try {
       const response = await fetch('/api/swayai', {
@@ -88,63 +264,58 @@ export default function SwayAI() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to generate brand pitch');
 
-      setResultText(data.result);
-      setCurrentScreen('result');
+      setChatHistory([...tempHistory, { role: 'model', text: data.result }]);
     } catch (err) {
-      setErrorText(err.message || 'Something went wrong. Please try again.');
-      setCurrentScreen('pitch_form');
+      setChatHistory([...tempHistory, { role: 'model', text: `⚠️ Error: ${err.message}. Please check your connection.` }]);
+    } finally {
+      setChatLoading(false);
     }
   };
 
   const handleBookCall = () => {
     setIsOpen(false);
-    // Smooth scroll to contact section
     const contactSec = document.getElementById('contact');
     if (contactSec) {
       contactSec.scrollIntoView({ behavior: 'smooth' });
-      // Pre-select Creator in contact form if possible
       const creatorBtn = document.querySelector('button[type="button"]');
       if (creatorBtn) creatorBtn.click();
     }
   };
 
-  // Basic Markdown-like renderer for the AI output
+  // Basic Markdown-like renderer for bubble text
   const renderFormattedResult = (text) => {
     if (!text) return null;
     return text.split('\n').map((line, idx) => {
       let content = line.trim();
-      if (!content) return <div key={idx} className="h-3" />;
+      if (!content) return <div key={idx} className="h-2" />;
 
-      // Headers (e.g. ### Header or ## Header)
       if (content.startsWith('###') || content.startsWith('##') || content.startsWith('#')) {
         const cleanHeader = content.replace(/^[#\s]+/, '');
         return (
-          <h4 key={idx} className="font-cormorant text-xl font-bold text-near-black mt-5 mb-2 border-b border-near-black/5 pb-1">
+          <h4 key={idx} className="font-bold text-sm text-near-black mt-3 mb-1.5 border-b border-near-black/5 pb-0.5">
             {cleanHeader}
           </h4>
         );
       }
 
-      // Bullet Points
       if (content.startsWith('-') || content.startsWith('*') || content.startsWith('●')) {
         const cleanBullet = content.replace(/^[-*●\s]+/, '');
         return (
-          <div key={idx} className="flex items-start gap-2.5 my-2.5 pl-1.5 text-xs md:text-sm text-neutral-600 leading-relaxed">
-            <span className="text-coral flex-shrink-0 mt-1.5 text-[10px]">●</span>
+          <div key={idx} className="flex items-start gap-2 my-1 pl-1 text-xs text-neutral-600 leading-relaxed">
+            <span className="text-coral flex-shrink-0 mt-1 text-[8px]">●</span>
             <span>{parseInlineBold(cleanBullet)}</span>
           </div>
         );
       }
 
       return (
-        <p key={idx} className="text-xs md:text-sm text-neutral-500 leading-relaxed my-2">
+        <p key={idx} className="text-xs text-neutral-500 leading-relaxed my-1">
           {parseInlineBold(content)}
         </p>
       );
     });
   };
 
-  // Helper to parse **bold** text in lines
   const parseInlineBold = (str) => {
     const parts = str.split(/\*\*([^*]+)\*\*/g);
     return parts.map((part, index) => {
@@ -157,30 +328,71 @@ export default function SwayAI() {
 
   return (
     <>
-      {/* ===== FLOATING TRIGGER BUTTON ===== */}
-      <div className="fixed left-6 bottom-6 md:top-24 md:left-6 z-[999] select-none">
+      {/* ===== FLOATING TRIGGER BUTTON & CALLOUT ===== */}
+      <div className="fixed left-6 bottom-6 md:top-24 md:left-6 z-[999] select-none flex items-center gap-3">
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setIsOpen(true);
+            setShowCallout(false);
+          }}
           className="ai-trigger-btn flex items-center justify-center w-12 h-12 rounded-full bg-white border border-near-black/5 text-coral shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgba(255,107,53,0.2)] hover:scale-105 hover:border-coral/20 active:scale-95 transition-all duration-300 relative group"
           aria-label="Launch SwayAI"
         >
           <Sparkles className="w-5 h-5 group-hover:animate-pulse" />
-          
-          {/* Subtle pulse ring */}
           <span className="absolute -inset-1 rounded-full bg-coral/10 animate-ping opacity-30 pointer-events-none group-hover:animate-none" />
-          
-          {/* Tooltip */}
-          <span className="absolute left-14 hidden md:group-hover:inline-block px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider text-near-black bg-white border border-near-black/5 rounded-md shadow-md whitespace-nowrap">
-            SwayAI Consultant
-          </span>
         </button>
+
+        {/* Floating welcome bubble callout */}
+        <AnimatePresence>
+          {showCallout && (
+            <motion.div
+              initial={{ opacity: 0, x: -10, scale: 0.95 }}
+              animate={{ 
+                opacity: 1, 
+                x: 0, 
+                scale: [1, 1.03, 1],
+                boxShadow: [
+                  '0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08)',
+                  '0 10px 25px -5px rgba(255, 107, 53, 0.25), 0 8px 10px -6px rgba(255, 107, 53, 0.25)',
+                  '0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08)'
+                ]
+              }}
+              transition={{
+                scale: { repeat: Infinity, duration: 2, ease: "easeInOut" },
+                boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" },
+                default: { duration: 0.3 }
+              }}
+              className="bg-white border border-near-black/5 px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2.5 relative after:content-[''] after:absolute after:right-full after:top-1/2 after:-translate-y-1/2 after:border-[6px] after:border-transparent after:border-r-white before:content-[''] before:absolute before:right-full before:top-1/2 before:-translate-y-1/2 before:border-[7px] before:border-transparent before:border-r-near-black/5 cursor-pointer hover:border-coral/20"
+              onClick={() => {
+                setIsOpen(true);
+                setShowCallout(false);
+              }}
+            >
+              <span className="text-[10px] font-bold uppercase tracking-wider text-near-black flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-coral opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-coral"></span>
+                </span>
+                Chat with SwayAI ✨
+              </span>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowCallout(false);
+                }}
+                className="text-neutral-400 hover:text-near-black p-0.5"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* ===== SIDEBAR PORTAL ===== */}
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Dark blur backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.15 }}
@@ -188,7 +400,6 @@ export default function SwayAI() {
               className="fixed inset-0 bg-black z-[9998] backdrop-blur-[2px]"
             />
 
-            {/* Slide-out Panel */}
             <motion.div
               ref={sidebarRef}
               initial={{ x: '-100%' }}
@@ -197,15 +408,15 @@ export default function SwayAI() {
               transition={{ type: 'spring', damping: 26, stiffness: 220 }}
               className="fixed top-0 left-0 h-screen w-full sm:w-[460px] bg-white border-r border-near-black/5 z-[9999] shadow-2xl flex flex-col justify-between"
             >
-              {/* Sidebar Header */}
-              <div className="p-6 border-b border-near-black/5 flex items-center justify-between bg-soft-white">
+              {/* Header */}
+              <div className="p-6 border-b border-near-black/5 flex items-center justify-between bg-soft-white flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-lg bg-coral/10 text-coral flex items-center justify-center">
                     <Sparkles className="w-4 h-4" />
                   </div>
                   <div>
                     <h3 className="font-cormorant text-lg font-bold text-near-black">SwayAI</h3>
-                    <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-400 block -mt-1">Gemini Pro Enabled</span>
+                    <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-400 block -mt-1">Google Gemini Powered</span>
                   </div>
                 </div>
 
@@ -217,8 +428,8 @@ export default function SwayAI() {
                 </button>
               </div>
 
-              {/* Sidebar Scrollable Body */}
-              <div className="flex-grow overflow-y-auto p-6 no-scrollbar">
+              {/* Scrollable Body */}
+              <div className="flex-grow overflow-y-auto p-6 no-scrollbar flex flex-col">
                 <AnimatePresence mode="wait">
                   {/* --- MENU SCREEN --- */}
                   {currentScreen === 'menu' && (
@@ -229,70 +440,120 @@ export default function SwayAI() {
                       exit={{ opacity: 0, y: -15 }}
                       className="flex flex-col gap-6"
                     >
-                      <div className="mb-2">
-                        <h4 className="font-cormorant text-3xl font-light text-near-black mb-3">
-                          Welcome to SwayAI.
+                      {/* Top Welcome Title */}
+                      <div className="text-left">
+                        <h4 className="font-cormorant text-3xl font-light text-near-black mb-1">
+                          Welcome to SwayAI
                         </h4>
                         <p className="text-xs text-neutral-400 leading-relaxed">
-                          Your virtual creator economy consultant. Get instant strategic support, generate pitch copy, or learn how we scale talent.
+                          Your virtual creator economy consultant. Talk to SwayAI below:
                         </p>
                       </div>
 
-                      {/* Options List */}
+                      {/* Main Open Chat Input Box */}
+                      <div className="bg-soft-white border border-near-black/5 rounded-2xl p-4 flex flex-col gap-3">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-coral">Direct Consult Chat</span>
+                        <div className="flex gap-2">
+                          <div className="relative flex-grow">
+                            <input
+                              type="text"
+                              placeholder="Ask us anything..."
+                              value={chatInput}
+                              onChange={(e) => setChatInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleChatSend();
+                              }}
+                              className="w-full bg-white border border-near-black/5 rounded-xl pl-4 pr-10 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all"
+                            />
+                            {/* Voice Microphone icon */}
+                            <button
+                              type="button"
+                              onClick={() => toggleListening('chat')}
+                              className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full transition-colors ${
+                                isListening && listeningTarget === 'chat'
+                                  ? 'bg-red-500 text-white animate-pulse'
+                                  : 'text-neutral-400 hover:text-near-black'
+                              }`}
+                            >
+                              <Mic className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={() => handleChatSend()}
+                            className="p-3 bg-near-black text-white hover:bg-neutral-800 rounded-xl transition-all active:scale-95"
+                          >
+                            <Send className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="flex items-center gap-3 select-none">
+                        <div className="h-[1px] bg-near-black/5 flex-grow" />
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-400">Quick Actions</span>
+                        <div className="h-[1px] bg-near-black/5 flex-grow" />
+                      </div>
+
+                      {/* Menu Options Grid */}
                       <div className="flex flex-col gap-4">
                         {/* Option 1: What We Offer */}
                         <button
-                          onClick={() => setCurrentScreen('info')}
-                          className="w-full text-left p-5 rounded-xl border border-near-black/5 hover:border-coral/20 hover:shadow-lg transition-all group flex items-start gap-4"
+                          onClick={() => {
+                            setCurrentScreen('info');
+                            setInfoSearchResponse('');
+                            setInfoSearch('');
+                          }}
+                          className="w-full text-left p-4 rounded-xl border border-near-black/5 hover:border-coral/20 hover:shadow-lg transition-all group flex items-start gap-4"
                         >
-                          <div className="w-10 h-10 rounded-lg bg-coral/5 text-coral flex items-center justify-center flex-shrink-0 group-hover:bg-coral group-hover:text-white transition-colors">
-                            <Compass className="w-5 h-5" />
+                          <div className="w-8 h-8 rounded-lg bg-coral/5 text-coral flex items-center justify-center flex-shrink-0 group-hover:bg-coral group-hover:text-white transition-colors">
+                            <Compass className="w-4.5 h-4.5" />
                           </div>
                           <div>
-                            <h5 className="font-semibold text-xs uppercase tracking-wider text-near-black mb-1 group-hover:text-coral transition-colors">Who is SwayHouse & What we offer?</h5>
-                            <p className="text-[11px] text-neutral-400 leading-normal">Explore our strategic business framework and advisory model.</p>
+                            <h5 className="font-semibold text-[11px] uppercase tracking-wider text-near-black mb-0.5 group-hover:text-coral transition-colors">Who is SwayHouse & What we offer?</h5>
+                            <p className="text-[10px] text-neutral-400 leading-normal">Explore our strategic business framework and advisory model.</p>
                           </div>
                         </button>
 
                         {/* Option 2: Growth Plan */}
                         <button
                           onClick={() => setCurrentScreen('audit_form')}
-                          className="w-full text-left p-5 rounded-xl border border-near-black/5 hover:border-coral/20 hover:shadow-lg transition-all group flex items-start gap-4"
+                          className="w-full text-left p-4 rounded-xl border border-near-black/5 hover:border-coral/20 hover:shadow-lg transition-all group flex items-start gap-4"
                         >
-                          <div className="w-10 h-10 rounded-lg bg-coral/5 text-coral flex items-center justify-center flex-shrink-0 group-hover:bg-coral group-hover:text-white transition-colors">
-                            <Sparkles className="w-5 h-5" />
+                          <div className="w-8 h-8 rounded-lg bg-coral/5 text-coral flex items-center justify-center flex-shrink-0 group-hover:bg-coral group-hover:text-white transition-colors">
+                            <Sparkles className="w-4.5 h-4.5" />
                           </div>
                           <div>
-                            <h5 className="font-semibold text-xs uppercase tracking-wider text-near-black mb-1 group-hover:text-coral transition-colors">Personalized Growth Plan</h5>
-                            <p className="text-[11px] text-neutral-400 leading-normal">Submit your stats to receive an instant, custom content audit.</p>
+                            <h5 className="font-semibold text-[11px] uppercase tracking-wider text-near-black mb-0.5 group-hover:text-coral transition-colors">Personalized Growth Plan</h5>
+                            <p className="text-[10px] text-neutral-400 leading-normal">Submit your channel stats to get a custom content strategy audit.</p>
                           </div>
                         </button>
 
                         {/* Option 3: Draft Brand Pitch */}
                         <button
                           onClick={() => setCurrentScreen('pitch_form')}
-                          className="w-full text-left p-5 rounded-xl border border-near-black/5 hover:border-coral/20 hover:shadow-lg transition-all group flex items-start gap-4"
+                          className="w-full text-left p-4 rounded-xl border border-near-black/5 hover:border-coral/20 hover:shadow-lg transition-all group flex items-start gap-4"
                         >
-                          <div className="w-10 h-10 rounded-lg bg-coral/5 text-coral flex items-center justify-center flex-shrink-0 group-hover:bg-coral group-hover:text-white transition-colors">
-                            <Mail className="w-5 h-5" />
+                          <div className="w-8 h-8 rounded-lg bg-coral/5 text-coral flex items-center justify-center flex-shrink-0 group-hover:bg-coral group-hover:text-white transition-colors">
+                            <Mail className="w-4.5 h-4.5" />
                           </div>
                           <div>
-                            <h5 className="font-semibold text-xs uppercase tracking-wider text-near-black mb-1 group-hover:text-coral transition-colors">Draft a Brand Pitch</h5>
-                            <p className="text-[11px] text-neutral-400 leading-normal">Generate a tailored outreach email targeting premium brands.</p>
+                            <h5 className="font-semibold text-[11px] uppercase tracking-wider text-near-black mb-0.5 group-hover:text-coral transition-colors">Draft a Brand Pitch</h5>
+                            <p className="text-[10px] text-neutral-400 leading-normal">Generate a tailored pitch email template for premium brands.</p>
                           </div>
                         </button>
 
                         {/* Option 4: Book Call */}
                         <button
                           onClick={handleBookCall}
-                          className="w-full text-left p-5 rounded-xl border border-near-black/5 hover:border-coral/20 hover:shadow-lg transition-all group flex items-start gap-4"
+                          className="w-full text-left p-4 rounded-xl border border-near-black/5 hover:border-coral/20 hover:shadow-lg transition-all group flex items-start gap-4"
                         >
-                          <div className="w-10 h-10 rounded-lg bg-coral/5 text-coral flex items-center justify-center flex-shrink-0 group-hover:bg-coral group-hover:text-white transition-colors">
-                            <HelpCircle className="w-5 h-5" />
+                          <div className="w-8 h-8 rounded-lg bg-coral/5 text-coral flex items-center justify-center flex-shrink-0 group-hover:bg-coral group-hover:text-white transition-colors">
+                            <HelpCircle className="w-4.5 h-4.5" />
                           </div>
                           <div>
-                            <h5 className="font-semibold text-xs uppercase tracking-wider text-near-black mb-1 group-hover:text-coral transition-colors">Book a Free Consultation</h5>
-                            <p className="text-[11px] text-neutral-400 leading-normal">First call is completely free. Money comes later—let&apos;s plan first.</p>
+                            <h5 className="font-semibold text-[11px] uppercase tracking-wider text-near-black mb-0.5 group-hover:text-coral transition-colors">Book a Free Consultation</h5>
+                            <p className="text-[10px] text-neutral-400 leading-normal">First call is free. Money comes later—let&apos;s build strategy first.</p>
                           </div>
                         </button>
                       </div>
@@ -306,11 +567,11 @@ export default function SwayAI() {
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -15 }}
-                      className="flex flex-col gap-5 text-left"
+                      className="flex flex-col gap-5 text-left w-full"
                     >
                       <button
                         onClick={() => setCurrentScreen('menu')}
-                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors self-start mb-2"
+                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors self-start mb-1"
                       >
                         <ArrowLeft className="w-3.5 h-3.5" /> Back to menu
                       </button>
@@ -318,29 +579,78 @@ export default function SwayAI() {
                       <h4 className="font-cormorant text-2xl font-bold text-near-black">
                         What We Do
                       </h4>
-                      <p className="text-xs text-neutral-500 leading-relaxed mb-4">
+
+                      {/* --- Ask us anything else box --- */}
+                      <form onSubmit={handleInfoSearchSubmit} className="bg-soft-white border border-near-black/5 rounded-xl p-3 flex flex-col gap-2">
+                        <label className="text-[9px] font-bold uppercase tracking-wider text-coral">Ask us anything else</label>
+                        <div className="flex gap-2">
+                          <div className="relative flex-grow">
+                            <input
+                              type="text"
+                              placeholder="e.g. Do you handle legal contracts?"
+                              value={infoSearch}
+                              onChange={(e) => setInfoSearch(e.target.value)}
+                              className="w-full bg-white border border-near-black/5 rounded-lg pl-3 pr-8 py-2 text-xs outline-none focus:ring-1 focus:ring-coral transition-all"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => toggleListening('info')}
+                              className={`absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full transition-colors ${
+                                isListening && listeningTarget === 'info'
+                                  ? 'bg-red-500 text-white animate-pulse'
+                                  : 'text-neutral-400 hover:text-near-black'
+                              }`}
+                            >
+                              <Mic className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <button
+                            type="submit"
+                            disabled={infoSearchLoading}
+                            className="px-3 bg-near-black text-white hover:bg-neutral-800 rounded-lg transition-colors text-xs flex items-center justify-center"
+                          >
+                            {infoSearchLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Ask'}
+                          </button>
+                        </div>
+
+                        {/* Search response display */}
+                        <AnimatePresence>
+                          {infoSearchResponse && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="mt-2 text-xs text-neutral-500 bg-white border border-near-black/5 rounded-lg p-3 max-h-[150px] overflow-y-auto no-scrollbar"
+                            >
+                              {renderFormattedResult(infoSearchResponse)}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </form>
+
+                      <p className="text-xs text-neutral-500 leading-relaxed mb-1">
                         SwayHouse acts as a direct business partner to creators. We handle all operational and strategic execution so talent can focus entirely on creating.
                       </p>
 
-                      <div className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-3">
                         {[
                           { title: "Growth Architecture", desc: "Niche audits, content matrix restructuring, platform distribution strategy." },
                           { title: "Brand Deals", desc: "Sourcing campaigns, outbound pitching, building long-term brand integrations." },
                           { title: "PR & Network Building", desc: "Creator-to-creator network building, event alignments, and campaign exposure." },
                           { title: "Strategic Operations", desc: "Contracts, calendar management, legal compliance, and billing pipelines." }
                         ].map((item, idx) => (
-                          <div key={idx} className="p-4 bg-coral/5 border border-coral/10 rounded-xl">
-                            <h5 className="font-bold text-xs text-near-black mb-1 flex items-center gap-2">
-                              <Check className="w-4 h-4 text-coral" /> {item.title}
+                          <div key={idx} className="p-3.5 bg-coral/5 border border-coral/10 rounded-xl">
+                            <h5 className="font-bold text-xs text-near-black mb-0.5 flex items-center gap-1.5">
+                              <Check className="w-3.5 h-3.5 text-coral" /> {item.title}
                             </h5>
-                            <p className="text-[11px] text-neutral-400 leading-normal pl-6">{item.desc}</p>
+                            <p className="text-[10px] text-neutral-400 leading-normal pl-5">{item.desc}</p>
                           </div>
                         ))}
                       </div>
 
                       <button
                         onClick={handleBookCall}
-                        className="mt-6 w-full py-4 rounded-full bg-coral text-white text-xs font-bold uppercase tracking-wider hover:bg-coral-hover hover:scale-[1.02] active:scale-[0.98] transition-all text-center"
+                        className="mt-2 w-full py-4 rounded-full bg-coral text-white text-xs font-bold uppercase tracking-wider hover:bg-coral-hover hover:scale-[1.02] active:scale-[0.98] transition-all text-center"
                       >
                         Book a Free Call
                       </button>
@@ -354,11 +664,11 @@ export default function SwayAI() {
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -15 }}
-                      className="flex flex-col gap-5 text-left"
+                      className="flex flex-col gap-5 text-left w-full"
                     >
                       <button
                         onClick={() => setCurrentScreen('menu')}
-                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors self-start mb-2"
+                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors self-start mb-1"
                       >
                         <ArrowLeft className="w-3.5 h-3.5" /> Back to menu
                       </button>
@@ -366,12 +676,11 @@ export default function SwayAI() {
                       <h4 className="font-cormorant text-2xl font-bold text-near-black">
                         Growth Plan Audit
                       </h4>
-                      <p className="text-xs text-neutral-400 leading-relaxed mb-2">
+                      <p className="text-xs text-neutral-400 leading-relaxed">
                         Get a data-driven content matrix evaluation instantly powered by Gemini 1.5 Flash.
                       </p>
 
                       <form onSubmit={handleAuditSubmit} className="flex flex-col gap-4">
-                        {/* IG Handle */}
                         <div className="flex flex-col gap-1.5">
                           <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Instagram Handle</label>
                           <input
@@ -384,7 +693,6 @@ export default function SwayAI() {
                           />
                         </div>
 
-                        {/* Followers */}
                         <div className="flex flex-col gap-1.5">
                           <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Follower Count</label>
                           <input
@@ -397,7 +705,6 @@ export default function SwayAI() {
                           />
                         </div>
 
-                        {/* Niche */}
                         <div className="flex flex-col gap-1.5">
                           <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Niche / Category</label>
                           <select
@@ -414,7 +721,6 @@ export default function SwayAI() {
                           </select>
                         </div>
 
-                        {/* Post Frequency */}
                         <div className="flex flex-col gap-1.5">
                           <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Post Frequency (Weekly)</label>
                           <input
@@ -427,7 +733,6 @@ export default function SwayAI() {
                           />
                         </div>
 
-                        {/* End Goal */}
                         <div className="flex flex-col gap-1.5">
                           <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">What is your ultimate goal?</label>
                           <textarea
@@ -439,10 +744,6 @@ export default function SwayAI() {
                             className="w-full bg-soft-white border border-near-black/5 rounded-lg px-4 py-3 text-xs outline-none resize-none focus:ring-1 focus:ring-coral transition-all"
                           />
                         </div>
-
-                        {errorText && (
-                          <p className="text-[10px] text-red-600 bg-red-50 p-2 rounded border border-red-100">{errorText}</p>
-                        )}
 
                         <button
                           type="submit"
@@ -461,11 +762,11 @@ export default function SwayAI() {
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -15 }}
-                      className="flex flex-col gap-5 text-left"
+                      className="flex flex-col gap-5 text-left w-full"
                     >
                       <button
                         onClick={() => setCurrentScreen('menu')}
-                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors self-start mb-2"
+                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors self-start mb-1"
                       >
                         <ArrowLeft className="w-3.5 h-3.5" /> Back to menu
                       </button>
@@ -473,12 +774,11 @@ export default function SwayAI() {
                       <h4 className="font-cormorant text-2xl font-bold text-near-black">
                         Draft a Brand Pitch
                       </h4>
-                      <p className="text-xs text-neutral-400 leading-relaxed mb-2">
+                      <p className="text-xs text-neutral-400 leading-relaxed">
                         Draft a direct, confident outreach email template for pitching brands.
                       </p>
 
                       <form onSubmit={handlePitchSubmit} className="flex flex-col gap-4">
-                        {/* IG Handle */}
                         <div className="flex flex-col gap-1.5">
                           <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Instagram Handle</label>
                           <input
@@ -491,7 +791,6 @@ export default function SwayAI() {
                           />
                         </div>
 
-                        {/* Niche */}
                         <div className="flex flex-col gap-1.5">
                           <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Niche / Category</label>
                           <select
@@ -508,7 +807,6 @@ export default function SwayAI() {
                           </select>
                         </div>
 
-                        {/* Target Brand */}
                         <div className="flex flex-col gap-1.5">
                           <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Target Brand</label>
                           <input
@@ -521,7 +819,6 @@ export default function SwayAI() {
                           />
                         </div>
 
-                        {/* Reason / Alignment */}
                         <div className="flex flex-col gap-1.5">
                           <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Why fits this brand?</label>
                           <textarea
@@ -534,10 +831,6 @@ export default function SwayAI() {
                           />
                         </div>
 
-                        {errorText && (
-                          <p className="text-[10px] text-red-600 bg-red-50 p-2 rounded border border-red-100">{errorText}</p>
-                        )}
-
                         <button
                           type="submit"
                           className="mt-2 w-full py-4 rounded-full bg-coral text-white text-xs font-bold uppercase tracking-wider hover:bg-coral-hover hover:scale-[1.02] active:scale-[0.98] transition-all text-center"
@@ -548,55 +841,95 @@ export default function SwayAI() {
                     </motion.div>
                   )}
 
-                  {/* --- LOADING SCREEN --- */}
-                  {currentScreen === 'loading' && (
+                  {/* --- ACTIVE CHAT SESSION SCREEN --- */}
+                  {currentScreen === 'chat_session' && (
                     <motion.div
-                      key="loading"
+                      key="chat_session"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="h-full flex flex-col items-center justify-center text-center py-20"
+                      className="flex-grow flex flex-col justify-between h-full min-h-[400px] w-full"
                     >
-                      <Loader2 className="w-10 h-10 text-coral animate-spin mb-4" />
-                      <h4 className="font-cormorant text-2xl font-bold text-near-black mb-2">Analyzing Data</h4>
-                      <p className="text-xs text-neutral-400 max-w-xs leading-normal">
-                        Gemini 1.5 Flash is generating your customized strategy. This will take just a few seconds...
-                      </p>
-                    </motion.div>
-                  )}
-
-                  {/* --- RESULT SCREEN --- */}
-                  {currentScreen === 'result' && (
-                    <motion.div
-                      key="result"
-                      initial={{ opacity: 0, scale: 0.98 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex flex-col text-left"
-                    >
+                      {/* Back button to return to menu */}
                       <button
-                        onClick={() => setCurrentScreen(actionType === 'audit' ? 'audit_form' : 'pitch_form')}
+                        onClick={() => setCurrentScreen('menu')}
                         className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors self-start mb-4"
                       >
-                        <ArrowLeft className="w-3.5 h-3.5" /> Back to details
+                        <ArrowLeft className="w-3.5 h-3.5" /> Back to menu
                       </button>
 
-                      <div className="bg-coral/5 border border-coral/10 rounded-xl p-5 mb-6 shadow-sm overflow-x-hidden">
-                        {renderFormattedResult(resultText)}
+                      {/* Chat messages stream */}
+                      <div className="flex-grow overflow-y-auto flex flex-col gap-4 mb-4 pr-1 max-h-[50vh] no-scrollbar">
+                        {chatHistory.map((msg, index) => (
+                          <div
+                            key={index}
+                            className={`flex flex-col max-w-[85%] ${
+                              msg.role === 'user' ? 'self-end items-end' : 'self-start items-start'
+                            }`}
+                          >
+                            <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+                              {msg.role === 'user' ? 'You' : 'SwayAI'}
+                            </span>
+                            <div
+                              className={`rounded-2xl p-4 text-xs shadow-sm leading-relaxed ${
+                                msg.role === 'user'
+                                  ? 'bg-near-black text-white rounded-tr-none'
+                                  : 'bg-coral/5 border border-coral/10 text-near-black rounded-tl-none'
+                              }`}
+                            >
+                              {msg.role === 'user' ? msg.text : renderFormattedResult(msg.text)}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Loading bubble while thinking */}
+                        {chatLoading && (
+                          <div className="self-start flex flex-col items-start max-w-[80%]">
+                            <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+                              SwayAI
+                            </span>
+                            <div className="bg-coral/5 border border-coral/10 rounded-2xl rounded-tl-none p-4 flex items-center gap-2 text-xs text-neutral-400">
+                              <Loader2 className="w-3.5 h-3.5 text-coral animate-spin" />
+                              <span>Thinking...</span>
+                            </div>
+                          </div>
+                        )}
+
+                        <div ref={chatBottomRef} />
                       </div>
 
-                      <div className="flex flex-col gap-3">
+                      {/* Chat input box at the bottom */}
+                      <div className="flex gap-2 border-t border-near-black/5 pt-4 bg-white sticky bottom-0">
+                        <div className="relative flex-grow">
+                          <input
+                            type="text"
+                            placeholder="Type a message..."
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleChatSend();
+                            }}
+                            className="w-full bg-soft-white border border-near-black/5 rounded-xl pl-4 pr-10 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => toggleListening('chat')}
+                            className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full transition-colors ${
+                              isListening && listeningTarget === 'chat'
+                                ? 'bg-red-500 text-white animate-pulse'
+                                : 'text-neutral-400 hover:text-near-black'
+                            }`}
+                          >
+                            <Mic className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
                         <button
-                          onClick={handleBookCall}
-                          className="w-full py-4 rounded-full bg-coral text-white text-xs font-bold uppercase tracking-wider hover:bg-coral-hover hover:scale-[1.02] active:scale-[0.98] transition-all text-center shadow-md"
+                          onClick={() => handleChatSend()}
+                          disabled={chatLoading}
+                          className="p-3 bg-near-black text-white hover:bg-neutral-800 rounded-xl transition-all active:scale-95 disabled:opacity-50"
                         >
-                          Claim Your Free Consultation Call
-                        </button>
-                        <button
-                          onClick={() => setCurrentScreen('menu')}
-                          className="w-full py-3.5 rounded-full bg-white border border-near-black/5 text-neutral-500 text-xs font-bold uppercase tracking-wider hover:text-near-black hover:bg-neutral-50 transition-all text-center"
-                        >
-                          Return to Main Menu
+                          <Send className="w-4 h-4" />
                         </button>
                       </div>
                     </motion.div>
@@ -605,7 +938,7 @@ export default function SwayAI() {
               </div>
 
               {/* Sidebar Footer */}
-              <div className="p-6 border-t border-near-black/5 bg-soft-white text-center select-none flex flex-col gap-2">
+              <div className="p-6 border-t border-near-black/5 bg-soft-white text-center select-none flex flex-col gap-2 flex-shrink-0">
                 <span className="font-cormorant italic text-xs text-neutral-400">You Create. We Elevate.</span>
                 <div className="flex gap-4 justify-center">
                   <a href="https://instagram.com/swayhousehq" target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors flex items-center gap-1">
