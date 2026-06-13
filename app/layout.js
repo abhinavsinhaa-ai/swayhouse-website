@@ -1,6 +1,7 @@
 import { Cormorant_Garamond, Inter } from 'next/font/google';
 import './globals.css';
 import ChromaBg from '@/components/ChromaBg';
+import SwayAI from '@/components/SwayAI';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -36,6 +37,7 @@ export default function RootLayout({ children }) {
       <body className="font-inter bg-soft-white text-near-black antialiased relative">
         <div className="noise-bg" />
         <ChromaBg />
+        <SwayAI />
         {children}
       </body>
     </html>
