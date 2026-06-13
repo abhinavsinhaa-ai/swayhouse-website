@@ -111,7 +111,7 @@ Follow these output guidelines:
     }
 
     const data = await response.json();
-    const reply = data.contents?.[0]?.parts?.[0]?.text || 'No response generated.';
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || data.contents?.[0]?.parts?.[0]?.text || 'No response generated.';
 
     return NextResponse.json({ result: reply });
   } catch (err) {
