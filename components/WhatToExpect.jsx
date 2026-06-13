@@ -15,81 +15,51 @@ export default function WhatToExpect() {
   };
 
   const creatorsDo = [
-    "Help creators position themselves properly in the market",
-    "Understand their niche, audience, and content direction",
-    "Improve profile presentation and brand appeal",
-    "Support creator growth through strategy and guidance",
-    "Help with brand deal opportunities and brand communication",
-    "Help manage campaigns and creator-brand coordination",
-    "Track progress and keep things organized and professional",
-    "Give honest feedback instead of empty hype",
-    "Build long-term creator value, not just one-off attention"
+    "Position you in the market with a custom brand & content distribution strategy",
+    "Handle all incoming brand communications and pitch targeted partnerships",
+    "Manage contracts, legal terms, and negotiate premium commercial rates",
+    "Provide operational support (billing, calendars) to free up your creative time"
   ];
 
   const creatorsDont = [
-    "We do not promise generic guaranteed brand deals — realistic timelines for securing campaigns are discussed and established personally with each creator",
-    "We do not inflate expectations with fake claims",
-    "We do not buy followers, fake engagement, or use shady growth tactics",
-    "We do not work without clarity, professionalism, or commitment",
-    "We do not treat creators like disposable numbers",
-    "We do not hide communication or keep creators confused",
-    "We do not push creators into things that do not fit their brand",
-    "We do not overpromise results we cannot control"
+    "We do not use templates — every strategy is hand-tailored to your unique niche",
+    "We do not work with hidden fees — pricing negotiations are transparent and private",
+    "We do not buy fake followers or use inorganic growth tactics"
   ];
 
   const creatorsFor = [
-    "Creators who are serious about growth",
-    "Creators who want professional support",
-    "Creators who want to build a real brand",
-    "Creators who are open to collaboration, structure, and consistency",
-    "Creators who want someone to handle the business side with them"
+    "Creators serious about scaling their personal brand professionally",
+    "Creators seeking a dedicated business partner to handle operations"
   ];
 
   const creatorsHow = [
-    "Creator reaches out through the contact form",
-    "We review their profile and background",
-    "If there is a fit, we schedule a one-on-one call",
-    "After the call, we explain next steps clearly",
-    "If both sides agree, we move forward professionally"
+    "Reach out through the contact form or Instagram",
+    "15-minute discovery call to evaluate alignment",
+    "Execute structured custom growth and campaign strategy"
   ];
 
   const brandsDo = [
-    "Match brands with creators that actually fit",
-    "Manage creator outreach and communication",
-    "Help structure campaign planning and coordination",
-    "Assist with creator sourcing and selection",
-    "Support content direction and campaign execution",
-    "Keep the process organized, smooth, and professional",
-    "Help brands save time by handling creator-side communication",
-    "Focus on quality, alignment, and results",
-    "Keep brand communication clear and clean from start to finish"
+    "Match your campaigns with highly aligned creators who fit your goals",
+    "Streamline campaign execution from selection to final content delivery",
+    "Handle all talent-side communication, contract compliance, and reporting",
+    "Save campaign hours by acting as a single, organized point of contact"
   ];
 
   const brandsDont = [
-    "We do not spam random creators to fill a campaign",
-    "We do not misrepresent creators or overstate their value",
-    "We do not promise unrealistic reach, sales, or viral results",
-    "We do not hide important campaign details",
-    "We do not work in a messy, unorganized way",
-    "We do not make the brand experience feel complicated",
-    "We do not show irrelevant creators just to look busy",
-    "We do not publish pricing publicly on the website"
+    "We do not spam mass creators — we pitch only selective, vetted matches",
+    "We do not misrepresent engagement or creator channel metrics",
+    "We do not add layer upon layer of agency overhead"
   ];
 
   const brandsFor = [
-    "Brands looking for creator collaborations",
-    "Brands that want a structured, reliable process",
-    "Brands that want aligned creators",
-    "Brands that value communication and quality",
-    "Brands that want a professional agency partner"
+    "Brands looking for reliable, structured creator collaborations",
+    "Marketing teams seeking a professional, high-touch agency partner"
   ];
 
   const brandsHow = [
-    "Brand fills out the contact form",
-    "We understand their campaign goal, timeline, and requirements",
-    "We review the brief and discuss fit on a one-on-one call",
-    "We then coordinate the creator-side process clearly and professionally",
-    "The brand gets a smooth, managed experience instead of chaos"
+    "Submit brief via contact form or email",
+    "Brief alignment call to establish requirements",
+    "Seamless execution and managed campaign delivery"
   ];
 
   return (

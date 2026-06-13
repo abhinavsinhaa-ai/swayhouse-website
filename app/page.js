@@ -812,9 +812,6 @@ export default function Home() {
                   <a href="mailto:hello@swayhouse.in" className="text-base font-semibold text-near-black hover:text-coral transition-colors w-max clickable">
                     hello@swayhouse.in
                   </a>
-                  <a href="mailto:contact.swayhouse@gmail.com" className="text-sm text-neutral-400 hover:text-coral transition-colors w-max clickable mt-0.5">
-                    contact.swayhouse@gmail.com
-                  </a>
                 </div>
                 
                 <div className="flex flex-col gap-1">
