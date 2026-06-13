@@ -8,7 +8,6 @@
 
   function init() {
     initLenis();
-    initCursor();
     heroAnimation();
     initScrollAnimations();
     initStickyHeader();
@@ -28,17 +27,6 @@
       requestAnimationFrame(raf);
     }
     requestAnimationFrame(raf);
-  }
-
-  /* =============================================
-   * CURSOR — zero-lag simple dot (Vercel style)
-   * ============================================= */
-  function initCursor() {
-    const cursor = document.getElementById('customCursor');
-    if (!cursor || window.innerWidth < 768) return;
-    document.addEventListener('mousemove', (e) => {
-      cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
-    }, { passive: true });
   }
 
   /* =============================================

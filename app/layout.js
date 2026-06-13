@@ -1,6 +1,5 @@
 import { Cormorant_Garamond, Inter } from 'next/font/google';
 import './globals.css';
-import CustomCursor from '@/components/CustomCursor';
 import LenisProvider from '@/components/LenisProvider';
 import ChromaBg from '@/components/ChromaBg';
 
@@ -39,7 +38,6 @@ export default function RootLayout({ children }) {
         <div className="noise-bg" />
         <ChromaBg />
         <LenisProvider>
-          <CustomCursor />
           {children}
         </LenisProvider>
       </body>
