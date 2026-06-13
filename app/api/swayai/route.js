@@ -12,22 +12,10 @@ export async function POST(req) {
         .filter(k => k.length > 0 && k !== 'undefined' && k !== 'null');
     }
 
-    // Default fallback keys (can be populated with backup keys)
-    const fallbackKeys = [
-      'AQ.Ab8RN6K3e_KLRLHkfz0MnAWAPQHLcPXn_DjMSAycCJi4WwMWow',
-    ];
-
-    if (apiKeys.length === 0) {
-      apiKeys = fallbackKeys;
-    }
-
     // Configure Groq API key (used as an ultimate fallback if all Gemini configurations fail)
     let groqApiKey = process.env.GROQ_API_KEY;
     if (groqApiKey) {
       groqApiKey = groqApiKey.trim().replace(/^["']|["']$/g, '');
-    }
-    if (!groqApiKey || groqApiKey === '' || groqApiKey === 'undefined' || groqApiKey === 'null') {
-      groqApiKey = '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';
     }
 
     // Configure OpenRouter API key (used as a fallback if other APIs fail)
@@ -35,8 +23,12 @@ export async function POST(req) {
     if (openRouterApiKey) {
       openRouterApiKey = openRouterApiKey.trim().replace(/^["']|["']$/g, '');
     }
-    if (!openRouterApiKey || openRouterApiKey === '' || openRouterApiKey === 'undefined' || openRouterApiKey === 'null') {
-      openRouterApiKey = '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';
+
+    if (apiKeys.length === 0 && !groqApiKey && !openRouterApiKey) {
+      return NextResponse.json(
+        { error: 'No API keys configured on the server. Please set GEMINI_API_KEY, GROQ_API_KEY, or OPENROUTER_API_KEY in your environment.' },
+        { status: 500 }
+      );
     }
 
     let prompt = '';
