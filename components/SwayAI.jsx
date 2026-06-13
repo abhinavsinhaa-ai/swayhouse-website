@@ -37,7 +37,7 @@ export default function SwayAI() {
     handle: '',
     followers: '',
     niche: 'Lifestyle & Feel Good',
-    frequency: '3-5 times',
+    frequency: '3 to 5 times a week',
     goal: ''
   });
 
@@ -677,7 +677,7 @@ export default function SwayAI() {
                         Growth Plan Audit
                       </h4>
                       <p className="text-xs text-neutral-400 leading-relaxed">
-                        Get a data-driven content matrix evaluation instantly powered by Gemini 1.5 Flash.
+                        Get a data-driven content matrix evaluation instantly powered by Gemini 2.5 Flash.
                       </p>
 
                       <form onSubmit={handleAuditSubmit} className="flex flex-col gap-4">
@@ -723,14 +723,18 @@ export default function SwayAI() {
 
                         <div className="flex flex-col gap-1.5">
                           <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Post Frequency (Weekly)</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. 3-4 reels"
-                            required
+                          <select
                             value={auditForm.frequency}
                             onChange={(e) => setAuditForm({ ...auditForm, frequency: e.target.value })}
                             className="w-full bg-soft-white border border-near-black/5 rounded-lg px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all"
-                          />
+                          >
+                            <option>1 time a week</option>
+                            <option>A few times a week</option>
+                            <option>3 to 5 times a week</option>
+                            <option>Daily</option>
+                            <option>Not decided yet</option>
+                            <option>About to increase frequency</option>
+                          </select>
                         </div>
 
                         <div className="flex flex-col gap-1.5">
