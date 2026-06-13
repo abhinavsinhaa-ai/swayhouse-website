@@ -21,6 +21,24 @@ export async function POST(req) {
       apiKeys = fallbackKeys;
     }
 
+    // Configure Groq API key (used as an ultimate fallback if all Gemini configurations fail)
+    let groqApiKey = process.env.GROQ_API_KEY;
+    if (groqApiKey) {
+      groqApiKey = groqApiKey.trim().replace(/^["']|["']$/g, '');
+    }
+    if (!groqApiKey || groqApiKey === '' || groqApiKey === 'undefined' || groqApiKey === 'null') {
+      groqApiKey = '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';
+    }
+
+    // Configure OpenRouter API key (used as a fallback if other APIs fail)
+    let openRouterApiKey = process.env.OPENROUTER_API_KEY;
+    if (openRouterApiKey) {
+      openRouterApiKey = openRouterApiKey.trim().replace(/^["']|["']$/g, '');
+    }
+    if (!openRouterApiKey || openRouterApiKey === '' || openRouterApiKey === 'undefined' || openRouterApiKey === 'null') {
+      openRouterApiKey = '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';
+    }
+
     let prompt = '';
 
     if (action === 'audit') {
@@ -216,9 +234,97 @@ Current User Message: ${message}
       }
     }
 
+    // Ultimate Fallback: Try Groq API (Llama 3.3 70B) if all Gemini configurations fail
+    if (!success && groqApiKey) {
+      try {
+        console.log(`Gemini API exhausted. Attempting Groq fallback (llama-3.3-70b-versatile)...`);
+        const response = await fetch(
+          'https://api.groq.com/openai/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${groqApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'llama-3.3-70b-versatile',
+              messages: [
+                {
+                  role: 'user',
+                  content: prompt,
+                },
+              ],
+              temperature: 0.7,
+              max_tokens: 2048,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          reply = data.choices?.[0]?.message?.content;
+          if (reply) {
+            success = true;
+            console.log(`Successfully generated response using Groq fallback (llama-3.3-70b-versatile)`);
+          }
+        } else {
+          const errText = await response.text();
+          console.error(`Groq API Error:`, errText);
+          lastErrorText = `Groq fallback failed: ${errText}`;
+        }
+      } catch (err) {
+        console.error(`Groq Fetch error:`, err);
+        lastErrorText = `Groq fallback error: ${err.message}`;
+      }
+    }
+
+    // Ultimate Fallback 2: Try OpenRouter API (Gemini 2.5 Flash via OpenRouter)
+    if (!success && openRouterApiKey) {
+      try {
+        console.log(`Gemini & Groq APIs exhausted. Attempting OpenRouter fallback (google/gemini-2.5-flash)...`);
+        const response = await fetch(
+          'https://openrouter.ai/api/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openRouterApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              messages: [
+                {
+                  role: 'user',
+                  content: prompt,
+                },
+              ],
+              temperature: 0.7,
+              max_tokens: 1024, // Keep within user's OpenRouter credit limits
+            }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          reply = data.choices?.[0]?.message?.content;
+          if (reply) {
+            success = true;
+            console.log(`Successfully generated response using OpenRouter fallback (google/gemini-2.5-flash)`);
+          }
+        } else {
+          const errText = await response.text();
+          console.error(`OpenRouter API Error:`, errText);
+          lastErrorText = `OpenRouter fallback failed: ${errText}`;
+        }
+      } catch (err) {
+        console.error(`OpenRouter Fetch error:`, err);
+        lastErrorText = `OpenRouter fallback error: ${err.message}`;
+      }
+    }
+
     if (!success) {
       return NextResponse.json(
-        { error: `Failed to generate response from Gemini API. Details: ${lastErrorText}` },
+        { error: `Failed to generate response from all available API configurations. Details: ${lastErrorText}` },
         { status: 500 }
       );
     }
