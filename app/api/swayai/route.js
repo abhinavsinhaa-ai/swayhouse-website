@@ -36,7 +36,7 @@ Follow these strict output guidelines:
 3. Suggest exactly 3 concrete, highly specific content format ideas that fit their niche and goal.
 4. Keep the total word count under 250 words.
 5. End with this exact call to action (customized with their name): 
-"💡 This is a quick algorithmic evaluation. To get a manual channel audit and build a pitch deck for premium brands, scroll down and book a free consultation call with Ayush."
+"💡 This is a quick algorithmic evaluation. To get a manual channel audit and build a pitch deck for premium brands, scroll down and book a free consultation call with Abhinav."
 `;
     } else if (action === 'pitch') {
       const { handle, niche, brand, reason } = details;
@@ -65,7 +65,7 @@ SwayHouse Core Identity & Context:
    - Brand Deal Sourcing & Outbound Pitching
    - Legal, Billing & Contract Negotiation
    - Campaign Operations & Administrative Management
-4. Commercial Strategy: The first consultation call is 100% free (strategy first, money comes later). We never disclose commission percentages or management fee splits publicly. Ayush is the founder and handles all commercial deals, partnerships, and operations.
+4. Commercial Strategy: The first consultation call is 100% free (strategy first, money comes later). We never disclose commission percentages or management fee splits publicly. Abhinav Sinha (@abhinaavsinha on Instagram, who has built sites like abhinavsinha.online and done extensive work in this space) is the founder and handles all commercial deals, partnerships, and operations.
 5. Tech Stack: Next.js 14 App Router, TailwindCSS, GSAP, Framer Motion, and Supabase integration.
 
 Your Role & Response Guidelines:
