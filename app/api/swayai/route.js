@@ -4,13 +4,21 @@ export async function POST(req) {
   try {
     const { action, details } = await req.json();
 
-    // Use the environment variable if defined, otherwise fall back to the provided Google AI Studio key
-    let apiKey = process.env.GEMINI_API_KEY;
-    if (apiKey) {
-      apiKey = apiKey.trim().replace(/^["']|["']$/g, '');
+    // Use the environment variable if defined (supports comma-separated list of keys for rotation)
+    let apiKeys = [];
+    if (process.env.GEMINI_API_KEY) {
+      apiKeys = process.env.GEMINI_API_KEY.split(',')
+        .map(k => k.trim().replace(/^["']|["']$/g, ''))
+        .filter(k => k.length > 0 && k !== 'undefined' && k !== 'null');
     }
-    if (!apiKey || apiKey === '' || apiKey === 'undefined' || apiKey === 'null') {
-      apiKey = 'AQ.Ab8RN6K3e_KLRLHkfz0MnAWAPQHLcPXn_DjMSAycCJi4WwMWow';
+
+    // Default fallback keys (can be populated with backup keys)
+    const fallbackKeys = [
+      'AQ.Ab8RN6K3e_KLRLHkfz0MnAWAPQHLcPXn_DjMSAycCJi4WwMWow',
+    ];
+
+    if (apiKeys.length === 0) {
+      apiKeys = fallbackKeys;
     }
 
     let prompt = '';
@@ -135,7 +143,7 @@ Current User Message: ${message}
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
-    // Call Gemini API with fallback models to ensure robust performance even under quota limits
+    // Call Gemini API with model fallback and API key rotation pool to ensure high availability
     let lastErrorText = '';
     let success = false;
     let reply = '';
@@ -147,62 +155,64 @@ Current User Message: ${message}
       { name: 'gemini-flash-latest', useThinking: false }
     ];
 
-    for (const modelConfig of modelsToTry) {
-      try {
-        console.log(`Attempting Gemini API call with model: ${modelConfig.name}`);
-        const generationConfig = {
-          temperature: 0.7,
-          maxOutputTokens: 2048,
-        };
-        if (modelConfig.useThinking) {
-          generationConfig.thinkingConfig = {
-            thinkingBudget: 0
+    modelLoop: for (const modelConfig of modelsToTry) {
+      for (const currentKey of apiKeys) {
+        try {
+          console.log(`Attempting Gemini API call: model=${modelConfig.name}, keyPrefix=${currentKey.slice(0, 8)}...`);
+          const generationConfig = {
+            temperature: 0.7,
+            maxOutputTokens: 2048,
           };
-        }
-
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${modelConfig.name}:generateContent?key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              contents: [
-                {
-                  parts: [
-                    {
-                      text: prompt,
-                    },
-                  ],
-                },
-              ],
-              generationConfig,
-            }),
+          if (modelConfig.useThinking) {
+            generationConfig.thinkingConfig = {
+              thinkingBudget: 0
+            };
           }
-        );
 
-        if (!response.ok) {
-          const errText = await response.text();
-          console.error(`Gemini API Error for model ${modelConfig.name}:`, errText);
-          lastErrorText = errText;
-          continue; // Try next model
-        }
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${modelConfig.name}:generateContent?key=${currentKey}`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                contents: [
+                  {
+                    parts: [
+                      {
+                        text: prompt,
+                      },
+                    ],
+                  },
+                ],
+                generationConfig,
+              }),
+            }
+          );
 
-        const data = await response.json();
-        reply = data.candidates?.[0]?.content?.parts?.[0]?.text || data.contents?.[0]?.parts?.[0]?.text;
-        
-        if (reply) {
-          success = true;
-          console.log(`Successfully generated response using model: ${modelConfig.name}`);
-          break;
-        } else {
-          console.warn(`Model ${modelConfig.name} succeeded but returned empty content.`);
-          lastErrorText = 'Empty response from model';
+          if (!response.ok) {
+            const errText = await response.text();
+            console.error(`Gemini API Error for model ${modelConfig.name} (keyPrefix=${currentKey.slice(0, 8)}):`, errText);
+            lastErrorText = errText;
+            continue; // Try next API key for this model
+          }
+
+          const data = await response.json();
+          reply = data.candidates?.[0]?.content?.parts?.[0]?.text || data.contents?.[0]?.parts?.[0]?.text;
+          
+          if (reply) {
+            success = true;
+            console.log(`Successfully generated response using model: ${modelConfig.name}`);
+            break modelLoop; // Exit both loops on success
+          } else {
+            console.warn(`Model ${modelConfig.name} succeeded but returned empty content.`);
+            lastErrorText = 'Empty response from model';
+          }
+        } catch (err) {
+          console.error(`Fetch error for model ${modelConfig.name}:`, err);
+          lastErrorText = err.message;
         }
-      } catch (err) {
-        console.error(`Fetch error for model ${modelConfig.name}:`, err);
-        lastErrorText = err.message;
       }
     }
 
