@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server';
+import { supabase } from '@/utils/supabase';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
   try {
@@ -351,6 +354,28 @@ Current User Message: ${message}
         { error: `Failed to generate response from all available API configurations. Details: ${lastErrorText}` },
         { status: 500 }
       );
+    }
+
+    // Log the interaction to Supabase (non-blocking for the HTTP response)
+    try {
+      const sessId = details?.sessionId || 'unknown-session';
+      let userMessageContent = '';
+      if (action === 'chat') {
+        userMessageContent = details.message;
+      } else if (action === 'audit') {
+        userMessageContent = `[Form Submission - Audit] Growth audit request for @${details.handle} (${details.followers} followers, ${details.niche}). Goal: ${details.goal}`;
+      } else if (action === 'pitch') {
+        userMessageContent = `[Form Submission - Pitch] Brand pitch request for @${details.handle} targeting ${details.brand}. Reason: ${details.reason}`;
+      }
+
+      if (userMessageContent && reply) {
+        await supabase.from('swayai_chat_messages').insert([
+          { session_id: sessId, role: 'user', message: userMessageContent },
+          { session_id: sessId, role: 'model', message: reply }
+        ]);
+      }
+    } catch (dbErr) {
+      console.error('Error logging chat message to Supabase:', dbErr);
     }
 
     return NextResponse.json({ result: reply });

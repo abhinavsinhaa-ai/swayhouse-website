@@ -11,12 +11,18 @@ export default function SwayAI() {
   const [errorText, setErrorText] = useState('');
   const [actionType, setActionType] = useState(''); // audit | pitch | chat
 
+  const [sessionId, setSessionId] = useState('');
   // Chat conversation history
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState([
     { role: 'model', text: 'Hii! I’m SwayAI. Ask me anything about SwayHouse, creator growth, or how we manage brand deals!' }
   ]);
   const [chatLoading, setChatLoading] = useState(false);
+
+  // Initialize unique session ID on mount
+  useEffect(() => {
+    setSessionId('sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now().toString(36));
+  }, []);
 
   // Info section search input state
   const [infoSearch, setInfoSearch] = useState('');
@@ -161,7 +167,7 @@ export default function SwayAI() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'chat',
-          details: { message: msg, history: chatHistory.slice(-6) } // Send last 6 messages for context
+          details: { message: msg, history: chatHistory.slice(-6), sessionId } // Send last 6 messages for context
         })
       });
 
@@ -191,7 +197,7 @@ export default function SwayAI() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'chat',
-          details: { message: infoSearch, history: [] }
+          details: { message: infoSearch, history: [], sessionId }
         })
       });
 
@@ -226,7 +232,7 @@ export default function SwayAI() {
       const response = await fetch('/api/swayai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'audit', details: auditForm })
+        body: JSON.stringify({ action: 'audit', details: { ...auditForm, sessionId } })
       });
 
       const data = await response.json();
@@ -258,7 +264,7 @@ export default function SwayAI() {
       const response = await fetch('/api/swayai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'pitch', details: pitchForm })
+        body: JSON.stringify({ action: 'pitch', details: { ...pitchForm, sessionId } })
       });
 
       const data = await response.json();

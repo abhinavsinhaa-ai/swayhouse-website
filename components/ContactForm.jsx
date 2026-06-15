@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check } from 'lucide-react';
+import { supabase } from '../utils/supabase';
 
 export default function ContactForm() {
   const [type, setType] = useState('Creator');
@@ -18,6 +19,25 @@ export default function ContactForm() {
 
     setStatus('loading');
 
+    // 1. Try to log submission to Supabase database (non-blocking for Formspree)
+    try {
+      const { error } = await supabase.from('contact_submissions').insert({
+        type,
+        name,
+        email,
+        instagram,
+        message
+      });
+      if (error) {
+        console.error('Error logging to Supabase:', error);
+      } else {
+        console.log('Successfully logged submission to Supabase.');
+      }
+    } catch (dbErr) {
+      console.error('Supabase submission exception:', dbErr);
+    }
+
+    // 2. Submit to Formspree for email notification
     try {
       const response = await fetch('https://formspree.io/f/xgobnoeg', {
         method: 'POST',
