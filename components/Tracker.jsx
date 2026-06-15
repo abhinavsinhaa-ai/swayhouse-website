@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { supabase } from '../utils/supabase';
 
 export default function Tracker() {
   const pathname = usePathname();
@@ -23,17 +22,21 @@ export default function Tracker() {
     if (lastLoggedPathRef.current === currentPath) return;
     lastLoggedPathRef.current = currentPath;
 
-    // 3. Log pageview to Supabase
+    // 3. Send pageview request to backend API
     const logPageview = async () => {
       try {
         const referrer = document.referrer || 'Direct';
         const userAgent = navigator.userAgent;
 
-        await supabase.from('analytics_pageviews').insert({
-          visitor_id: visitorId,
-          path: currentPath,
-          referrer: referrer,
-          user_agent: userAgent
+        await fetch('/api/analytics/pageview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            visitor_id: visitorId,
+            path: currentPath,
+            referrer: referrer,
+            user_agent: userAgent
+          })
         });
       } catch (err) {
         console.error('Failed to log pageview analytics:', err);

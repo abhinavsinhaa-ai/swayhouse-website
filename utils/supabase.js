@@ -22,11 +22,11 @@ const MOCK_CHATS = [
 ];
 
 const MOCK_PAGEVIEWS = [
-  { id: 'p1', visitor_id: 'v-1', path: '/', referrer: 'https://instagram.com', created_at: new Date(Date.now() - 1200000).toISOString() },
-  { id: 'p2', visitor_id: 'v-1', path: '/creators/aditi', referrer: '/', created_at: new Date(Date.now() - 900000).toISOString() },
-  { id: 'p3', visitor_id: 'v-2', path: '/', referrer: 'Direct', created_at: new Date(Date.now() - 800000).toISOString() },
-  { id: 'p4', visitor_id: 'v-3', path: '/', referrer: 'https://google.com', created_at: new Date(Date.now() - 600000).toISOString() },
-  { id: 'p5', visitor_id: 'v-2', path: '/creators/aditi', referrer: '/', created_at: new Date(Date.now() - 300000).toISOString() }
+  { id: 'p1', visitor_id: 'v-1', path: '/', referrer: 'https://instagram.com', device_type: 'Mobile', os: 'iOS', country: 'India', city: 'Mumbai', created_at: new Date(Date.now() - 1200000).toISOString() },
+  { id: 'p2', visitor_id: 'v-1', path: '/creators/aditi', referrer: '/', device_type: 'Mobile', os: 'iOS', country: 'India', city: 'Mumbai', created_at: new Date(Date.now() - 900000).toISOString() },
+  { id: 'p3', visitor_id: 'v-2', path: '/', referrer: 'Direct', device_type: 'Desktop', os: 'Windows', country: 'India', city: 'Delhi', created_at: new Date(Date.now() - 800000).toISOString() },
+  { id: 'p4', visitor_id: 'v-3', path: '/', referrer: 'https://google.com', device_type: 'Desktop', os: 'macOS', country: 'United States', city: 'New York', created_at: new Date(Date.now() - 600000).toISOString() },
+  { id: 'p5', visitor_id: 'v-2', path: '/creators/aditi', referrer: '/', device_type: 'Desktop', os: 'Windows', country: 'India', city: 'Delhi', created_at: new Date(Date.now() - 300000).toISOString() }
 ];
 
 // Helper to construct a chainable query builder mock

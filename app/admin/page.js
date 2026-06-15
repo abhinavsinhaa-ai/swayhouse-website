@@ -125,6 +125,7 @@ export default function AdminDashboard() {
     const uniqueVisitors = new Set(pageviews.map(p => p.visitor_id)).size;
     const totalConvs = new Set(chats.map(c => c.session_id)).size;
     const totalInquiries = contacts.length;
+    const avgViewsPerVisitor = uniqueVisitors > 0 ? (totalViews / uniqueVisitors).toFixed(1) : '0';
 
     // Top visited paths
     const pathCounts = {};
@@ -147,7 +148,63 @@ export default function AdminDashboard() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    return { totalViews, uniqueVisitors, totalConvs, totalInquiries, topPaths, topReferrers };
+    // Top countries
+    const countryCounts = {};
+    pageviews.forEach(p => {
+      const country = p.country || 'Local/Development';
+      countryCounts[country] = (countryCounts[country] || 0) + 1;
+    });
+    const topCountries = Object.entries(countryCounts)
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // Top cities
+    const cityCounts = {};
+    pageviews.forEach(p => {
+      const city = p.city || 'Unknown';
+      if (city !== 'Unknown') {
+        cityCounts[city] = (cityCounts[city] || 0) + 1;
+      }
+    });
+    const topCities = Object.entries(cityCounts)
+      .map(([city, count]) => ({ city, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // Device breakdown
+    const deviceCounts = { Desktop: 0, Mobile: 0, Tablet: 0 };
+    pageviews.forEach(p => {
+      const dev = p.device_type || 'Desktop';
+      if (deviceCounts[dev] !== undefined) {
+        deviceCounts[dev] = deviceCounts[dev] + 1;
+      }
+    });
+
+    // OS breakdown
+    const osCounts = {};
+    pageviews.forEach(p => {
+      const osName = p.os || 'Unknown';
+      osCounts[osName] = (osCounts[osName] || 0) + 1;
+    });
+    const topOS = Object.entries(osCounts)
+      .map(([os, count]) => ({ os, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    return { 
+      totalViews, 
+      uniqueVisitors, 
+      totalConvs, 
+      totalInquiries, 
+      avgViewsPerVisitor,
+      topPaths, 
+      topReferrers,
+      topCountries,
+      topCities,
+      deviceCounts,
+      topOS
+    };
   };
 
   // Render Login Screen
@@ -200,7 +257,19 @@ export default function AdminDashboard() {
     );
   }
 
-  const { totalViews, uniqueVisitors, totalConvs, totalInquiries, topPaths, topReferrers } = getAnalyticsSummary();
+  const { 
+    totalViews, 
+    uniqueVisitors, 
+    totalConvs, 
+    totalInquiries, 
+    avgViewsPerVisitor,
+    topPaths, 
+    topReferrers,
+    topCountries,
+    topCities,
+    deviceCounts,
+    topOS
+  } = getAnalyticsSummary();
   const chatSessions = getUniqueChatSessions(chats);
   const activeSessionMessages = chats.filter(c => c.session_id === activeChatSession);
 
@@ -228,10 +297,11 @@ export default function AdminDashboard() {
         </header>
 
         {/* METRICS ROW */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           {[
             { label: 'Page Views', val: totalViews, icon: Eye, desc: 'Total tracked hits' },
             { label: 'Unique Visitors', val: uniqueVisitors, icon: Users, desc: 'By browser token' },
+            { label: 'Visitor Depth', val: `${avgViewsPerVisitor} pgs`, icon: TrendingUp, desc: 'Avg views per visitor' },
             { label: 'SwayAI Chats', val: totalConvs, icon: MessageSquare, desc: 'Logged conversations' },
             { label: 'Form Inquiries', val: totalInquiries, icon: Inbox, desc: 'Creators & Brands' }
           ].map((m, idx) => (
@@ -278,93 +348,202 @@ export default function AdminDashboard() {
           ) : (
             <AnimatePresence mode="wait">
               {/* --- ANALYTICS TAB --- */}
-              {activeTab === 'analytics' && (
-                <motion.div
-                  key="analytics"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-                >
-                  {/* Left Column: Top Paths & Top Referrers */}
-                  <div className="flex flex-col gap-6 lg:col-span-1">
-                    {/* Top Visited Pages */}
-                    <div className="bg-white border border-near-black/5 rounded-2xl p-6 shadow-sm">
-                      <h4 className="font-bold text-xs uppercase tracking-wider text-near-black mb-4 flex items-center gap-2">
-                        <Compass className="w-4 h-4 text-coral" /> Top Visited Pages
-                      </h4>
-                      <div className="flex flex-col gap-3">
-                        {topPaths.length === 0 ? (
-                          <p className="text-xs text-neutral-400 italic">No traffic recorded yet.</p>
-                        ) : (
-                          topPaths.map((tp, idx) => (
-                            <div key={idx} className="flex justify-between items-center text-xs py-1 border-b border-near-black/5 last:border-0">
-                              <span className="font-mono text-neutral-600 font-semibold">{tp.path}</span>
-                              <span className="font-bold text-near-black bg-coral/5 px-2 py-0.5 rounded text-[10px]">{tp.count} views</span>
-                            </div>
-                          ))
-                        )}
+              {activeTab === 'analytics' && (() => {
+                const totalDeviceViews = (deviceCounts.Desktop || 0) + (deviceCounts.Mobile || 0) + (deviceCounts.Tablet || 0) || 1;
+                const desktopPercent = Math.round(((deviceCounts.Desktop || 0) / totalDeviceViews) * 100);
+                const mobilePercent = Math.round(((deviceCounts.Mobile || 0) / totalDeviceViews) * 100);
+                const tabletPercent = Math.round(((deviceCounts.Tablet || 0) / totalDeviceViews) * 100);
+
+                return (
+                  <motion.div
+                    key="analytics"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col gap-8"
+                  >
+                    {/* TOP ANALYTICS BOXES GRID */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Box 1: Pages & Referrers */}
+                      <div className="flex flex-col gap-6">
+                        {/* Top Visited Pages */}
+                        <div className="bg-white border border-near-black/5 rounded-2xl p-6 shadow-sm">
+                          <h4 className="font-bold text-xs uppercase tracking-wider text-near-black mb-4 flex items-center gap-2">
+                            <Compass className="w-4 h-4 text-coral" /> Top Visited Pages
+                          </h4>
+                          <div className="flex flex-col gap-3">
+                            {topPaths.length === 0 ? (
+                              <p className="text-xs text-neutral-400 italic">No traffic recorded yet.</p>
+                            ) : (
+                              topPaths.map((tp, idx) => (
+                                <div key={idx} className="flex justify-between items-center text-xs py-1 border-b border-near-black/5 last:border-0">
+                                  <span className="font-mono text-neutral-600 font-semibold">{tp.path}</span>
+                                  <span className="font-bold text-near-black bg-coral/5 px-2 py-0.5 rounded text-[10px]">{tp.count} views</span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Top Referring Channels */}
+                        <div className="bg-white border border-near-black/5 rounded-2xl p-6 shadow-sm">
+                          <h4 className="font-bold text-xs uppercase tracking-wider text-near-black mb-4 flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4 text-coral" /> Traffic Referrers
+                          </h4>
+                          <div className="flex flex-col gap-3">
+                            {topReferrers.length === 0 ? (
+                              <p className="text-xs text-neutral-400 italic">No referrers recorded.</p>
+                            ) : (
+                              topReferrers.map((tr, idx) => (
+                                <div key={idx} className="flex justify-between items-center text-xs py-1 border-b border-near-black/5 last:border-0">
+                                  <span className="text-neutral-500 font-semibold truncate max-w-[150px]">{tr.referrer}</span>
+                                  <span className="font-bold text-near-black bg-neutral-100 px-2 py-0.5 rounded text-[10px]">{tr.count} clicks</span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Box 2: Geographic Locations */}
+                      <div className="bg-white border border-near-black/5 rounded-2xl p-6 shadow-sm flex flex-col gap-6">
+                        <div>
+                          <h4 className="font-bold text-xs uppercase tracking-wider text-near-black mb-4 flex items-center gap-2">
+                            <Compass className="w-4 h-4 text-coral" /> Geographic (Countries)
+                          </h4>
+                          <div className="flex flex-col gap-3">
+                            {topCountries.length === 0 ? (
+                              <p className="text-xs text-neutral-400 italic">No country data recorded.</p>
+                            ) : (
+                              topCountries.map((tc, idx) => (
+                                <div key={idx} className="flex justify-between items-center text-xs py-1 border-b border-near-black/5 last:border-0">
+                                  <span className="text-neutral-600 font-semibold">{tc.country}</span>
+                                  <span className="font-bold text-near-black bg-coral/5 px-2 py-0.5 rounded text-[10px]">{tc.count} views</span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-bold text-xs uppercase tracking-wider text-near-black mb-4 flex items-center gap-2">
+                            <Users className="w-4 h-4 text-coral" /> Top Cities
+                          </h4>
+                          <div className="flex flex-col gap-3">
+                            {topCities.length === 0 ? (
+                              <p className="text-xs text-neutral-400 italic">No city data recorded.</p>
+                            ) : (
+                              topCities.map((tci, idx) => (
+                                <div key={idx} className="flex justify-between items-center text-xs py-1 border-b border-near-black/5 last:border-0">
+                                  <span className="text-neutral-500 font-semibold">{tci.city}</span>
+                                  <span className="font-bold text-near-black bg-neutral-100 px-2 py-0.5 rounded text-[10px]">{tci.count} views</span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Box 3: Device & OS Breakdown */}
+                      <div className="bg-white border border-near-black/5 rounded-2xl p-6 shadow-sm flex flex-col gap-6">
+                        <div>
+                          <h4 className="font-bold text-xs uppercase tracking-wider text-near-black mb-4 flex items-center gap-2">
+                            <Eye className="w-4 h-4 text-coral" /> Devices
+                          </h4>
+                          <div className="flex flex-col gap-4">
+                            {[
+                              { name: 'Desktop', pct: desktopPercent, val: deviceCounts.Desktop },
+                              { name: 'Mobile', pct: mobilePercent, val: deviceCounts.Mobile },
+                              { name: 'Tablet', pct: tabletPercent, val: deviceCounts.Tablet }
+                            ].map((dev, idx) => (
+                              <div key={idx} className="flex flex-col gap-1.5">
+                                <div className="flex justify-between text-xs font-semibold text-neutral-600">
+                                  <span>{dev.name}</span>
+                                  <span>{dev.pct}% ({dev.val || 0})</span>
+                                </div>
+                                <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-coral transition-all duration-500" 
+                                    style={{ width: `${dev.pct}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-bold text-xs uppercase tracking-wider text-near-black mb-4 flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-coral" /> Operating Systems
+                          </h4>
+                          <div className="flex flex-col gap-3">
+                            {topOS.length === 0 ? (
+                              <p className="text-xs text-neutral-400 italic">No OS data recorded.</p>
+                            ) : (
+                              topOS.map((osItem, idx) => (
+                                <div key={idx} className="flex justify-between items-center text-xs py-1 border-b border-near-black/5 last:border-0">
+                                  <span className="text-neutral-500 font-semibold">{osItem.os}</span>
+                                  <span className="font-bold text-near-black bg-neutral-100 px-2 py-0.5 rounded text-[10px]">{osItem.count} views</span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Top Referring Channels */}
-                    <div className="bg-white border border-near-black/5 rounded-2xl p-6 shadow-sm">
-                      <h4 className="font-bold text-xs uppercase tracking-wider text-near-black mb-4 flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-coral" /> Traffic Referrers
-                      </h4>
-                      <div className="flex flex-col gap-3">
-                        {topReferrers.length === 0 ? (
-                          <p className="text-xs text-neutral-400 italic">No referrers recorded.</p>
-                        ) : (
-                          topReferrers.map((tr, idx) => (
-                            <div key={idx} className="flex justify-between items-center text-xs py-1 border-b border-near-black/5 last:border-0">
-                              <span className="text-neutral-500 font-semibold truncate max-w-[150px]">{tr.referrer}</span>
-                              <span className="font-bold text-near-black bg-neutral-100 px-2 py-0.5 rounded text-[10px]">{tr.count} clicks</span>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Column: Live Pageview Log */}
-                  <div className="lg:col-span-2 bg-white border border-near-black/5 rounded-2xl p-6 shadow-sm flex flex-col">
-                    <h4 className="font-bold text-xs uppercase tracking-wider text-near-black mb-4">Live Traffic Feed</h4>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs border-collapse">
-                        <thead>
-                          <tr className="border-b border-near-black/5 text-neutral-400 uppercase text-[9px] tracking-wider">
-                            <th className="pb-3">Timestamp</th>
-                            <th className="pb-3">Visitor Token</th>
-                            <th className="pb-3">Path</th>
-                            <th className="pb-3">Referrer</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {pageviews.length === 0 ? (
-                            <tr>
-                              <td colSpan={4} className="py-8 text-center text-neutral-400 italic">No logs recorded in this session.</td>
+                    {/* LIVE TRAFFIC LOG LOGS TABLE */}
+                    <div className="bg-white border border-near-black/5 rounded-2xl p-6 shadow-sm flex flex-col">
+                      <h4 className="font-bold text-xs uppercase tracking-wider text-near-black mb-4">Live Traffic Feed</h4>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="border-b border-near-black/5 text-neutral-400 uppercase text-[9px] tracking-wider">
+                              <th className="pb-3">Timestamp</th>
+                              <th className="pb-3">Visitor Token</th>
+                              <th className="pb-3">Path</th>
+                              <th className="pb-3">Location</th>
+                              <th className="pb-3">Device/OS</th>
+                              <th className="pb-3">Referrer</th>
                             </tr>
-                          ) : (
-                            pageviews.slice(0, 40).map((pv, idx) => (
-                              <tr key={idx} className="border-b border-near-black/5 last:border-0 hover:bg-neutral-50/50">
-                                <td className="py-3 text-neutral-400 font-mono text-[10px]">
-                                  {new Date(pv.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
-                                </td>
-                                <td className="py-3 font-mono text-neutral-500 text-[10px]">
-                                  {pv.visitor_id.substring(0, 16)}...
-                                </td>
-                                <td className="py-3 font-mono text-coral font-bold">{pv.path}</td>
-                                <td className="py-3 text-neutral-500 truncate max-w-[150px]">{pv.referrer}</td>
+                          </thead>
+                          <tbody>
+                            {pageviews.length === 0 ? (
+                              <tr>
+                                <td colSpan={6} className="py-8 text-center text-neutral-400 italic">No logs recorded in this session.</td>
                               </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
+                            ) : (
+                              pageviews.slice(0, 40).map((pv, idx) => (
+                                <tr key={idx} className="border-b border-near-black/5 last:border-0 hover:bg-neutral-50/50">
+                                  <td className="py-3 text-neutral-400 font-mono text-[10px]">
+                                    {new Date(pv.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+                                  </td>
+                                  <td className="py-3 font-mono text-neutral-500 text-[10px]">
+                                    {pv.visitor_id.substring(0, 12)}...
+                                  </td>
+                                  <td className="py-3 font-mono text-coral font-bold">{pv.path}</td>
+                                  <td className="py-3 text-neutral-600 font-medium">
+                                    {pv.city && pv.city !== 'Unknown' ? `${pv.city}, ` : ''}{pv.country || 'Local/Development'}
+                                  </td>
+                                  <td className="py-3">
+                                    <span className="bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded text-[10px] mr-1.5 font-semibold">
+                                      {pv.device_type || 'Desktop'}
+                                    </span>
+                                    <span className="text-neutral-400 font-mono text-[10px]">
+                                      {pv.os || 'Unknown'}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 text-neutral-500 truncate max-w-[150px]">{pv.referrer}</td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
+                  </motion.div>
+                );
+              })()}
 
               {/* --- CHATS LOG TAB --- */}
               {activeTab === 'chats' && (
