@@ -38,7 +38,12 @@ export async function GET(req) {
     return NextResponse.json({
       contacts: contacts || [],
       chats: chats || [],
-      pageviews: pageviews || []
+      pageviews: pageviews || [],
+      errors: {
+        contacts: contactsErr ? contactsErr.message : null,
+        chats: chatsErr ? chatsErr.message : null,
+        pageviews: pageviewsErr ? pageviewsErr.message : null
+      }
     });
   } catch (err) {
     console.error('Admin Data API error:', err);
