@@ -29,6 +29,20 @@ export const metadata = {
     siteName: 'SwayHouse',
     locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: 'https://swayhouse.in/swayhouse-logo.jpeg',
+        width: 1200,
+        height: 630,
+        alt: 'SwayHouse Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SwayHouse — Creator Management Company',
+    description: 'SwayHouse handles brand deals, strategy, and growth for creators who are serious about building a career.',
+    images: ['https://swayhouse.in/swayhouse-logo.jpeg'],
   },
 };
 
