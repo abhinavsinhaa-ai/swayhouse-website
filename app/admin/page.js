@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setDataLoading(true);
     try {
-      const res = await fetch('/api/admin/data');
+      const res = await fetch(`/api/admin/data?t=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         const json = await res.json();
         setContacts(json.contacts);
@@ -101,6 +101,7 @@ export default function AdminDashboard() {
     const sessionsMap = {};
     chatList.forEach(c => {
       const sessId = c.session_id;
+      if (!sessId) return;
       if (!sessionsMap[sessId]) {
         sessionsMap[sessId] = {
           sessionId: sessId,
@@ -123,7 +124,7 @@ export default function AdminDashboard() {
   const getAnalyticsSummary = () => {
     const totalViews = pageviews.length;
     const uniqueVisitors = new Set(pageviews.map(p => p.visitor_id)).size;
-    const totalConvs = new Set(chats.map(c => c.session_id)).size;
+    const totalConvs = new Set(chats.map(c => c.session_id).filter(Boolean)).size;
     const totalInquiries = contacts.length;
     const avgViewsPerVisitor = uniqueVisitors > 0 ? (totalViews / uniqueVisitors).toFixed(1) : '0';
 
@@ -578,7 +579,7 @@ export default function AdminDashboard() {
                                 <span className={`font-mono text-[9px] px-1.5 py-0.5 rounded font-bold ${
                                   isSelected ? 'bg-coral text-white' : 'bg-neutral-100 text-neutral-600'
                                 }`}>
-                                  {sess.sessionId.substring(0, 12)}
+                                  {(sess.sessionId || '').substring(0, 12)}
                                 </span>
                                 <span className="text-[9px] text-neutral-400 font-mono">
                                   {new Date(sess.createdAt).toLocaleDateString('en-IN')}

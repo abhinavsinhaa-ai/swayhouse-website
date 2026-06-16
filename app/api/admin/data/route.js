@@ -35,16 +35,22 @@ export async function GET(req) {
 
     if (pageviewsErr) console.error('Error fetching pageviews:', pageviewsErr);
 
-    return NextResponse.json({
-      contacts: contacts || [],
-      chats: chats || [],
-      pageviews: pageviews || [],
-      errors: {
-        contacts: contactsErr ? contactsErr.message : null,
-        chats: chatsErr ? chatsErr.message : null,
-        pageviews: pageviewsErr ? pageviewsErr.message : null
+    return new NextResponse(
+      JSON.stringify({
+        contacts: contacts || [],
+        chats: chats || [],
+        pageviews: pageviews || []
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
       }
-    });
+    );
   } catch (err) {
     console.error('Admin Data API error:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
