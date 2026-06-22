@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Lock, ShieldAlert } from 'lucide-react';
@@ -12,6 +12,20 @@ export default function SpaceLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const res = await fetch('/api/space/profile');
+        if (res.ok) {
+          router.push('/space/portal');
+        }
+      } catch (err) {
+        console.warn('Session check failed:', err);
+      }
+    }
+    checkSession();
+  }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

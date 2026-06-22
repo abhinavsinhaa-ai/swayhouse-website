@@ -14,6 +14,7 @@ export default function SwaySpace({ params }) {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [lightboxCaption, setLightboxCaption] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -49,7 +50,22 @@ export default function SwaySpace({ params }) {
       }
     }
 
+    async function checkOwnership() {
+      try {
+        const res = await fetch('/api/space/profile');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.profile && json.profile.id.toLowerCase() === params.id.toLowerCase()) {
+            setIsOwner(true);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to check space ownership:', err);
+      }
+    }
+
     loadProfile();
+    checkOwnership();
   }, [params.id, router]);
 
   const copyLink = () => {
@@ -93,14 +109,24 @@ export default function SwaySpace({ params }) {
       {/* ===== EDITORIAL HEADER ===== */}
       <header className="w-full h-20 border-b border-near-black/5 bg-white/70 backdrop-blur-md sticky top-0 z-40 flex items-center">
         <div className="w-full max-w-[1200px] mx-auto px-6 md:px-10 flex items-center justify-between">
-          {/* Back to SwayHouse Website */}
-          <Link 
-            href="/" 
-            className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors group"
-          >
-            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-            <span>SwayHouse</span>
-          </Link>
+          {/* Back to SwayHouse Website or Portal */}
+          {isOwner ? (
+            <Link 
+              href="/space/portal" 
+              className="flex items-center gap-2 px-3.5 py-1.5 bg-coral/10 hover:bg-coral/15 border border-coral/25 rounded-full text-[10px] font-bold uppercase tracking-wider text-coral transition-all active:scale-[0.98] group"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+              <span>Back to Studio</span>
+            </Link>
+          ) : (
+            <Link 
+              href="/" 
+              className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              <span>SwayHouse</span>
+            </Link>
+          )}
 
           {/* Copy Bio Link Utility */}
           <button 
@@ -257,7 +283,7 @@ export default function SwaySpace({ params }) {
             </div>
           ) : (
             <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
-              {profile.images.slice(1).map((src, index) => {
+              {[...profile.images].slice(1).reverse().map((src, index) => {
                 const caption = galleryCaptions[index] || "Sway Space Gallery.";
                 return (
                   <div 

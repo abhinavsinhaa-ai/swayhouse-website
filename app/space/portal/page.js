@@ -285,7 +285,7 @@ export default function SpacePortal() {
             <Link 
               href={`/space/${profile?.id}`}
               target="_blank"
-              className="hidden sm:flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-neutral-500 hover:text-coral transition-colors"
+              className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-neutral-500 hover:text-coral transition-colors"
             >
               <span>View Space</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -553,8 +553,8 @@ export default function SpacePortal() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {images.slice(1).map((src, index) => {
-                    const actualIndex = index + 1;
+                  {images.slice(1).reverse().map((src, index) => {
+                    const actualIndex = images.length - 1 - index;
                     return (
                       <div key={index} className="group relative aspect-square rounded-xl overflow-hidden bg-neutral-50 border border-near-black/5 shadow-sm">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
