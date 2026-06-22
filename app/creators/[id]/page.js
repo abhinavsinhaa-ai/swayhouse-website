@@ -165,12 +165,12 @@ export default function CreatorDashboard({ params }) {
                 href={`https://instagram.com/${creator.instagram}`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="relative overflow-hidden px-8 py-3.5 rounded-full bg-coral text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 group clickable shadow-md hover:shadow-lg transition-all"
+                className="relative overflow-hidden px-8 py-3.5 rounded-full bg-coral text-white text-xs font-bold lowercase tracking-wider flex items-center gap-2 group clickable shadow-md hover:shadow-lg transition-all"
               >
                 <div className="absolute inset-0 bg-coral-hover scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"></div>
                 <span className="relative z-10 flex items-center gap-2">
-                  <Instagram className="w-4 h-4" />
-                  Follow @{creator.instagram}
+                  <Instagram className="w-4 h-4 animate-pulse" />
+                  follow @{creator.instagram.toLowerCase()}
                 </span>
               </a>
 

@@ -26,6 +26,7 @@ export default function SpacePortal() {
   const [location, setLocation] = useState('');
   const [instagram, setInstagram] = useState('');
   const [niche, setNiche] = useState('');
+  const [designation, setDesignation] = useState('');
   const [bio, setBio] = useState('');
   const [message, setMessage] = useState('');
   const [images, setImages] = useState([]);
@@ -78,6 +79,7 @@ export default function SpacePortal() {
         setLocation(p.location || '');
         setInstagram(p.instagram || '');
         setNiche(p.niche || '');
+        setDesignation(p.designation || '');
         setBio(p.bio || '');
         setMessage(p.message || '');
         setImages(p.images || []);
@@ -115,7 +117,8 @@ export default function SpacePortal() {
           message,
           images,
           gender,
-          captions
+          captions,
+          designation
         })
       });
 
@@ -922,6 +925,17 @@ export default function SpacePortal() {
                     value={niche}
                     onChange={(e) => setNiche(e.target.value)}
                     placeholder="e.g. Lifestyle & Aesthetics"
+                    className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Designation (Optional)</label>
+                  <input
+                    type="text"
+                    value={designation}
+                    onChange={(e) => setDesignation(e.target.value)}
+                    placeholder="e.g. Brand, Creator, Freelancer, Unemployed"
                     className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all"
                   />
                 </div>

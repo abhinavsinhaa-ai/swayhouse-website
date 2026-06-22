@@ -40,6 +40,21 @@ export async function GET(req) {
     profile.images = cleanImages;
     profile.captions = parsedCaptions;
 
+    let cleanNiche = '';
+    let parsedDesignation = '';
+    if (profile.niche) {
+      if (profile.niche.includes('||')) {
+        const parts = profile.niche.split('||');
+        cleanNiche = parts[0];
+        parsedDesignation = parts[1] || '';
+      } else {
+        cleanNiche = profile.niche;
+        parsedDesignation = '';
+      }
+    }
+    profile.niche = cleanNiche;
+    profile.designation = parsedDesignation;
+
     // Exclude password from response
     const { password, ...safeProfile } = profile;
 
@@ -59,7 +74,7 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { name, age, location, instagram, niche, bio, message, images, gender, captions } = body;
+    const { name, age, location, instagram, niche, bio, message, images, gender, captions, designation } = body;
 
     if (!name || !instagram || !niche) {
       return NextResponse.json({ error: 'Name, Instagram, and Niche are required' }, { status: 400 });
@@ -77,12 +92,14 @@ export async function POST(req) {
       });
     }
 
+    const mergedNiche = designation ? `${niche}||${designation}` : niche;
+
     const updateObj = {
       name,
       age: parseInt(age) || 0,
       location,
       instagram,
-      niche,
+      niche: mergedNiche,
       bio,
       message,
       images: mergedImages,

@@ -51,6 +51,23 @@ export default function SwaySpace({ params }) {
           }
           profileData.images = cleanImages;
           profileData.captions = parsedCaptions;
+
+          // Parse niche and designation
+          let cleanNiche = '';
+          let parsedDesignation = '';
+          if (profileData.niche) {
+            if (profileData.niche.includes('||')) {
+              const parts = profileData.niche.split('||');
+              cleanNiche = parts[0];
+              parsedDesignation = parts[1] || '';
+            } else {
+              cleanNiche = profileData.niche;
+              parsedDesignation = '';
+            }
+          }
+          profileData.niche = cleanNiche;
+          profileData.designation = parsedDesignation;
+
           setProfile(profileData);
           return;
         }
@@ -61,7 +78,7 @@ export default function SwaySpace({ params }) {
       // Fallback to static SPACES if DB fails or doesn't match
       const found = SPACES.find((c) => c.id === params.id);
       if (found) {
-        setProfile(found);
+        setProfile({ ...found, designation: 'Creator' });
       } else {
         router.push('/');
       }
@@ -210,12 +227,12 @@ export default function SwaySpace({ params }) {
                   href={`https://instagram.com/${profile.instagram.replace('@', '')}`} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="relative overflow-hidden px-8 py-3.5 rounded-full bg-coral text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 group clickable shadow-md hover:shadow-lg transition-all"
+                  className="relative overflow-hidden px-8 py-3.5 rounded-full bg-coral text-white text-xs font-bold lowercase tracking-wider flex items-center gap-2 group clickable shadow-md hover:shadow-lg transition-all"
                 >
                   <div className="absolute inset-0 bg-coral-hover scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"></div>
                   <span className="relative z-10 flex items-center gap-2">
-                    <Instagram className="w-4 h-4" />
-                    Follow @{profile.instagram.replace('@', '')}
+                    <Instagram className="w-4 h-4 animate-pulse" />
+                    follow @{profile.instagram.replace('@', '').toLowerCase()}
                   </span>
                 </a>
               )}
@@ -226,7 +243,7 @@ export default function SwaySpace({ params }) {
             </div>
 
             {/* Micro Details Grid */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className={`grid ${profile.designation ? 'grid-cols-3' : 'grid-cols-2'} gap-6`}>
               {profile.age && (
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">Age</span>
@@ -237,12 +254,14 @@ export default function SwaySpace({ params }) {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">Niche</span>
                 <span className="text-base font-bold text-near-black">{profile.niche ? profile.niche.split('&')[0].trim() : 'Lifestyle'}</span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">Designation</span>
-                <span className="text-base font-bold text-near-black inline-flex items-center gap-1">
-                  Creator
-                </span>
-              </div>
+              {profile.designation && (
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">Designation</span>
+                  <span className="text-base font-bold text-near-black inline-flex items-center gap-1">
+                    {profile.designation}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </section>
