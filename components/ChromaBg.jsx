@@ -98,9 +98,20 @@ export default function ChromaBg() {
       const dataUrl = tempCanvas.toDataURL('image/png');
       
       const logoImg = containerRef.current;
+      const isMobile = window.innerWidth < 768;
       if (logoImg) {
         logoImg.src = dataUrl;
-        logoImg.style.opacity = '0.08';
+        if (isMobile) {
+          logoImg.style.transform = 'translate(-50%, -50%)';
+          logoImg.style.opacity = '0.04';
+        } else {
+          logoImg.style.opacity = '0.08';
+        }
+      }
+
+      if (isMobile) {
+        // Skip scroll listeners, focus tracking, and animation loops on mobile
+        return;
       }
 
       // Scroll listener

@@ -119,3 +119,11 @@
 .chroma-bg-container.hidden-state {
   opacity: 0 !important;
 }
+
+@media (max-width: 768px) {
+  .noise-bg {
+    animation: none !important;
+    display: none !important;
+  }
+}
+

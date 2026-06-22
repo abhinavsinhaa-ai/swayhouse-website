@@ -73,18 +73,20 @@ export default function Home() {
       { opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(1.7)', delay: 0.2 }
     );
 
-    // 2. Parallax effect on Hero Section subtext
-    gsap.to('.hero-parallax', {
-      scrollTrigger: {
-        trigger: '#home',
-        start: 'top top',
-        end: 'bottom top',
-        scrub: true
-      },
-      y: 60,
-      opacity: 0.3,
-      ease: 'none'
-    });
+    // 2. Parallax effect on Hero Section subtext (only on desktop to optimize mobile scroll performance)
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      gsap.to('.hero-parallax', {
+        scrollTrigger: {
+          trigger: '#home',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true
+        },
+        y: 60,
+        opacity: 0.3,
+        ease: 'none'
+      });
+    }
   }, []);
 
   // Text Splitting Typing Animation variables (Framer Motion)

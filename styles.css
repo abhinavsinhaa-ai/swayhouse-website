@@ -744,4 +744,12 @@ input:focus, textarea:focus {
   animation: spin-slow 8s linear infinite;
 }
 
+@media (max-width: 768px) {
+  .noise-bg {
+    animation: none !important;
+    display: none !important;
+  }
+}
+
+
 
