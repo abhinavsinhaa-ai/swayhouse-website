@@ -28,7 +28,7 @@ export async function POST(req) {
     const { data: creator, error } = await supabase
       .from('creator_profiles')
       .select('id, name')
-      .eq('id', username.toLowerCase().trim())
+      .ilike('id', username.trim())
       .eq('password', password)
       .single();
 

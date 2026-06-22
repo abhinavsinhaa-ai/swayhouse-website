@@ -21,7 +21,7 @@ export default function CreatorDashboard({ params }) {
         const { data: dbCreator, error } = await supabase
           .from('creator_profiles')
           .select('*')
-          .eq('id', params.id)
+          .ilike('id', params.id.trim())
           .single();
 
         if (dbCreator && !error) {
