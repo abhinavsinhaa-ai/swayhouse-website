@@ -18,7 +18,13 @@ export default function AdminDashboard() {
   const [contacts, setContacts] = useState([]);
   const [chats, setChats] = useState([]);
   const [pageviews, setPageviews] = useState([]);
-  const [activeTab, setActiveTab] = useState('analytics'); // analytics | chats | inbox
+  const [activeTab, setActiveTab] = useState('analytics'); // analytics | creators | chats | inbox
+  const [dbCreators, setDbCreators] = useState([]);
+  const [creatorsLoading, setCreatorsLoading] = useState(false);
+  const [newCreator, setNewCreator] = useState({ id: '', name: '', password: '' });
+  const [creatorsError, setCreatorsError] = useState('');
+  const [creatorsSuccess, setCreatorsSuccess] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
   const [activeChatSession, setActiveChatSession] = useState(null);
 
   // Authenticate on mount checking cookies
@@ -36,6 +42,7 @@ export default function AdminDashboard() {
         setChats(json.chats);
         setPageviews(json.pageviews);
         setIsAuthenticated(true);
+        await fetchCreators();
 
         // Auto-select first chat session if any exist
         if (json.chats && json.chats.length > 0) {
@@ -51,6 +58,81 @@ export default function AdminDashboard() {
       console.error('Fetch data error:', err);
     } finally {
       setDataLoading(false);
+    }
+  };
+
+  const fetchCreators = async () => {
+    try {
+      const res = await fetch('/api/admin/creators');
+      if (res.ok) {
+        const json = await res.json();
+        setDbCreators(json.creators || []);
+      }
+    } catch (err) {
+      console.error('Error fetching creators:', err);
+    }
+  };
+
+  const handleAddCreator = async (e) => {
+    e.preventDefault();
+    if (!newCreator.id || !newCreator.name || !newCreator.password) return;
+
+    setCreatorsLoading(true);
+    setCreatorsError('');
+    setCreatorsSuccess('');
+
+    try {
+      const res = await fetch('/api/admin/creators', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: newCreator.id,
+          name: newCreator.name,
+          password: newCreator.password
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setCreatorsSuccess(`Creator @${newCreator.id} added successfully!`);
+        setNewCreator({ id: '', name: '', password: '' });
+        await fetchCreators();
+      } else {
+        setCreatorsError(data.error || 'Failed to add creator');
+      }
+    } catch (err) {
+      setCreatorsError('Connection to server failed');
+    } finally {
+      setCreatorsLoading(false);
+    }
+  };
+
+  const handleDeleteCreator = async (creatorId) => {
+    if (!confirm(`Are you sure you want to delete the creator "${creatorId}"? This will permanently delete their profile from the database.`)) {
+      return;
+    }
+
+    setDeletingId(creatorId);
+    setCreatorsError('');
+    setCreatorsSuccess('');
+
+    try {
+      const res = await fetch(`/api/admin/creators?id=${creatorId}`, {
+        method: 'DELETE'
+      });
+
+      if (res.ok) {
+        setCreatorsSuccess(`Creator @${creatorId} deleted successfully.`);
+        await fetchCreators();
+      } else {
+        const data = await res.json();
+        setCreatorsError(data.error || 'Failed to delete creator');
+      }
+    } catch (err) {
+      setCreatorsError('Connection failed');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -321,6 +403,7 @@ export default function AdminDashboard() {
         <div className="flex gap-2 border-b border-near-black/5 mb-6">
           {[
             { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+            { id: 'creators', label: 'Manage Creators', icon: Users },
             { id: 'chats', label: 'SwayAI Chats', icon: MessageSquare },
             { id: 'inbox', label: 'Contact Inbox', icon: Inbox }
           ].map((t) => (
@@ -724,6 +807,133 @@ export default function AdminDashboard() {
                       ))}
                     </div>
                   )}
+                </motion.div>
+              )}
+
+              {/* --- CREATORS TAB --- */}
+              {activeTab === 'creators' && (
+                <motion.div
+                  key="creators"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in"
+                >
+                  {/* Left Panel: Add New Creator Form */}
+                  <div className="lg:col-span-5 bg-white border border-near-black/5 rounded-2xl p-6 shadow-sm flex flex-col gap-6">
+                    <div>
+                      <h4 className="font-cormorant text-2xl font-bold text-near-black mb-1">Add New Creator</h4>
+                      <p className="text-[10px] text-neutral-400 uppercase tracking-widest font-semibold">Generate credentials and profile</p>
+                    </div>
+
+                    <form onSubmit={handleAddCreator} className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Username / Creator ID</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. aditi (lowercase, no spaces)"
+                          required
+                          value={newCreator.id}
+                          onChange={(e) => setNewCreator({ ...newCreator, id: e.target.value.toLowerCase().replace(/\s+/g, '') })}
+                          className="w-full bg-soft-white border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Display Name</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Aditi Chandan"
+                          required
+                          value={newCreator.name}
+                          onChange={(e) => setNewCreator({ ...newCreator, name: e.target.value })}
+                          className="w-full bg-soft-white border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Temp Password</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. create123"
+                          required
+                          value={newCreator.password}
+                          onChange={(e) => setNewCreator({ ...newCreator, password: e.target.value })}
+                          className="w-full bg-soft-white border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-mono"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={creatorsLoading}
+                        className="w-full mt-2 py-3.5 rounded-xl bg-near-black text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                      >
+                        {creatorsLoading ? 'Creating...' : 'Create Creator Account'}
+                      </button>
+
+                      {creatorsError && (
+                        <p className="text-[11px] text-red-600 bg-red-50 border border-red-100 rounded-lg p-2.5 text-center mt-2 flex items-center gap-2 justify-center">
+                          <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0" /> {creatorsError}
+                        </p>
+                      )}
+
+                      {creatorsSuccess && (
+                        <p className="text-[11px] text-green-600 bg-green-50 border border-green-100 rounded-lg p-2.5 text-center mt-2 flex items-center gap-2 justify-center">
+                          <Check className="w-3.5 h-3.5 flex-shrink-0" /> {creatorsSuccess}
+                        </p>
+                      )}
+                    </form>
+                  </div>
+
+                  {/* Right Panel: Current Roster List */}
+                  <div className="lg:col-span-7 bg-white border border-near-black/5 rounded-2xl p-6 shadow-sm flex flex-col">
+                    <h4 className="font-bold text-xs uppercase tracking-wider text-near-black mb-4">Signed Creator Accounts</h4>
+                    
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="border-b border-near-black/5 text-neutral-400 uppercase text-[9px] tracking-wider">
+                            <th className="pb-3">Creator Name</th>
+                            <th className="pb-3">Username / ID</th>
+                            <th className="pb-3">Niche</th>
+                            <th className="pb-3 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {dbCreators.length === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="py-8 text-center text-neutral-400 italic">No creators registered in Supabase yet.</td>
+                            </tr>
+                          ) : (
+                            dbCreators.map((c) => (
+                              <tr key={c.id} className="border-b border-near-black/5 last:border-0 hover:bg-neutral-50/50">
+                                <td className="py-4 font-semibold text-near-black">
+                                  {c.name}
+                                </td>
+                                <td className="py-4 font-mono text-neutral-500">
+                                  @{c.id}
+                                </td>
+                                <td className="py-4">
+                                  <span className="bg-coral/10 text-coral px-2.5 py-0.5 rounded text-[10px] font-semibold">
+                                    {c.niche || 'Lifestyle & Feel Good'}
+                                  </span>
+                                </td>
+                                <td className="py-4 text-right">
+                                  <button
+                                    onClick={() => handleDeleteCreator(c.id)}
+                                    disabled={deletingId === c.id}
+                                    className="text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-700 transition-colors bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg cursor-pointer"
+                                  >
+                                    {deletingId === c.id ? 'Deleting...' : 'Delete'}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

@@ -110,13 +110,20 @@ export default function CreatorDashboard({ params }) {
         {/* Profile Card & Info */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center mb-20">
           {/* Left Column: Profile Cover Photo */}
-          <div className="lg:col-span-5 relative group overflow-hidden rounded-2xl border border-near-black/5 bg-neutral-100 aspect-[4/5] shadow-lg">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              src={creator.images[0]} 
-              alt={creator.name} 
-              className="w-full h-full object-cover transition-transform duration-750 ease-out group-hover:scale-[1.02]" 
-            />
+          <div className="lg:col-span-5 relative group overflow-hidden rounded-2xl border border-near-black/5 bg-neutral-100 aspect-[4/5] shadow-lg flex items-center justify-center">
+            {creator.images && creator.images[0] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img 
+                src={creator.images[0]} 
+                alt={creator.name} 
+                className="w-full h-full object-cover transition-transform duration-750 ease-out group-hover:scale-[1.02]" 
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center p-8 text-neutral-400 gap-2">
+                <Sparkles className="w-8 h-8 text-coral/40" />
+                <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-400">No cover image uploaded</span>
+              </div>
+            )}
           </div>
 
           {/* Right Column: Bio Details */}
@@ -218,30 +225,38 @@ export default function CreatorDashboard({ params }) {
           </div>
 
           {/* Masonry Columns */}
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
-            {creator.images.slice(1).map((src, index) => {
-              const caption = galleryCaptions[index] || "SwayHouse Gallery Spec.";
-              return (
-                <div 
-                  key={index} 
-                  onClick={() => handleOpenLightbox(src, caption)}
-                  className="break-inside-avoid mb-6 relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={src} 
-                    alt={`${creator.name} Gallery Photo ${index + 1}`} 
-                    className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]" 
-                  />
-                  <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">
-                      Zoom View
-                    </span>
+          {(!creator.images || creator.images.length <= 1) ? (
+            <div className="bg-white border border-near-black/5 rounded-2xl p-12 text-center text-neutral-400 max-w-md mx-auto flex flex-col items-center justify-center">
+              <Sparkles className="w-6 h-6 text-coral/40 mb-2" />
+              <p className="text-xs font-medium">Aesthetic gallery is currently empty.</p>
+              <p className="text-[10px] text-neutral-400 mt-1">Images uploaded to the Creator Studio will appear here.</p>
+            </div>
+          ) : (
+            <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
+              {creator.images.slice(1).map((src, index) => {
+                const caption = galleryCaptions[index] || "SwayHouse Gallery Spec.";
+                return (
+                  <div 
+                    key={index} 
+                    onClick={() => handleOpenLightbox(src, caption)}
+                    className="break-inside-avoid mb-6 relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={src} 
+                      alt={`${creator.name} Gallery Photo ${index + 1}`} 
+                      className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]" 
+                    />
+                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">
+                        Zoom View
+                      </span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </section>
       </main>
 

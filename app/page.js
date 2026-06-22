@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, Instagram, Mail, ShieldAlert, Award, Compass, HeartHandshake, MessageSquare } from 'lucide-react';
+import { ArrowRight, Instagram, Mail, ShieldAlert, Award, Compass, HeartHandshake, MessageSquare, Users } from 'lucide-react';
 import ContactForm from '@/components/ContactForm';
 import WhatToExpect from '@/components/WhatToExpect';
 import CreatorModal from '@/components/CreatorModal';
@@ -774,14 +774,20 @@ export default function Home() {
                   >
                     {/* Image container */}
                     <div className="w-full aspect-[4/3.2] relative overflow-hidden rounded-xl bg-neutral-100 flex-shrink-0">
-                      <Image 
-                        src={creator.images[0]} 
-                        alt={creator.name} 
-                        fill
-                        priority={index === 0}
-                        sizes={isLarge ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 100vw, 33vw"}
-                        className="object-cover group-hover:scale-[1.03] transition-all duration-500 ease-in-out"
-                      />
+                      {creator.images && creator.images[0] ? (
+                        <Image 
+                          src={creator.images[0]} 
+                          alt={creator.name} 
+                          fill
+                          priority={index === 0}
+                          sizes={isLarge ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 100vw, 33vw"}
+                          className="object-cover group-hover:scale-[1.03] transition-all duration-500 ease-in-out"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-coral/10 to-neutral-100 flex items-center justify-center">
+                          <Users className="w-12 h-12 text-coral/40" />
+                        </div>
+                      )}
                     </div>
 
                     {/* Content Section below the picture */}
