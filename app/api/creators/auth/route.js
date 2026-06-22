@@ -32,8 +32,18 @@ export async function POST(req) {
       .eq('password', password)
       .single();
 
-    if (error || !creator) {
-      console.warn('[AUTH FAILED] Invalid credentials for:', username);
+    if (error) {
+      if (error.code === 'PGRST116') {
+        console.warn('[AUTH FAILED] Invalid credentials for:', username);
+        return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 });
+      }
+      console.error('[DATABASE ERROR] Supabase query error:', error);
+      return NextResponse.json({ 
+        error: `Database setup required: ${error.message}. Please verify that the "creator_profiles" table is created in your Supabase dashboard by running the SQL script.` 
+      }, { status: 500 });
+    }
+
+    if (!creator) {
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 });
     }
 
