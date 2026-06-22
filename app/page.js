@@ -987,9 +987,17 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-center mt-12 gap-6 select-none">
-            <p className="text-[11px] text-neutral-400">
-              &copy; 2026 SwayHouse. All rights reserved.
-            </p>
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+              <p className="text-[11px] text-neutral-400">
+                &copy; 2026 SwayHouse. All rights reserved.
+              </p>
+              <Link 
+                href="/creators/login" 
+                className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors clickable"
+              >
+                Creator Portal
+              </Link>
+            </div>
             
             <div className="flex flex-col items-center md:items-end gap-1.5">
               <p className="font-cormorant italic text-sm text-neutral-400">
