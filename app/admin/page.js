@@ -109,8 +109,8 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDeleteCreator = async (creatorId) => {
-    if (!confirm(`Are you sure you want to delete the creator "${creatorId}"? This will permanently delete their profile from the database.`)) {
+  const handleDeleteCreator = async (creatorId, isSpace) => {
+    if (!confirm(`Are you sure you want to delete the ${isSpace ? 'space' : 'creator'} "${creatorId}"? This will permanently delete their profile from the database.`)) {
       return;
     }
 
@@ -119,16 +119,16 @@ export default function AdminDashboard() {
     setCreatorsSuccess('');
 
     try {
-      const res = await fetch(`/api/admin/creators?id=${creatorId}`, {
+      const res = await fetch(`/api/admin/creators?id=${creatorId}&is_space=${isSpace ? 'true' : 'false'}`, {
         method: 'DELETE'
       });
 
       if (res.ok) {
-        setCreatorsSuccess(`Creator @${creatorId} deleted successfully.`);
+        setCreatorsSuccess(`${isSpace ? 'Space' : 'Creator'} @${creatorId} deleted successfully.`);
         await fetchCreators();
       } else {
         const data = await res.json();
-        setCreatorsError(data.error || 'Failed to delete creator');
+        setCreatorsError(data.error || `Failed to delete ${isSpace ? 'space' : 'creator'}`);
       }
     } catch (err) {
       setCreatorsError('Connection failed');
@@ -954,7 +954,7 @@ export default function AdminDashboard() {
                                 </td>
                                 <td className="py-4 text-right">
                                   <button
-                                    onClick={() => handleDeleteCreator(c.id)}
+                                    onClick={() => handleDeleteCreator(c.id, c.is_space)}
                                     disabled={deletingId === c.id}
                                     className="text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-700 transition-colors bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg cursor-pointer"
                                   >

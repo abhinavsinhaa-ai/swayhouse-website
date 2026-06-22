@@ -22,7 +22,7 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeCreator, setActiveCreator] = useState(null);
-  const [rosterList, setRosterList] = useState(ROSTER.filter(c => !c.is_space));
+  const [rosterList, setRosterList] = useState(ROSTER);
   
   // Load dynamic roster from Supabase
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function Home() {
       try {
         const { data: dbCreators, error } = await supabase
           .from('creator_profiles')
-          .select('id, name, age, location, instagram, niche, bio, message, images, is_space')
+          .select('id, name, age, location, instagram, niche, bio, message, images')
           .order('created_at', { ascending: true });
 
         if (dbCreators && dbCreators.length > 0 && !error) {
@@ -48,9 +48,7 @@ export default function Home() {
               merged.push(dbCreator);
             }
           });
-          // Filter out personal spaces
-          const publicCreators = merged.filter(c => !c.is_space);
-          setRosterList(publicCreators);
+          setRosterList(merged);
         }
       } catch (err) {
         console.warn('Failed to load dynamic roster from database, using static fallback:', err);
@@ -1005,12 +1003,20 @@ export default function Home() {
               <p className="text-[11px] text-neutral-400">
                 &copy; 2026 SwayHouse. All rights reserved.
               </p>
-              <Link 
-                href="/creators/login" 
-                className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors clickable"
-              >
-                Creator Portal
-              </Link>
+              <div className="flex flex-col items-center md:items-start gap-1">
+                <Link 
+                  href="/creators/login" 
+                  className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors clickable"
+                >
+                  Creator Portal
+                </Link>
+                <Link 
+                  href="/space/login" 
+                  className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors clickable"
+                >
+                  Sway Space
+                </Link>
+              </div>
             </div>
             
             <div className="flex flex-col items-center md:items-end gap-1.5">

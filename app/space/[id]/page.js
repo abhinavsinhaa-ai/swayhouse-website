@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Instagram, X, Sparkles, Heart, Copy, Check, ExternalLink } from 'lucide-react';
-import { ROSTER } from '@/utils/roster';
+import { SPACES } from '@/utils/roster';
 import { supabase } from '@/utils/supabase';
 
 export default function SwaySpace({ params }) {
@@ -18,8 +18,8 @@ export default function SwaySpace({ params }) {
   useEffect(() => {
     async function loadProfile() {
       try {
-        const staticProfile = ROSTER.find((c) => c.id.toLowerCase().trim() === params.id.toLowerCase().trim());
-        let query = supabase.from('creator_profiles').select('*');
+        const staticProfile = SPACES.find((c) => c.id.toLowerCase().trim() === params.id.toLowerCase().trim());
+        let query = supabase.from('personal_grids').select('*');
         if (staticProfile) {
           const parts = [`id.ilike.${params.id.trim()}`];
           if (staticProfile.instagram) {
@@ -40,8 +40,8 @@ export default function SwaySpace({ params }) {
         console.warn('Failed to fetch profile from database, falling back to static roster:', err);
       }
 
-      // Fallback to static ROSTER if DB fails or doesn't match
-      const found = ROSTER.find((c) => c.id === params.id);
+      // Fallback to static SPACES if DB fails or doesn't match
+      const found = SPACES.find((c) => c.id === params.id);
       if (found) {
         setProfile(found);
       } else {

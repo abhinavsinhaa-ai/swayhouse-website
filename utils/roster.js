@@ -30,7 +30,10 @@ aditi 🤍`,
       "/assets/aditi-gallery-7.jpg",
       "/assets/aditi-gallery-8.jpg"
     ]
-  },
+  }
+];
+
+export const SPACES = [
   {
     id: "aanyagarg",
     name: "Aanya Garg",
@@ -43,7 +46,6 @@ aditi 🤍`,
     message: `Hii I’m Aanya 🤍
 
 Welcome to my space. Lost in aesthetic corners, quiet moments, and visual inspirations.`,
-    is_space: true,
     images: [
       "/assets/aanya.jpg"
     ]

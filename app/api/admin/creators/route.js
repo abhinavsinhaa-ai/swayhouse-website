@@ -15,17 +15,37 @@ export async function GET(req) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: creators, error } = await supabase
+    // Fetch roster creators
+    const { data: creators, error: creatorError } = await supabase
       .from('creator_profiles')
-      .select('id, name, age, location, instagram, niche, bio, message, images')
+      .select('id, name, age, location, instagram, niche, bio, message, images, created_at')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching creators from Supabase:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (creatorError) {
+      console.error('Error fetching creators from Supabase:', creatorError);
+      return NextResponse.json({ error: creatorError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, creators: creators || [] });
+    // Fetch space profiles (personal grids)
+    const { data: spaces, error: spaceError } = await supabase
+      .from('personal_grids')
+      .select('id, name, age, location, instagram, niche, bio, message, images, created_at')
+      .order('created_at', { ascending: false });
+
+    if (spaceError) {
+      console.error('Error fetching spaces from Supabase:', spaceError);
+      return NextResponse.json({ error: spaceError.message }, { status: 500 });
+    }
+
+    // Map profiles with Virtual is_space flags and combine them
+    const formattedCreators = (creators || []).map(c => ({ ...c, is_space: false }));
+    const formattedSpaces = (spaces || []).map(s => ({ ...s, is_space: true }));
+
+    const combined = [...formattedCreators, ...formattedSpaces].sort((a, b) => {
+      return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+    });
+
+    return NextResponse.json({ success: true, creators: combined });
   } catch (err) {
     console.error('Admin Creators GET API error:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -51,25 +71,31 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Invalid Username. Only lowercase letters, numbers, hyphens, and underscores are allowed.' }, { status: 400 });
     }
 
-    // Insert new creator row
+    const targetTable = isSpace ? 'personal_grids' : 'creator_profiles';
+    const insertObj = {
+      id: cleanId,
+      name: name.trim(),
+      password: password.trim(),
+      age: 18,
+      location: isSpace ? 'Mumbai, India' : 'Bangalore, India',
+      instagram: cleanId, // default instagram to username
+      niche: isSpace ? 'Lifestyle & Aesthetics' : 'Lifestyle & Feel Good',
+      bio: isSpace 
+        ? `Curating moments and visual vibes.`
+        : `I'm passionate about creating content that inspires, connects, and adds value to everyday life.`,
+      message: isSpace
+        ? `Hii I'm ${name.trim()} 🤍\n\nWelcome to my space. Lost in aesthetic corners, quiet moments, and visual inspirations.`
+        : `Hii I'm ${name.trim()} 🤍\n\nWelcome to my space. I'm excited to share my journey, interests, and milestones with you here.`,
+      images: [] // Empty gallery initially
+    };
+
+    // Insert new profile row into the designated table
     const { error } = await supabase
-      .from('creator_profiles')
-      .insert({
-        id: cleanId,
-        name: name.trim(),
-        password: password.trim(),
-        is_space: !!isSpace,
-        age: 18,
-        location: 'Bangalore, India',
-        instagram: cleanId, // default instagram to username
-        niche: 'Lifestyle & Feel Good',
-        bio: `I'm passionate about creating content that inspires, connects, and adds value to everyday life.`,
-        message: `Hii I'm ${name.trim()} 🤍\n\nWelcome to my space. I'm excited to share my journey, interests, and milestones with you here.`,
-        images: [] // Empty gallery initially
-      });
+      .from(targetTable)
+      .insert(insertObj);
 
     if (error) {
-      console.error('Error creating creator in Supabase:', error);
+      console.error(`Error creating ${isSpace ? 'space' : 'creator'} in Supabase:`, error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -88,18 +114,21 @@ export async function DELETE(req) {
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
+    const isSpace = searchParams.get('is_space') === 'true';
 
     if (!id) {
-      return NextResponse.json({ error: 'Creator ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Profile ID is required' }, { status: 400 });
     }
 
+    const targetTable = isSpace ? 'personal_grids' : 'creator_profiles';
+
     const { error } = await supabase
-      .from('creator_profiles')
+      .from(targetTable)
       .delete()
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting creator from Supabase:', error);
+      console.error(`Error deleting from ${targetTable} in Supabase:`, error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -109,3 +138,4 @@ export async function DELETE(req) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+

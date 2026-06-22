@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { ROSTER } from './roster';
+import { ROSTER, SPACES } from './roster';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -59,6 +59,7 @@ const createMockQueryBuilder = (tableName) => {
       else if (tableName === 'swayai_chat_messages') resultData = MOCK_CHATS;
       else if (tableName === 'analytics_pageviews') resultData = MOCK_PAGEVIEWS;
       else if (tableName === 'creator_profiles') resultData = ROSTER;
+      else if (tableName === 'personal_grids') resultData = SPACES;
 
       // Return a chainable object that implements then() so it can be awaited directly
       const chain = {
