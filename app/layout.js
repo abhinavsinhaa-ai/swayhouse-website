@@ -22,6 +22,11 @@ const inter = Inter({
 export const metadata = {
   title: 'SwayHouse — Creator Management Company',
   description: 'SwayHouse handles brand deals, strategy, and growth for creators who are serious about building a career.',
+  icons: {
+    icon: '/assets/swayhouse-logo.png',
+    shortcut: '/assets/swayhouse-logo.png',
+    apple: '/assets/swayhouse-logo.png',
+  },
   openGraph: {
     title: 'SwayHouse — Creator Management Company',
     description: 'SwayHouse handles brand deals, strategy, and growth for creators who are serious about building a career.',
