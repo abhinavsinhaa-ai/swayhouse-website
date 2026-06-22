@@ -32,6 +32,7 @@ export default function CreatorPortal() {
   const [captions, setCaptions] = useState([]);
   const [cropperCaption, setCropperCaption] = useState('');
   const [generatingCaption, setGeneratingCaption] = useState(false);
+  const [generatingCaptionIndex, setGeneratingCaptionIndex] = useState(null);
 
   // Cropper Modal States
   const [cropperOpen, setCropperOpen] = useState(false);
@@ -166,6 +167,36 @@ export default function CreatorPortal() {
       alert('Network error. Failed to generate caption.');
     } finally {
       setGeneratingCaption(false);
+    }
+  };
+
+  const handleGenerateCaptionForIndex = async (index, src) => {
+    setGeneratingCaptionIndex(index);
+    try {
+      const res = await fetch('/api/swayai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate_caption',
+          details: {
+            image: src
+          }
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.result) {
+        const newCaptions = [...captions];
+        newCaptions[index] = data.result.trim().replace(/^["']|["']$/g, '');
+        setCaptions(newCaptions);
+      } else {
+        alert(data.error || 'Failed to generate caption.');
+      }
+    } catch (err) {
+      console.error('Error generating caption:', err);
+      alert('Network error. Failed to generate caption.');
+    } finally {
+      setGeneratingCaptionIndex(null);
     }
   };
 
@@ -930,41 +961,68 @@ export default function CreatorPortal() {
                     return (
                       <div 
                         key={actualIdx} 
-                        className="flex gap-3 p-2.5 rounded-xl border border-near-black/5 bg-soft-white/30 hover:border-near-black/10 transition-all"
+                        className="flex flex-col gap-2 p-2.5 rounded-xl border border-near-black/5 bg-soft-white/30 hover:border-near-black/10 transition-all"
                       >
-                        {/* Thumbnail */}
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                          src={src} 
-                          alt={`Thumbnail ${actualIdx}`} 
-                          className="w-12 h-15 object-cover rounded-lg bg-neutral-100 flex-shrink-0"
-                        />
+                        <div className="flex gap-3">
+                          {/* Thumbnail */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img 
+                            src={src} 
+                            alt={`Thumbnail ${actualIdx}`} 
+                            className="w-12 h-15 object-cover rounded-lg bg-neutral-100 flex-shrink-0"
+                          />
 
-                        {/* Actions */}
-                        <div className="flex-grow flex flex-col justify-between py-0.5">
-                          <div>
-                            <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded inline-block bg-neutral-100 text-neutral-500 font-semibold">
-                              Gallery Image #{idx + 1}
-                            </span>
+                          {/* Actions */}
+                          <div className="flex-grow flex flex-col justify-between py-0.5">
+                            <div>
+                              <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded inline-block bg-neutral-100 text-neutral-500 font-semibold">
+                                Gallery Image #{idx + 1}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => handleMakeCover(actualIdx)}
+                                className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors"
+                              >
+                                Set as Profile
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleImageDelete(actualIdx)}
+                                className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 hover:text-red-500 transition-colors flex items-center gap-0.5 ml-auto"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> Remove
+                              </button>
+                            </div>
                           </div>
+                        </div>
 
-                          <div className="flex items-center gap-3">
+                        <div className="pt-2 border-t border-near-black/5 flex flex-col gap-1 bg-[#FBF9F6]/30 px-1 rounded-lg">
+                          <div className="flex justify-between items-center gap-1">
+                            <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400">Caption</span>
                             <button
                               type="button"
-                              onClick={() => handleMakeCover(actualIdx)}
-                              className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors"
+                              disabled={generatingCaptionIndex === actualIdx}
+                              onClick={() => handleGenerateCaptionForIndex(actualIdx, src)}
+                              className="text-[8px] font-bold uppercase tracking-wider text-coral hover:text-coral-hover disabled:opacity-50 transition-colors flex items-center gap-0.5"
                             >
-                              Set as Profile
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleImageDelete(actualIdx)}
-                              className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 hover:text-red-500 transition-colors flex items-center gap-0.5 ml-auto"
-                            >
-                              <Trash2 className="w-3 h-3" /> Remove
+                              {generatingCaptionIndex === actualIdx ? '...' : '✨ SwayAI'}
                             </button>
                           </div>
+                          <input
+                            type="text"
+                            placeholder="No caption set"
+                            value={captions[actualIdx] || ''}
+                            onChange={(e) => {
+                              const newCaptions = [...captions];
+                              newCaptions[actualIdx] = e.target.value;
+                              setCaptions(newCaptions);
+                            }}
+                            className="w-full bg-white border border-near-black/5 rounded-lg px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-coral"
+                          />
                         </div>
                       </div>
                     );

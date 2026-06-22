@@ -35,6 +35,7 @@ export default function SpacePortal() {
   const [captions, setCaptions] = useState([]);
   const [cropperCaption, setCropperCaption] = useState('');
   const [generatingCaption, setGeneratingCaption] = useState(false);
+  const [generatingCaptionIndex, setGeneratingCaptionIndex] = useState(null);
 
   // Cropper Modal States
   const [cropperOpen, setCropperOpen] = useState(false);
@@ -204,6 +205,36 @@ export default function SpacePortal() {
       alert('Network error. Failed to generate caption.');
     } finally {
       setGeneratingCaption(false);
+    }
+  };
+
+  const handleGenerateCaptionForIndex = async (index, src) => {
+    setGeneratingCaptionIndex(index);
+    try {
+      const res = await fetch('/api/swayai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate_caption',
+          details: {
+            image: src
+          }
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.result) {
+        const newCaptions = [...captions];
+        newCaptions[index] = data.result.trim().replace(/^["']|["']$/g, '');
+        setCaptions(newCaptions);
+      } else {
+        alert(data.error || 'Failed to generate caption.');
+      }
+    } catch (err) {
+      console.error('Error generating caption:', err);
+      alert('Network error. Failed to generate caption.');
+    } finally {
+      setGeneratingCaptionIndex(null);
     }
   };
 
@@ -987,31 +1018,57 @@ export default function SpacePortal() {
                   {images.slice(1).reverse().map((src, index) => {
                     const actualIndex = images.length - 1 - index;
                     return (
-                      <div key={index} className="break-inside-avoid mb-4 group relative rounded-xl overflow-hidden bg-neutral-50 border border-near-black/5 shadow-sm">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                          src={src} 
-                          alt={`Gallery ${actualIndex}`} 
-                          className="w-full h-auto block"
-                        />
-                        
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2.5">
-                          <button
-                            type="button"
-                            onClick={() => handleImageDelete(actualIndex)}
-                            className="self-end p-1.5 bg-white/10 hover:bg-red-500/20 text-white hover:text-red-100 border border-white/10 rounded-lg transition-colors"
-                            title="Delete image"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                      <div key={index} className="break-inside-avoid mb-4 rounded-xl overflow-hidden bg-white border border-near-black/5 shadow-sm flex flex-col">
+                        <div className="relative group overflow-hidden">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img 
+                            src={src} 
+                            alt={`Gallery ${actualIndex}`} 
+                            className="w-full h-auto block"
+                          />
+                          
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2.5">
+                            <button
+                              type="button"
+                              onClick={() => handleImageDelete(actualIndex)}
+                              className="self-end p-1.5 bg-white/10 hover:bg-red-500/20 text-white hover:text-red-100 border border-white/10 rounded-lg transition-colors"
+                              title="Delete image"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
 
-                          <button
-                            type="button"
-                            onClick={() => handleMakeCover(actualIndex)}
-                            className="w-full py-1.5 bg-white/90 hover:bg-white text-coral rounded-lg text-[9px] uppercase font-bold tracking-wider transition-all"
-                          >
-                            Make Cover
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMakeCover(actualIndex)}
+                              className="w-full py-1.5 bg-white/90 hover:bg-white text-coral rounded-lg text-[9px] uppercase font-bold tracking-wider transition-all"
+                            >
+                              Make Cover
+                            </button>
+                          </div>
+                        </div>
+                        <div className="p-2 border-t border-near-black/5 flex flex-col gap-1 bg-[#FBF9F6]/50">
+                          <div className="flex justify-between items-center gap-1">
+                            <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400">Caption</span>
+                            <button
+                              type="button"
+                              disabled={generatingCaptionIndex === actualIndex}
+                              onClick={() => handleGenerateCaptionForIndex(actualIndex, src)}
+                              className="text-[8px] font-bold uppercase tracking-wider text-coral hover:text-coral-hover disabled:opacity-50 transition-colors flex items-center gap-0.5"
+                            >
+                              {generatingCaptionIndex === actualIndex ? '...' : '✨ SwayAI'}
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="No caption set"
+                            value={captions[actualIndex] || ''}
+                            onChange={(e) => {
+                              const newCaptions = [...captions];
+                              newCaptions[actualIndex] = e.target.value;
+                              setCaptions(newCaptions);
+                            }}
+                            className="w-full bg-white border border-near-black/5 rounded-lg px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-coral"
+                          />
                         </div>
                       </div>
                     );
