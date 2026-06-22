@@ -81,7 +81,7 @@ export async function POST(req) {
       instagram: cleanId, // default instagram to username
       niche: isSpace ? 'Lifestyle & Aesthetics' : 'Lifestyle & Feel Good',
       bio: isSpace 
-        ? `Curating moments and visual vibes.`
+        ? ''
         : `I'm passionate about creating content that inspires, connects, and adds value to everyday life.`,
       message: isSpace
         ? `Hii I'm ${name.trim()} 🤍\n\nWelcome to my space. Lost in aesthetic corners, quiet moments, and visual inspirations.`
@@ -89,14 +89,31 @@ export async function POST(req) {
       images: [] // Empty gallery initially
     };
 
+    if (isSpace) {
+      insertObj.gender = 'prefer_not_to_say';
+    }
+
     // Insert new profile row into the designated table
-    const { error } = await supabase
+    let { error } = await supabase
       .from(targetTable)
       .insert(insertObj);
 
     if (error) {
-      console.error(`Error creating ${isSpace ? 'space' : 'creator'} in Supabase:`, error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      // Retry without gender if the column is missing in the database
+      if (isSpace && error.message && (error.message.includes('column') || error.message.includes('does not exist') || error.code === '42703')) {
+        console.warn('[DB WARNING] "gender" column might be missing. Retrying insert without "gender".');
+        const { gender: _, ...safeInsertObj } = insertObj;
+        const { error: retryError } = await supabase
+          .from(targetTable)
+          .insert(safeInsertObj);
+        if (retryError) {
+          console.error(`Error creating space in Supabase (retry):`, retryError);
+          return NextResponse.json({ error: retryError.message }, { status: 500 });
+        }
+      } else {
+        console.error(`Error creating ${isSpace ? 'space' : 'creator'} in Supabase:`, error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
     }
 
     return NextResponse.json({ success: true, creatorId: cleanId });

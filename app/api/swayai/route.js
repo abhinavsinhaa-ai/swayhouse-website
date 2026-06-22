@@ -3,6 +3,21 @@ import { supabase } from '@/utils/supabase';
 
 export const dynamic = 'force-dynamic';
 
+async function urlToBase64(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const buffer = await res.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    const contentType = res.headers.get('content-type') || 'image/jpeg';
+    return { mimeType: contentType, data: base64 };
+  } catch (err) {
+    console.error('Error converting URL to base64:', err);
+    return null;
+  }
+}
+
+
 export async function POST(req) {
   try {
     const { action, details } = await req.json();
@@ -35,8 +50,39 @@ export async function POST(req) {
     }
 
     let prompt = '';
+    let imageData = null;
 
-    if (action === 'audit') {
+    if (action === 'generate_bio') {
+      const { image, gender } = details;
+      prompt = `
+You are SwayAI, a premium visual consultant for SwayHouse. Analyze the attached profile picture and generate an ultra-minimalistic, high-end, aesthetic bio (maximum 6-10 words, under 80 characters, NO emojis, NO hashtags, NO cheesy quotes, NO conversational filler).
+The user's gender is: ${gender || 'prefer_not_to_say'}.
+Ensure the tone matches the gender orientation:
+- If male: generate a clean, masculine, architectural, minimal, or ruggedly sophisticated bio. E.g., 'Architectural details and industrial design.' or 'Neutral tones and functional aesthetics.' or 'Exploring minimalist silhouettes and street photography.'
+- If female: generate a clean, feminine, elegant, chic, or soft minimalist bio. E.g., 'Soft shadows, organic silhouettes, and warm light.' or 'Candid moments and warm light.' or 'Curating neutral tones and editorial layouts.'
+- If other/prefer not to say: generate a neutral, visual-centric, or style-agnostic minimal bio. E.g., 'Curating visual fragments and light.' or 'Exploring contrast and form.'
+
+Guidelines:
+1. Return ONLY the generated bio. Do not include quotes around the bio, introductory text, explanations, or formatting.
+2. Keep it extremely short, clean, and premium. One simple phrase.
+3. Align the vibe to the visual style of the uploaded image (colors, mood, subject, lighting).
+4. If no image is attached, generate a general ultra-minimalistic aesthetic bio based on the gender.
+`;
+
+      if (image) {
+        if (image.startsWith('data:')) {
+          const matches = image.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+          if (matches) {
+            imageData = {
+              mimeType: matches[1],
+              data: matches[2]
+            };
+          }
+        } else if (image.startsWith('http')) {
+          imageData = await urlToBase64(image);
+        }
+      }
+    } else if (action === 'audit') {
       const { handle, followers, niche, frequency, goal } = details;
       prompt = `
 You are SwayAI, the professional AI consultant for SwayHouse, a premium minimalist creator management agency. 
@@ -226,6 +272,16 @@ Current User Message: ${message}
             };
           }
 
+          const parts = [{ text: prompt }];
+          if (imageData) {
+            parts.push({
+              inlineData: {
+                mimeType: imageData.mimeType,
+                data: imageData.data
+              }
+            });
+          }
+
           const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${modelConfig.name}:generateContent?key=${currentKey}`,
             {
@@ -236,11 +292,7 @@ Current User Message: ${message}
               body: JSON.stringify({
                 contents: [
                   {
-                    parts: [
-                      {
-                        text: prompt,
-                      },
-                    ],
+                    parts,
                   },
                 ],
                 generationConfig,

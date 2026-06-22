@@ -41,29 +41,46 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { name, age, location, instagram, niche, bio, message, images } = body;
+    const { name, age, location, instagram, niche, bio, message, images, gender } = body;
 
     if (!name || !instagram || !niche) {
       return NextResponse.json({ error: 'Name, Instagram, and Niche are required' }, { status: 400 });
     }
 
-    const { error } = await supabase
+    const updateObj = {
+      name,
+      age: parseInt(age) || 0,
+      location,
+      instagram,
+      niche,
+      bio,
+      message,
+      images,
+      gender
+    };
+
+    let { error } = await supabase
       .from('personal_grids')
-      .update({
-        name,
-        age: parseInt(age) || 0,
-        location,
-        instagram,
-        niche,
-        bio,
-        message,
-        images
-      })
+      .update(updateObj)
       .eq('id', spaceId);
 
     if (error) {
-      console.error('Error updating space profile:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      // Retry without gender if the column is missing in the database
+      if (error.message && (error.message.includes('column') || error.message.includes('does not exist') || error.code === '42703')) {
+        console.warn('[DB WARNING] "gender" column might be missing. Retrying update without "gender".');
+        const { gender: _, ...safeUpdateObj } = updateObj;
+        const { error: retryError } = await supabase
+          .from('personal_grids')
+          .update(safeUpdateObj)
+          .eq('id', spaceId);
+        if (retryError) {
+          console.error('Error updating space profile (retry):', retryError);
+          return NextResponse.json({ error: retryError.message }, { status: 500 });
+        }
+      } else {
+        console.error('Error updating space profile:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
     }
 
     return NextResponse.json({ success: true });

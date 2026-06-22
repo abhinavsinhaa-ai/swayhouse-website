@@ -204,7 +204,7 @@ export default function SwaySpace({ params }) {
               )}
 
               <div className="text-xs text-neutral-400 max-w-xs leading-normal">
-                Curating ideas, visual expressions, and experiences. Welcome to my creative journal.
+                {profile.bio || 'Curating ideas, visual expressions, and experiences. Welcome to my creative journal.'}
               </div>
             </div>
 

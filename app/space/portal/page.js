@@ -30,6 +30,8 @@ export default function SpacePortal() {
   const [message, setMessage] = useState('');
   const [images, setImages] = useState([]);
   const [uploadingProfile, setUploadingProfile] = useState(false);
+  const [gender, setGender] = useState('prefer_not_to_say');
+  const [generatingBio, setGeneratingBio] = useState(false);
 
   // Cropper Modal States
   const [cropperOpen, setCropperOpen] = useState(false);
@@ -68,6 +70,7 @@ export default function SpacePortal() {
         setBio(p.bio || '');
         setMessage(p.message || '');
         setImages(p.images || []);
+        setGender(p.gender || 'prefer_not_to_say');
       } else {
         // Not authenticated, redirect to login
         router.push('/space/login');
@@ -98,7 +101,8 @@ export default function SpacePortal() {
           niche,
           bio,
           message,
-          images
+          images,
+          gender
         })
       });
 
@@ -126,6 +130,40 @@ export default function SpacePortal() {
       router.push('/space/login');
     } catch (err) {
       console.error('Logout error:', err);
+    }
+  };
+
+  const handleGenerateBio = async () => {
+    setGeneratingBio(true);
+    setSuccessMsg('');
+    setErrorMsg('');
+
+    try {
+      const res = await fetch('/api/swayai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate_bio',
+          details: {
+            image: images[0] || null,
+            gender: gender
+          }
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.result) {
+        setBio(data.result.trim().replace(/^["']|["']$/g, ''));
+        setSuccessMsg('Aesthetic bio generated successfully!');
+        setTimeout(() => setSuccessMsg(''), 3000);
+      } else {
+        setErrorMsg(data.error || 'Failed to generate bio.');
+      }
+    } catch (err) {
+      console.error('Error generating bio:', err);
+      setErrorMsg('Network error. Failed to generate bio.');
+    } finally {
+      setGeneratingBio(false);
     }
   };
 
@@ -720,6 +758,19 @@ export default function SpacePortal() {
                 </div>
 
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Gender Orientation</label>
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all cursor-pointer font-sans"
+                  >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="prefer_not_to_say">Prefer not to say</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
                   <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Niche Description</label>
                   <input
                     type="text"
@@ -731,13 +782,37 @@ export default function SpacePortal() {
                 </div>
 
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
-                  <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Short Bio Intro</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Short Bio Intro</label>
+                    <button
+                      type="button"
+                      disabled={generatingBio}
+                      onClick={handleGenerateBio}
+                      className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-coral hover:text-coral-hover disabled:opacity-50 transition-colors cursor-pointer"
+                    >
+                      {generatingBio ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <span>Analyzing Picture...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3 h-3" />
+                          <span>Generate with Sway AI</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                   <textarea
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     rows={2}
+                    placeholder="An ultra-minimalistic aesthetic bio..."
                     className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all resize-none"
                   />
+                  <p className="text-[8px] text-neutral-400">
+                    Sway AI will analyze your profile avatar picture and gender to curate a bespoke minimal bio.
+                  </p>
                 </div>
 
                 <div className="flex flex-col gap-1.5 sm:col-span-2">

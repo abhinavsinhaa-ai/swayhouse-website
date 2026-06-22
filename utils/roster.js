@@ -43,6 +43,7 @@ export const SPACES = [
     instagram: "aanyagarg",
     niche: "Lifestyle & Aesthetics",
     bio: "Curating moments and visual vibes.",
+    gender: "female",
     message: `Hii I’m Aanya 🤍
 
 Welcome to my space. Lost in aesthetic corners, quiet moments, and visual inspirations.`,
@@ -59,6 +60,7 @@ Welcome to my space. Lost in aesthetic corners, quiet moments, and visual inspir
     instagram: "abhinavsinha",
     niche: "Lifestyle & Aesthetics",
     bio: "Curating moments and visual vibes.",
+    gender: "male",
     message: `Hii I’m Abhinav 🤍
 
 Welcome to my space. Lost in aesthetic corners, quiet moments, and visual inspirations.`,
