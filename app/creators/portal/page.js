@@ -40,6 +40,9 @@ export default function CreatorPortal() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageAspectRatio, setImageAspectRatio] = useState(1);
+  const [cropBox, setCropBox] = useState({ x: 40, y: 40, w: 260, h: 260 });
+  const [resizingCorner, setResizingCorner] = useState(null);
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, box: { x: 40, y: 40, w: 260, h: 260 } });
 
   const fileInputRef = useRef(null);
   const profileInputRef = useRef(null);
@@ -148,6 +151,7 @@ export default function CreatorPortal() {
         setCropperImageSrc(reader.result);
         setCropperType('gallery');
         setAspectRatio(1); // default to square
+        setCropBox({ x: 40, y: 40, w: 260, h: 260 });
         setZoom(1);
         setPan({ x: 0, y: 0 });
         setCropperOpen(true);
@@ -175,6 +179,7 @@ export default function CreatorPortal() {
         setCropperImageSrc(reader.result);
         setCropperType('profile');
         setAspectRatio(0.8); // default to portrait
+        setCropBox({ x: 58, y: 30, w: 224, h: 280 });
         setZoom(1);
         setPan({ x: 0, y: 0 });
         setCropperOpen(true);
@@ -184,6 +189,47 @@ export default function CreatorPortal() {
     if (e.target) e.target.value = '';
   };
 
+  const clampPanAndZoom = (currentZoom, currentPan, box) => {
+    const containerWidth = 340;
+    const containerHeight = 340;
+    const imageRatio = imageAspectRatio;
+    const containerRatio = 1;
+
+    let imgRenderedWidth, imgRenderedHeight;
+    if (imageRatio > containerRatio) {
+      imgRenderedWidth = containerWidth;
+      imgRenderedHeight = containerWidth / imageRatio;
+    } else {
+      imgRenderedHeight = containerHeight;
+      imgRenderedWidth = containerHeight * imageRatio;
+    }
+
+    const minZoomX = box.w / imgRenderedWidth;
+    const minZoomY = box.h / imgRenderedHeight;
+    const minZoom = Math.max(minZoomX, minZoomY);
+    
+    const clampedZoom = Math.max(minZoom, Math.min(4.0, currentZoom));
+
+    const cropLeft = box.x;
+    const cropRight = box.x + box.w;
+    const cropTop = box.y;
+    const cropBottom = box.y + box.h;
+
+    const minX = cropRight - 170 - (clampedZoom * imgRenderedWidth) / 2;
+    const maxX = cropLeft - 170 + (clampedZoom * imgRenderedWidth) / 2;
+
+    const minY = cropBottom - 170 - (clampedZoom * imgRenderedHeight) / 2;
+    const maxY = cropTop - 170 + (clampedZoom * imgRenderedHeight) / 2;
+
+    const clampedPan = {
+      x: Math.max(minX, Math.min(maxX, currentPan.x)),
+      y: Math.max(minY, Math.min(maxY, currentPan.y))
+    };
+
+    return { zoom: clampedZoom, pan: clampedPan };
+  };
+
+  // Dragging and Resizing event handlers
   const handleDragStart = (e) => {
     setIsDragging(true);
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -191,18 +237,114 @@ export default function CreatorPortal() {
     setDragStart({ x: clientX - pan.x, y: clientY - pan.y });
   };
 
-  const handleDragMove = (e) => {
-    if (!isDragging) return;
+  const handleResizeStart = (corner, e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setResizingCorner(corner);
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    setPan({
-      x: clientX - dragStart.x,
-      y: clientY - dragStart.y
+    setResizeStart({
+      x: clientX,
+      y: clientY,
+      box: { ...cropBox }
     });
   };
 
-  const handleDragEnd = () => {
+  const handlePointerMove = (e) => {
+    if (resizingCorner) {
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const dx = clientX - resizeStart.x;
+      const dy = clientY - resizeStart.y;
+
+      let newBox = { ...resizeStart.box };
+      const containerSize = 340;
+
+      if (resizingCorner === 'tl') {
+        const newX = Math.min(resizeStart.box.x + resizeStart.box.w - 50, Math.max(0, resizeStart.box.x + dx));
+        const newY = Math.min(resizeStart.box.y + resizeStart.box.h - 50, Math.max(0, resizeStart.box.y + dy));
+        newBox.w = resizeStart.box.x + resizeStart.box.w - newX;
+        newBox.h = resizeStart.box.y + resizeStart.box.h - newY;
+        newBox.x = newX;
+        newBox.y = newY;
+      } else if (resizingCorner === 'tr') {
+        const newY = Math.min(resizeStart.box.y + resizeStart.box.h - 50, Math.max(0, resizeStart.box.y + dy));
+        const newW = Math.min(containerSize - resizeStart.box.x, Math.max(50, resizeStart.box.w + dx));
+        newBox.w = newW;
+        newBox.h = resizeStart.box.y + resizeStart.box.h - newY;
+        newBox.y = newY;
+      } else if (resizingCorner === 'bl') {
+        const newX = Math.min(resizeStart.box.x + resizeStart.box.w - 50, Math.max(0, resizeStart.box.x + dx));
+        const newH = Math.min(containerSize - resizeStart.box.y, Math.max(50, resizeStart.box.h + dy));
+        newBox.x = newX;
+        newBox.w = resizeStart.box.x + resizeStart.box.w - newX;
+        newBox.h = newH;
+      } else if (resizingCorner === 'br') {
+        const newW = Math.min(containerSize - resizeStart.box.x, Math.max(50, resizeStart.box.w + dx));
+        const newH = Math.min(containerSize - resizeStart.box.y, Math.max(50, resizeStart.box.h + dy));
+        newBox.w = newW;
+        newBox.h = newH;
+      }
+
+      setCropBox(newBox);
+      const clamped = clampPanAndZoom(zoom, pan, newBox);
+      setZoom(clamped.zoom);
+      setPan(clamped.pan);
+    } else if (isDragging) {
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const rawPan = {
+        x: clientX - dragStart.x,
+        y: clientY - dragStart.y
+      };
+      const clamped = clampPanAndZoom(zoom, rawPan, cropBox);
+      setPan(clamped.pan);
+    }
+  };
+
+  const handlePointerEnd = () => {
     setIsDragging(false);
+    setResizingCorner(null);
+  };
+
+  const handleZoomChange = (newVal) => {
+    const clamped = clampPanAndZoom(newVal, pan, cropBox);
+    setZoom(clamped.zoom);
+    setPan(clamped.pan);
+  };
+
+  const selectPresetRatio = (ratio) => {
+    let w = 260;
+    let h = 260;
+    if (ratio === 0.8) {
+      w = 224;
+      h = 280;
+    } else if (ratio === 1.777) {
+      w = 300;
+      h = 169;
+    } else if (ratio === 'free') {
+      const maxW = 300;
+      const maxH = 280;
+      if (imageAspectRatio > maxW / maxH) {
+        w = maxW;
+        h = maxW / imageAspectRatio;
+      } else {
+        h = maxH;
+        w = maxH * imageAspectRatio;
+      }
+    }
+    
+    const newBox = {
+      x: (340 - w) / 2,
+      y: (340 - h) / 2,
+      w,
+      h
+    };
+    setAspectRatio(ratio);
+    setCropBox(newBox);
+    const clamped = clampPanAndZoom(zoom, pan, newBox);
+    setZoom(clamped.zoom);
+    setPan(clamped.pan);
   };
 
   const handleCropSave = () => {
@@ -225,28 +367,10 @@ export default function CreatorPortal() {
         imgRenderedWidth = containerHeight * imageRatio;
       }
 
-      let W = 260;
-      let H = 260;
-      if (aspectRatio === 0.8) {
-        W = 224;
-        H = 280;
-      } else if (aspectRatio === 1.777) {
-        W = 300;
-        H = 169;
-      } else if (aspectRatio === 'free') {
-        const maxW = 300;
-        const maxH = 280;
-        if (imageAspectRatio > maxW / maxH) {
-          W = maxW;
-          H = maxW / imageAspectRatio;
-        } else {
-          H = maxH;
-          W = maxH * imageAspectRatio;
-        }
-      }
-
-      const cropLeft = (containerWidth - W) / 2;
-      const cropTop = (containerHeight - H) / 2;
+      const W = cropBox.w;
+      const H = cropBox.h;
+      const cropLeft = cropBox.x;
+      const cropTop = cropBox.y;
 
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -771,12 +895,12 @@ export default function CreatorPortal() {
               <div 
                 className="w-full h-[340px] bg-neutral-900 overflow-hidden relative rounded-2xl select-none cursor-move flex items-center justify-center border border-near-black/5"
                 onMouseDown={handleDragStart}
-                onMouseMove={handleDragMove}
-                onMouseUp={handleDragEnd}
-                onMouseLeave={handleDragEnd}
+                onMouseMove={handlePointerMove}
+                onMouseUp={handlePointerEnd}
+                onMouseLeave={handlePointerEnd}
                 onTouchStart={handleDragStart}
-                onTouchMove={handleDragMove}
-                onTouchEnd={handleDragEnd}
+                onTouchMove={handlePointerMove}
+                onTouchEnd={handlePointerEnd}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -792,51 +916,58 @@ export default function CreatorPortal() {
                 />
 
                 {/* Overlay bounding crop frame */}
-                {(() => {
-                  let w = 260;
-                  let h = 260;
-                  if (aspectRatio === 0.8) {
-                    w = 224;
-                    h = 280;
-                  } else if (aspectRatio === 1.777) {
-                    w = 300;
-                    h = 169;
-                  } else if (aspectRatio === 'free') {
-                    const maxW = 300;
-                    const maxH = 280;
-                    if (imageAspectRatio > maxW / maxH) {
-                      w = maxW;
-                      h = maxW / imageAspectRatio;
-                    } else {
-                      h = maxH;
-                      w = maxH * imageAspectRatio;
-                    }
-                  }
-                  return (
-                    <div 
-                      className="absolute border-2 border-white/90 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] pointer-events-none rounded-lg"
-                      style={{
-                        width: `${w}px`,
-                        height: `${h}px`,
-                        left: `calc(50% - ${w/2}px)`,
-                        top: `calc(50% - ${h/2}px)`
-                      }}
-                    >
-                      {/* Bounding grid lines */}
-                      <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 border border-white/20 pointer-events-none">
-                        <div className="border-r border-b border-white/20" />
-                        <div className="border-r border-b border-white/20" />
-                        <div className="border-b border-white/20" />
-                        <div className="border-r border-b border-white/20" />
-                        <div className="border-r border-b border-white/20" />
-                        <div className="border-b border-white/20" />
-                        <div className="border-r border-white/20" />
-                        <div className="border-r border-white/20" />
-                        <div />
-                      </div>
-                    </div>
-                  );
-                })()}
+                <div 
+                  className="absolute border border-white/90 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] rounded-lg pointer-events-none"
+                  style={{
+                    width: `${cropBox.w}px`,
+                    height: `${cropBox.h}px`,
+                    left: `${cropBox.x}px`,
+                    top: `${cropBox.y}px`
+                  }}
+                >
+                  {/* Bounding grid lines */}
+                  <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 border border-white/20 pointer-events-none">
+                    <div className="border-r border-b border-white/20" />
+                    <div className="border-r border-b border-white/20" />
+                    <div className="border-b border-white/20" />
+                    <div className="border-r border-b border-white/20" />
+                    <div className="border-r border-b border-white/20" />
+                    <div className="border-b border-white/20" />
+                    <div className="border-r border-white/20" />
+                    <div className="border-r border-white/20" />
+                    <div />
+                  </div>
+
+                  {/* Corner Handles (iPhone Style) */}
+                  <div 
+                    onMouseDown={(e) => handleResizeStart('tl', e)}
+                    onTouchStart={(e) => handleResizeStart('tl', e)}
+                    className="absolute -top-3 -left-3 w-7 h-7 flex items-center justify-center cursor-nwse-resize pointer-events-auto z-10"
+                  >
+                    <div className="w-3.5 h-3.5 border-t-2 border-l-2 border-white rounded-tl" />
+                  </div>
+                  <div 
+                    onMouseDown={(e) => handleResizeStart('tr', e)}
+                    onTouchStart={(e) => handleResizeStart('tr', e)}
+                    className="absolute -top-3 -right-3 w-7 h-7 flex items-center justify-center cursor-nesw-resize pointer-events-auto z-10"
+                  >
+                    <div className="w-3.5 h-3.5 border-t-2 border-r-2 border-white rounded-tr" />
+                  </div>
+                  <div 
+                    onMouseDown={(e) => handleResizeStart('bl', e)}
+                    onTouchStart={(e) => handleResizeStart('bl', e)}
+                    className="absolute -bottom-3 -left-3 w-7 h-7 flex items-center justify-center cursor-nesw-resize pointer-events-auto z-10"
+                  >
+                    <div className="w-3.5 h-3.5 border-b-2 border-l-2 border-white rounded-bl" />
+                  </div>
+                  <div 
+                    onMouseDown={(e) => handleResizeStart('br', e)}
+                    onTouchStart={(e) => handleResizeStart('br', e)}
+                    className="absolute -bottom-3 -right-3 w-7 h-7 flex items-center justify-center cursor-nwse-resize pointer-events-auto z-10"
+                  >
+                    <div className="w-3.5 h-3.5 border-b-2 border-r-2 border-white rounded-br" />
+                  </div>
+                </div>
               </div>
 
               {/* Zoom Controls */}
@@ -853,7 +984,7 @@ export default function CreatorPortal() {
                     max="4.0"
                     step="0.01"
                     value={zoom}
-                    onChange={(e) => setZoom(parseFloat(e.target.value))}
+                    onChange={(e) => handleZoomChange(parseFloat(e.target.value))}
                     className="w-full accent-coral bg-neutral-100 h-1 rounded-lg appearance-none cursor-pointer"
                   />
                   <span className="text-xs text-neutral-400">+</span>
@@ -873,11 +1004,7 @@ export default function CreatorPortal() {
                     <button
                       key={r.label}
                       type="button"
-                      onClick={() => {
-                        setAspectRatio(r.val);
-                        setPan({ x: 0, y: 0 });
-                        setZoom(1);
-                      }}
+                      onClick={() => selectPresetRatio(r.val)}
                       className={`px-3 py-1.5 rounded-xl text-[10px] font-semibold border transition-all flex-shrink-0 cursor-pointer ${
                         aspectRatio === r.val
                           ? 'border-coral bg-coral/5 text-coral font-bold'
