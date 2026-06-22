@@ -49,5 +49,19 @@ Welcome to my space. Lost in aesthetic corners, quiet moments, and visual inspir
     images: [
       "/assets/aanya.jpg"
     ]
+  },
+  {
+    id: "abhinavsinha",
+    name: "Abhinav Sinha",
+    password: "Devv9672310170",
+    age: 18,
+    location: "Delhi, India",
+    instagram: "abhinavsinha",
+    niche: "Lifestyle & Aesthetics",
+    bio: "Curating moments and visual vibes.",
+    message: `Hii I’m Abhinav 🤍
+
+Welcome to my space. Lost in aesthetic corners, quiet moments, and visual inspirations.`,
+    images: []
   }
 ];
