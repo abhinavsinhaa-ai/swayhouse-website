@@ -22,6 +22,24 @@ export async function GET(req) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
+    // Parse images and captions
+    const cleanImages = [];
+    const parsedCaptions = [];
+    if (profile.images) {
+      profile.images.forEach((img, idx) => {
+        if (img && img.includes('||')) {
+          const parts = img.split('||');
+          cleanImages.push(parts[0]);
+          parsedCaptions.push(parts[1] || '');
+        } else {
+          cleanImages.push(img);
+          parsedCaptions.push((profile.captions && profile.captions[idx]) || '');
+        }
+      });
+    }
+    profile.images = cleanImages;
+    profile.captions = parsedCaptions;
+
     // Exclude password from response
     const { password, ...safeProfile } = profile;
 
@@ -47,6 +65,18 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Name, Instagram, and Niche are required' }, { status: 400 });
     }
 
+    const mergedImages = [];
+    if (images) {
+      images.forEach((img, idx) => {
+        const caption = (captions && captions[idx]) || '';
+        if (caption) {
+          mergedImages.push(`${img}||${caption}`);
+        } else {
+          mergedImages.push(img);
+        }
+      });
+    }
+
     const updateObj = {
       name,
       age: parseInt(age) || 0,
@@ -55,7 +85,7 @@ export async function POST(req) {
       niche,
       bio,
       message,
-      images,
+      images: mergedImages,
       captions
     };
 

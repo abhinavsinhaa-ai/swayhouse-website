@@ -34,9 +34,31 @@ export default function Home() {
           .order('created_at', { ascending: true });
 
         if (dbCreators && dbCreators.length > 0 && !error) {
+          const parsedDbCreators = dbCreators.map(creatorData => {
+            const cleanImages = [];
+            const parsedCaptions = [];
+            if (creatorData.images) {
+              creatorData.images.forEach((img, idx) => {
+                if (img && img.includes('||')) {
+                  const parts = img.split('||');
+                  cleanImages.push(parts[0]);
+                  parsedCaptions.push(parts[1] || '');
+                } else {
+                  cleanImages.push(img);
+                  parsedCaptions.push('');
+                }
+              });
+            }
+            return {
+              ...creatorData,
+              images: cleanImages,
+              captions: parsedCaptions
+            };
+          });
+
           // Merge database creators with static ROSTER (DB values override static)
           const merged = [...ROSTER];
-          dbCreators.forEach((dbCreator) => {
+          parsedDbCreators.forEach((dbCreator) => {
             const index = merged.findIndex((c) => 
               c.id.toLowerCase().trim() === dbCreator.id.toLowerCase().trim() ||
               (c.instagram && dbCreator.instagram && c.instagram.toLowerCase().trim().replace('@', '') === dbCreator.instagram.toLowerCase().trim().replace('@', '')) ||

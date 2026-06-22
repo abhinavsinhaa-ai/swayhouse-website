@@ -32,7 +32,24 @@ export default function CreatorDashboard({ params }) {
         const { data: dbCreators, error } = await query;
 
         if (dbCreators && dbCreators.length > 0 && !error) {
-          setCreator(dbCreators[0]);
+          const creatorData = dbCreators[0];
+          const cleanImages = [];
+          const parsedCaptions = [];
+          if (creatorData.images) {
+            creatorData.images.forEach((img, idx) => {
+              if (img && img.includes('||')) {
+                const parts = img.split('||');
+                cleanImages.push(parts[0]);
+                parsedCaptions.push(parts[1] || '');
+              } else {
+                cleanImages.push(img);
+                parsedCaptions.push((creatorData.captions && creatorData.captions[idx]) || '');
+              }
+            });
+          }
+          creatorData.images = cleanImages;
+          creatorData.captions = parsedCaptions;
+          setCreator(creatorData);
           return;
         }
       } catch (err) {
