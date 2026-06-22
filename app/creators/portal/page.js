@@ -281,7 +281,7 @@ export default function CreatorPortal() {
 
           <div className="flex items-center gap-4">
             <Link 
-              href={`/creators/${profile?.id}`}
+              href={profile?.is_space ? `/space/${profile?.id}` : `/creators/${profile?.id}`}
               target="_blank"
               className="hidden sm:flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-neutral-500 hover:text-coral transition-colors"
             >

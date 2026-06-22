@@ -22,7 +22,7 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeCreator, setActiveCreator] = useState(null);
-  const [rosterList, setRosterList] = useState(ROSTER);
+  const [rosterList, setRosterList] = useState(ROSTER.filter(c => !c.is_space));
   
   // Load dynamic roster from Supabase
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function Home() {
       try {
         const { data: dbCreators, error } = await supabase
           .from('creator_profiles')
-          .select('id, name, age, location, instagram, niche, bio, message, images')
+          .select('id, name, age, location, instagram, niche, bio, message, images, is_space')
           .order('created_at', { ascending: true });
 
         if (dbCreators && dbCreators.length > 0 && !error) {
@@ -48,7 +48,9 @@ export default function Home() {
               merged.push(dbCreator);
             }
           });
-          setRosterList(merged);
+          // Filter out personal spaces
+          const publicCreators = merged.filter(c => !c.is_space);
+          setRosterList(publicCreators);
         }
       } catch (err) {
         console.warn('Failed to load dynamic roster from database, using static fallback:', err);

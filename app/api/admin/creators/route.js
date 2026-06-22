@@ -39,7 +39,7 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { id, name, password } = body;
+    const { id, name, password, isSpace } = body;
 
     if (!id || !name || !password) {
       return NextResponse.json({ error: 'Username (ID), Display Name, and Password are required' }, { status: 400 });
@@ -58,6 +58,7 @@ export async function POST(req) {
         id: cleanId,
         name: name.trim(),
         password: password.trim(),
+        is_space: !!isSpace,
         age: 18,
         location: 'Bangalore, India',
         instagram: cleanId, // default instagram to username

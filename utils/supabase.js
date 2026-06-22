@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { ROSTER } from './roster';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -32,20 +33,61 @@ const MOCK_PAGEVIEWS = [
 // Helper to construct a chainable query builder mock
 const createMockQueryBuilder = (tableName) => {
   const query = {
-    insert: async (data) => {
-      console.warn(`[SUPABASE MOCK] Inserting to ${tableName}:`, data);
-      return { error: null, data };
+    insert: () => {
+      const chain = {
+        then: (onfulfilled) => Promise.resolve(onfulfilled({ error: null, data: null }))
+      };
+      return chain;
+    },
+    update: () => {
+      const chain = {
+        eq: () => chain,
+        then: (onfulfilled) => Promise.resolve(onfulfilled({ error: null, data: null }))
+      };
+      return chain;
+    },
+    delete: () => {
+      const chain = {
+        eq: () => chain,
+        then: (onfulfilled) => Promise.resolve(onfulfilled({ error: null, data: null }))
+      };
+      return chain;
     },
     select: () => {
       let resultData = [];
       if (tableName === 'contact_submissions') resultData = MOCK_CONTACTS;
       else if (tableName === 'swayai_chat_messages') resultData = MOCK_CHATS;
       else if (tableName === 'analytics_pageviews') resultData = MOCK_PAGEVIEWS;
+      else if (tableName === 'creator_profiles') resultData = ROSTER;
 
       // Return a chainable object that implements then() so it can be awaited directly
       const chain = {
         order: () => chain,
         limit: () => chain,
+        eq: (col, val) => {
+          // If we query a specific profile by id (username) or password, filter it!
+          if (col === 'id' || col === 'password') {
+            resultData = resultData.filter(item => String(item[col]).toLowerCase() === String(val).toLowerCase());
+          }
+          return chain;
+        },
+        ilike: (col, val) => {
+          if (col === 'id' && val) {
+            const cleanVal = String(val).replace(/%/g, '').toLowerCase();
+            resultData = resultData.filter(item => String(item[col]).toLowerCase() === cleanVal);
+          }
+          return chain;
+        },
+        or: () => chain,
+        single: () => {
+          const singleChain = {
+            then: (onfulfilled) => {
+              const item = resultData && resultData.length > 0 ? resultData[0] : null;
+              return Promise.resolve(onfulfilled({ data: item, error: item ? null : { code: 'PGRST116', message: 'No rows found' } }));
+            }
+          };
+          return singleChain;
+        },
         then: (onfulfilled) => {
           return Promise.resolve(onfulfilled({ data: resultData, error: null }));
         }

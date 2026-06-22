@@ -21,7 +21,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('analytics'); // analytics | creators | chats | inbox
   const [dbCreators, setDbCreators] = useState([]);
   const [creatorsLoading, setCreatorsLoading] = useState(false);
-  const [newCreator, setNewCreator] = useState({ id: '', name: '', password: '' });
+  const [newCreator, setNewCreator] = useState({ id: '', name: '', password: '', isSpace: false });
   const [creatorsError, setCreatorsError] = useState('');
   const [creatorsSuccess, setCreatorsSuccess] = useState('');
   const [deletingId, setDeletingId] = useState(null);
@@ -88,15 +88,16 @@ export default function AdminDashboard() {
         body: JSON.stringify({
           id: newCreator.id,
           name: newCreator.name,
-          password: newCreator.password
+          password: newCreator.password,
+          isSpace: newCreator.isSpace
         })
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        setCreatorsSuccess(`Creator @${newCreator.id} added successfully!`);
-        setNewCreator({ id: '', name: '', password: '' });
+        setCreatorsSuccess(`${newCreator.isSpace ? 'Sway Space' : 'Creator'} @${newCreator.id} added successfully!`);
+        setNewCreator({ id: '', name: '', password: '', isSpace: false });
         await fetchCreators();
       } else {
         setCreatorsError(data.error || 'Failed to add creator');
@@ -863,6 +864,32 @@ export default function AdminDashboard() {
                         />
                       </div>
 
+                      <div className="flex flex-col gap-1.5 mb-2">
+                        <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Account Type</label>
+                        <div className="flex gap-4 mt-1">
+                          <label className="flex items-center gap-2 text-xs text-neutral-500 font-semibold cursor-pointer">
+                            <input
+                              type="radio"
+                              name="isSpace"
+                              checked={!newCreator.isSpace}
+                              onChange={() => setNewCreator({ ...newCreator, isSpace: false })}
+                              className="accent-coral"
+                            />
+                            Roster Creator
+                          </label>
+                          <label className="flex items-center gap-2 text-xs text-neutral-500 font-semibold cursor-pointer">
+                            <input
+                              type="radio"
+                              name="isSpace"
+                              checked={newCreator.isSpace}
+                              onChange={() => setNewCreator({ ...newCreator, isSpace: true })}
+                              className="accent-coral"
+                            />
+                            Sway Space (Grid Only)
+                          </label>
+                        </div>
+                      </div>
+
                       <button
                         type="submit"
                         disabled={creatorsLoading}
@@ -914,9 +941,16 @@ export default function AdminDashboard() {
                                   @{c.id}
                                 </td>
                                 <td className="py-4">
-                                  <span className="bg-coral/10 text-coral px-2.5 py-0.5 rounded text-[10px] font-semibold">
-                                    {c.niche || 'Lifestyle & Feel Good'}
-                                  </span>
+                                  <div className="flex flex-col gap-1 items-start">
+                                    <span className="bg-coral/10 text-coral px-2.5 py-0.5 rounded text-[10px] font-semibold">
+                                      {c.niche || 'Lifestyle & Feel Good'}
+                                    </span>
+                                    {c.is_space && (
+                                      <span className="bg-neutral-100 text-neutral-500 border border-near-black/5 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider">
+                                        Sway Space
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
                                 <td className="py-4 text-right">
                                   <button
