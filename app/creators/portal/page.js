@@ -47,6 +47,13 @@ export default function CreatorPortal() {
   const fileInputRef = useRef(null);
   const profileInputRef = useRef(null);
 
+  const imageDomRef = useRef(null);
+  const cropBoxDomRef = useRef(null);
+
+  const zoomRef = useRef(1);
+  const panRef = useRef({ x: 0, y: 0 });
+  const cropBoxRef = useRef({ x: 40, y: 40, w: 260, h: 260 });
+
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -133,66 +140,10 @@ export default function CreatorPortal() {
     setImages(images.filter((_, idx) => idx !== indexToDelete));
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file.');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.src = reader.result;
-      img.onload = () => {
-        setImageAspectRatio(img.width / img.height);
-        setCropperImageSrc(reader.result);
-        setCropperType('gallery');
-        setAspectRatio(1); // default to square
-        setCropBox({ x: 40, y: 40, w: 260, h: 260 });
-        setZoom(1);
-        setPan({ x: 0, y: 0 });
-        setCropperOpen(true);
-      };
-    };
-    reader.readAsDataURL(file);
-    if (e.target) e.target.value = '';
-  };
-
-  const handleProfilePicUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file.');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.src = reader.result;
-      img.onload = () => {
-        setImageAspectRatio(img.width / img.height);
-        setCropperImageSrc(reader.result);
-        setCropperType('profile');
-        setAspectRatio(0.8); // default to portrait
-        setCropBox({ x: 58, y: 30, w: 224, h: 280 });
-        setZoom(1);
-        setPan({ x: 0, y: 0 });
-        setCropperOpen(true);
-      };
-    };
-    reader.readAsDataURL(file);
-    if (e.target) e.target.value = '';
-  };
-
-  const clampPanAndZoom = (currentZoom, currentPan, box) => {
+  const clampPanAndZoom = (currentZoom, currentPan, box, customRatio = null) => {
     const containerWidth = 340;
     const containerHeight = 340;
-    const imageRatio = imageAspectRatio;
+    const imageRatio = customRatio !== null ? customRatio : imageAspectRatio;
     const containerRatio = 1;
 
     let imgRenderedWidth, imgRenderedHeight;
@@ -221,7 +172,7 @@ export default function CreatorPortal() {
     const minY = cropBottom - 170 - (clampedZoom * imgRenderedHeight) / 2;
     const maxY = cropTop - 170 + (clampedZoom * imgRenderedHeight) / 2;
 
-    const clampedPan = {
+    const clampedPan = { 
       x: Math.max(minX, Math.min(maxX, currentPan.x)),
       y: Math.max(minY, Math.min(maxY, currentPan.y))
     };
@@ -229,12 +180,84 @@ export default function CreatorPortal() {
     return { zoom: clampedZoom, pan: clampedPan };
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.src = reader.result;
+      img.onload = () => {
+        const imageRatio = img.width / img.height;
+        setImageAspectRatio(imageRatio);
+        setCropperImageSrc(reader.result);
+        setCropperType('gallery');
+        setAspectRatio(1); // default to square
+
+        const initialBox = { x: 40, y: 40, w: 260, h: 260 };
+        const initialClamped = clampPanAndZoom(1, { x: 0, y: 0 }, initialBox, imageRatio);
+        zoomRef.current = initialClamped.zoom;
+        panRef.current = initialClamped.pan;
+        cropBoxRef.current = initialBox;
+
+        setCropBox(initialBox);
+        setZoom(initialClamped.zoom);
+        setPan(initialClamped.pan);
+        setCropperOpen(true);
+      };
+    };
+    reader.readAsDataURL(file);
+    if (e.target) e.target.value = '';
+  };
+
+  const handleProfilePicUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.src = reader.result;
+      img.onload = () => {
+        const imageRatio = img.width / img.height;
+        setImageAspectRatio(imageRatio);
+        setCropperImageSrc(reader.result);
+        setCropperType('profile');
+        setAspectRatio(0.8); // default to portrait
+
+        const initialBox = { x: 58, y: 30, w: 224, h: 280 };
+        const initialClamped = clampPanAndZoom(1, { x: 0, y: 0 }, initialBox, imageRatio);
+        zoomRef.current = initialClamped.zoom;
+        panRef.current = initialClamped.pan;
+        cropBoxRef.current = initialBox;
+
+        setCropBox(initialBox);
+        setZoom(initialClamped.zoom);
+        setPan(initialClamped.pan);
+        setCropperOpen(true);
+      };
+    };
+    reader.readAsDataURL(file);
+    if (e.target) e.target.value = '';
+  };
+
   // Dragging and Resizing event handlers
   const handleDragStart = (e) => {
     setIsDragging(true);
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    setDragStart({ x: clientX - pan.x, y: clientY - pan.y });
+    setDragStart({ x: clientX - panRef.current.x, y: clientY - panRef.current.y });
   };
 
   const handleResizeStart = (corner, e) => {
@@ -246,7 +269,7 @@ export default function CreatorPortal() {
     setResizeStart({
       x: clientX,
       y: clientY,
-      box: { ...cropBox }
+      box: { ...cropBoxRef.current }
     });
   };
 
@@ -286,10 +309,21 @@ export default function CreatorPortal() {
         newBox.h = newH;
       }
 
-      setCropBox(newBox);
-      const clamped = clampPanAndZoom(zoom, pan, newBox);
-      setZoom(clamped.zoom);
-      setPan(clamped.pan);
+      const clamped = clampPanAndZoom(zoomRef.current, panRef.current, newBox);
+      zoomRef.current = clamped.zoom;
+      panRef.current = clamped.pan;
+      cropBoxRef.current = newBox;
+
+      // DOM style updates for performance (lag elimination)
+      if (cropBoxDomRef.current) {
+        cropBoxDomRef.current.style.width = `${newBox.w}px`;
+        cropBoxDomRef.current.style.height = `${newBox.h}px`;
+        cropBoxDomRef.current.style.left = `${newBox.x}px`;
+        cropBoxDomRef.current.style.top = `${newBox.y}px`;
+      }
+      if (imageDomRef.current) {
+        imageDomRef.current.style.transform = `scale(${clamped.zoom}) translate(${clamped.pan.x}px, ${clamped.pan.y}px)`;
+      }
     } else if (isDragging) {
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -297,20 +331,35 @@ export default function CreatorPortal() {
         x: clientX - dragStart.x,
         y: clientY - dragStart.y
       };
-      const clamped = clampPanAndZoom(zoom, rawPan, cropBox);
-      setPan(clamped.pan);
+      const clamped = clampPanAndZoom(zoomRef.current, rawPan, cropBoxRef.current);
+      panRef.current = clamped.pan;
+
+      // DOM style updates for performance (lag elimination)
+      if (imageDomRef.current) {
+        imageDomRef.current.style.transform = `scale(${zoomRef.current}) translate(${clamped.pan.x}px, ${clamped.pan.y}px)`;
+      }
     }
   };
 
   const handlePointerEnd = () => {
     setIsDragging(false);
     setResizingCorner(null);
+    // Sync React states once
+    setZoom(zoomRef.current);
+    setPan(panRef.current);
+    setCropBox(cropBoxRef.current);
   };
 
   const handleZoomChange = (newVal) => {
-    const clamped = clampPanAndZoom(newVal, pan, cropBox);
+    const clamped = clampPanAndZoom(newVal, panRef.current, cropBoxRef.current);
+    zoomRef.current = clamped.zoom;
+    panRef.current = clamped.pan;
     setZoom(clamped.zoom);
     setPan(clamped.pan);
+
+    if (imageDomRef.current) {
+      imageDomRef.current.style.transform = `scale(${clamped.zoom}) translate(${clamped.pan.x}px, ${clamped.pan.y}px)`;
+    }
   };
 
   const selectPresetRatio = (ratio) => {
@@ -340,11 +389,26 @@ export default function CreatorPortal() {
       w,
       h
     };
+    
+    const clamped = clampPanAndZoom(zoomRef.current, panRef.current, newBox);
+    zoomRef.current = clamped.zoom;
+    panRef.current = clamped.pan;
+    cropBoxRef.current = newBox;
+
     setAspectRatio(ratio);
     setCropBox(newBox);
-    const clamped = clampPanAndZoom(zoom, pan, newBox);
     setZoom(clamped.zoom);
     setPan(clamped.pan);
+
+    if (cropBoxDomRef.current) {
+      cropBoxDomRef.current.style.width = `${newBox.w}px`;
+      cropBoxDomRef.current.style.height = `${newBox.h}px`;
+      cropBoxDomRef.current.style.left = `${newBox.x}px`;
+      cropBoxDomRef.current.style.top = `${newBox.y}px`;
+    }
+    if (imageDomRef.current) {
+      imageDomRef.current.style.transform = `scale(${clamped.zoom}) translate(${clamped.pan.x}px, ${clamped.pan.y}px)`;
+    }
   };
 
   const handleCropSave = () => {
@@ -415,24 +479,24 @@ export default function CreatorPortal() {
     setCropperOpen(false);
 
     try {
-      if (!supabase || !supabase.storage) {
-        console.warn('[STORAGE MOCK] Supabase is not configured. Simulating crop upload.');
-        const mockRandomId = Math.floor(Math.random() * 1000);
-        const simulatedUrl = type === 'profile'
-          ? `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80&sig=${mockRandomId}`
-          : `https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=800&q=80&sig=${mockRandomId}`;
-
-        if (type === 'profile') {
-          const newImages = [...images];
-          if (newImages.length > 0) {
-            newImages[0] = simulatedUrl;
+      if (!supabase || !supabase.storage) { 
+        console.warn('[STORAGE MOCK] Supabase is not configured. Reading cropped file as local data URL.');
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const simulatedUrl = reader.result;
+          if (type === 'profile') {
+            const newImages = [...images];
+            if (newImages.length > 0) {
+              newImages[0] = simulatedUrl;
+            } else {
+              newImages.push(simulatedUrl);
+            }
+            setImages(newImages);
           } else {
-            newImages.push(simulatedUrl);
+            setImages([...images, simulatedUrl]);
           }
-          setImages(newImages);
-        } else {
-          setImages([...images, simulatedUrl]);
-        }
+        };
+        reader.readAsDataURL(file);
         return;
       }
 
@@ -904,6 +968,7 @@ export default function CreatorPortal() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
+                  ref={imageDomRef}
                   src={cropperImageSrc}
                   alt="Crop Preview"
                   draggable={false}
@@ -917,13 +982,14 @@ export default function CreatorPortal() {
 
                 {/* Overlay bounding crop frame */}
                 <div 
+                  ref={cropBoxDomRef}
                   className="absolute border border-white/90 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] rounded-lg pointer-events-none"
                   style={{
                     width: `${cropBox.w}px`,
                     height: `${cropBox.h}px`,
                     left: `${cropBox.x}px`,
                     top: `${cropBox.y}px`
-                  }}
+                  }} 
                 >
                   {/* Bounding grid lines */}
                   <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 border border-white/20 pointer-events-none">
