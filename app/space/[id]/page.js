@@ -284,7 +284,8 @@ export default function SwaySpace({ params }) {
           ) : (
             <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
               {[...profile.images].slice(1).reverse().map((src, index) => {
-                const caption = galleryCaptions[index] || "Sway Space Gallery.";
+                const originalIndex = profile.images.length - 1 - index;
+                const caption = (profile.captions && profile.captions[originalIndex]) || galleryCaptions[index % galleryCaptions.length];
                 return (
                   <div 
                     key={index} 

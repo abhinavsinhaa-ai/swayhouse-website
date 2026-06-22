@@ -32,6 +32,9 @@ export default function SpacePortal() {
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const [gender, setGender] = useState('prefer_not_to_say');
   const [generatingBio, setGeneratingBio] = useState(false);
+  const [captions, setCaptions] = useState([]);
+  const [cropperCaption, setCropperCaption] = useState('');
+  const [generatingCaption, setGeneratingCaption] = useState(false);
 
   // Cropper Modal States
   const [cropperOpen, setCropperOpen] = useState(false);
@@ -78,6 +81,7 @@ export default function SpacePortal() {
         setMessage(p.message || '');
         setImages(p.images || []);
         setGender(p.gender || 'prefer_not_to_say');
+        setCaptions(p.captions || []);
       } else {
         // Not authenticated, redirect to login
         router.push('/space/login');
@@ -109,7 +113,8 @@ export default function SpacePortal() {
           bio,
           message,
           images,
-          gender
+          gender,
+          captions
         })
       });
 
@@ -174,8 +179,37 @@ export default function SpacePortal() {
     }
   };
 
+  const handleGenerateCaption = async () => {
+    setGeneratingCaption(true);
+    try {
+      const res = await fetch('/api/swayai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate_caption',
+          details: {
+            image: cropperImageSrc
+          }
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.result) {
+        setCropperCaption(data.result.trim().replace(/^["']|["']$/g, ''));
+      } else {
+        alert(data.error || 'Failed to generate caption.');
+      }
+    } catch (err) {
+      console.error('Error generating caption:', err);
+      alert('Network error. Failed to generate caption.');
+    } finally {
+      setGeneratingCaption(false);
+    }
+  };
+
   const handleImageDelete = (indexToDelete) => {
     setImages(images.filter((_, idx) => idx !== indexToDelete));
+    setCaptions(captions.filter((_, idx) => idx !== indexToDelete));
   };
 
   const clampPanAndZoom = (currentZoom, currentPan, box, customRatio = null) => {
@@ -237,6 +271,7 @@ export default function SpacePortal() {
         setCropperImageSrc(reader.result);
         setCropperType('gallery');
         setAspectRatio(1); // default to square
+        setCropperCaption('');
 
         const initialBox = { x: 40, y: 40, w: 260, h: 260 };
         const initialClamped = clampPanAndZoom(1, { x: 0, y: 0 }, initialBox, imageRatio);
@@ -273,6 +308,7 @@ export default function SpacePortal() {
         setCropperImageSrc(reader.result);
         setCropperType('profile');
         setAspectRatio(0.8); // default to portrait
+        setCropperCaption('');
 
         const initialBox = { x: 58, y: 30, w: 224, h: 280 };
         const initialClamped = clampPanAndZoom(1, { x: 0, y: 0 }, initialBox, imageRatio);
@@ -303,6 +339,12 @@ export default function SpacePortal() {
     newImages[0] = newImages[index];
     newImages[index] = temp;
     setImages(newImages); 
+
+    const newCaptions = [...captions];
+    const tempCaption = newCaptions[0];
+    newCaptions[0] = newCaptions[index];
+    newCaptions[index] = tempCaption;
+    setCaptions(newCaptions);
   };
 
   // Dragging and Resizing event handlers
@@ -541,12 +583,16 @@ export default function SpacePortal() {
             const newImages = [...images];
             if (newImages.length > 0) {
               newImages[0] = simulatedUrl;
-            } else {
+            } else { 
               newImages.push(simulatedUrl);
             }
             setImages(newImages);
+            const newCaptions = [...captions];
+            newCaptions[0] = '';
+            setCaptions(newCaptions);
           } else {
             setImages([...images, simulatedUrl]);
+            setCaptions([...captions, cropperCaption || '']);
           }
         };
         reader.readAsDataURL(file);
@@ -574,8 +620,12 @@ export default function SpacePortal() {
           newImages.push(publicUrl);
         }
         setImages(newImages);
+        const newCaptions = [...captions];
+        newCaptions[0] = '';
+        setCaptions(newCaptions);
       } else {
         setImages([...images, publicUrl]);
+        setCaptions([...captions, cropperCaption || '']);
       }
     } catch (err) {
       console.error('Upload failed error:', err);
@@ -1160,6 +1210,40 @@ export default function SpacePortal() {
                   ))}
                 </div>
               </div>
+
+              {/* Caption Input Section */}
+              {cropperType === 'gallery' && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Caption</span>
+                    <button
+                      type="button"
+                      disabled={generatingCaption}
+                      onClick={handleGenerateCaption}
+                      className="text-[9px] font-bold uppercase tracking-wider text-coral hover:text-coral-hover disabled:opacity-50 transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      {generatingCaption ? (
+                        <>
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                          <span>Generating...</span>
+                        </>
+                      ) : ( 
+                        <>
+                          <Sparkles className="w-2.5 h-2.5" />
+                          <span>Let SwayAI decide</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Write a personalized caption..."
+                    value={cropperCaption}
+                    onChange={(e) => setCropperCaption(e.target.value)}
+                    className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-1 focus:ring-coral transition-all"
+                  />
+                </div>
+              )}
 
               {/* Footer Buttons */}
               <div className="flex gap-3 mt-2">

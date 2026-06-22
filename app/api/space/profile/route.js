@@ -41,7 +41,7 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { name, age, location, instagram, niche, bio, message, images, gender } = body;
+    const { name, age, location, instagram, niche, bio, message, images, gender, captions } = body;
 
     if (!name || !instagram || !niche) {
       return NextResponse.json({ error: 'Name, Instagram, and Niche are required' }, { status: 400 });
@@ -56,7 +56,8 @@ export async function POST(req) {
       bio,
       message,
       images,
-      gender
+      gender,
+      captions
     };
 
     let { error } = await supabase
@@ -65,10 +66,10 @@ export async function POST(req) {
       .eq('id', spaceId);
 
     if (error) {
-      // Retry without gender if the column is missing in the database
+      // Retry without gender or captions if columns are missing in the database
       if (error.message && (error.message.includes('column') || error.message.includes('does not exist') || error.code === '42703')) {
-        console.warn('[DB WARNING] "gender" column might be missing. Retrying update without "gender".');
-        const { gender: _, ...safeUpdateObj } = updateObj;
+        console.warn('[DB WARNING] Custom columns might be missing. Retrying update with base fields.');
+        const { gender: _, captions: __, ...safeUpdateObj } = updateObj;
         const { error: retryError } = await supabase
           .from('personal_grids')
           .update(safeUpdateObj)

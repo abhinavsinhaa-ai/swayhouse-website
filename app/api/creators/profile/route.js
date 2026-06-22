@@ -41,29 +41,46 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { name, age, location, instagram, niche, bio, message, images } = body;
+    const { name, age, location, instagram, niche, bio, message, images, captions } = body;
 
     if (!name || !instagram || !niche) {
       return NextResponse.json({ error: 'Name, Instagram, and Niche are required' }, { status: 400 });
     }
 
-    const { error } = await supabase
+    const updateObj = {
+      name,
+      age: parseInt(age) || 0,
+      location,
+      instagram,
+      niche,
+      bio,
+      message,
+      images,
+      captions
+    };
+
+    let { error } = await supabase
       .from('creator_profiles')
-      .update({
-        name,
-        age: parseInt(age) || 0,
-        location,
-        instagram,
-        niche,
-        bio,
-        message,
-        images
-      })
+      .update(updateObj)
       .eq('id', creatorId);
 
     if (error) {
-      console.error('Error updating creator profile:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      // Retry without captions if the column is missing in the database
+      if (error.message && (error.message.includes('column') || error.message.includes('does not exist') || error.code === '42703')) {
+        console.warn('[DB WARNING] "captions" column might be missing. Retrying update without "captions".');
+        const { captions: _, ...safeUpdateObj } = updateObj;
+        const { error: retryError } = await supabase
+          .from('creator_profiles')
+          .update(safeUpdateObj)
+          .eq('id', creatorId);
+        if (retryError) {
+          console.error('Error updating creator profile (retry):', retryError);
+          return NextResponse.json({ error: retryError.message }, { status: 500 });
+        }
+      } else {
+        console.error('Error updating creator profile:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
     }
 
     return NextResponse.json({ success: true });

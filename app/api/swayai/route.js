@@ -52,7 +52,37 @@ export async function POST(req) {
     let prompt = '';
     let imageData = null;
 
-    if (action === 'generate_bio') {
+    if (action === 'generate_caption') {
+      const { image } = details;
+      prompt = `
+You are SwayAI, a premium visual consultant for SwayHouse. Analyze the attached photo and generate an ultra-minimalistic, high-end, aesthetic caption for a visual journal post.
+
+Guidelines:
+1. The caption must be unique, poetic, and directly describe the visual elements of the photo (e.g. shadows, warm light, neutral tones, architectural lines, textures, or forms).
+2. Maximum 6-12 words. Do NOT use any emojis, hashtags, quotes, or conversational filler.
+3. Example styles:
+   - 'Soft afternoon shadows cast on warm plaster walls.'
+   - 'Curating organic forms and neutral textures.'
+   - 'A quiet corner of concrete and steel.'
+   - 'Editorial layout inspiration in monochrome.'
+4. Return ONLY the caption text itself. Do not put quotes around it.
+5. Ensure the caption does not use generic buzzwords or overly repetitive phrasing.
+`;
+
+      if (image) {
+        if (image.startsWith('data:')) {
+          const matches = image.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+          if (matches) {
+            imageData = {
+              mimeType: matches[1],
+              data: matches[2]
+            };
+          }
+        } else if (image.startsWith('http')) {
+          imageData = await urlToBase64(image);
+        }
+      }
+    } else if (action === 'generate_bio') {
       const { image, gender } = details;
       prompt = `
 You are SwayAI, a premium visual consultant for SwayHouse. Analyze the attached profile picture and generate an ultra-minimalistic, high-end, aesthetic bio (maximum 6-10 words, under 80 characters, NO emojis, NO hashtags, NO cheesy quotes, NO conversational filler).
