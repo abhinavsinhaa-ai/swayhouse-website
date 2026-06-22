@@ -516,7 +516,7 @@ export default function SpacePortal() {
               <div className="flex justify-between items-center border-b border-near-black/5 pb-3 mb-6">
                 <div>
                   <h3 className="font-cormorant text-2xl font-bold text-near-black leading-none mb-1">
-                    VSCO Gallery Grid
+                    Sway Space Gallery Grid
                   </h3>
                   <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-400">Curate your aesthetic feed</span>
                 </div>
