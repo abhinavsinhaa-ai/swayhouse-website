@@ -37,7 +37,11 @@ export default function Home() {
           // Merge database creators with static ROSTER (DB values override static)
           const merged = [...ROSTER];
           dbCreators.forEach((dbCreator) => {
-            const index = merged.findIndex((c) => c.id.toLowerCase().trim() === dbCreator.id.toLowerCase().trim());
+            const index = merged.findIndex((c) => 
+              c.id.toLowerCase().trim() === dbCreator.id.toLowerCase().trim() ||
+              (c.instagram && dbCreator.instagram && c.instagram.toLowerCase().trim().replace('@', '') === dbCreator.instagram.toLowerCase().trim().replace('@', '')) ||
+              (c.name && dbCreator.name && c.name.toLowerCase().trim() === dbCreator.name.toLowerCase().trim())
+            );
             if (index !== -1) {
               merged[index] = dbCreator;
             } else {

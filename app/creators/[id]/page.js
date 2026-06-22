@@ -17,15 +17,22 @@ export default function CreatorDashboard({ params }) {
   useEffect(() => {
     async function loadCreator() {
       try {
-        // Try fetching creator profile from database first
-        const { data: dbCreator, error } = await supabase
-          .from('creator_profiles')
-          .select('*')
-          .ilike('id', params.id.trim())
-          .single();
+        const staticCreator = ROSTER.find((c) => c.id.toLowerCase().trim() === params.id.toLowerCase().trim());
+        let query = supabase.from('creator_profiles').select('*');
+        if (staticCreator) {
+          const parts = [`id.ilike.${params.id.trim()}`];
+          if (staticCreator.instagram) {
+            parts.push(`instagram.ilike.${staticCreator.instagram.replace('@', '')}`);
+          }
+          query = query.or(parts.join(','));
+        } else {
+          query = query.ilike('id', params.id.trim());
+        }
 
-        if (dbCreator && !error) {
-          setCreator(dbCreator);
+        const { data: dbCreators, error } = await query;
+
+        if (dbCreators && dbCreators.length > 0 && !error) {
+          setCreator(dbCreators[0]);
           return;
         }
       } catch (err) {
