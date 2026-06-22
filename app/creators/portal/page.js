@@ -28,8 +28,10 @@ export default function CreatorPortal() {
   const [bio, setBio] = useState('');
   const [message, setMessage] = useState('');
   const [images, setImages] = useState([]);
+  const [uploadingProfile, setUploadingProfile] = useState(false);
 
   const fileInputRef = useRef(null);
+  const profileInputRef = useRef(null);
 
   useEffect(() => {
     fetchProfile();
@@ -175,6 +177,72 @@ export default function CreatorPortal() {
     }
   };
 
+  const handleProfilePicUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file.');
+      return;
+    }
+
+    setUploadingProfile(true);
+    setErrorMsg('');
+
+    try {
+      if (!supabase || !supabase.storage) {
+        console.warn('[STORAGE MOCK] Supabase is not configured. Simulating profile pic upload.');
+        const mockRandomId = Math.floor(Math.random() * 1000);
+        const simulatedUrl = `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80&sig=${mockRandomId}`;
+        const newImages = [...images];
+        if (newImages.length > 0) {
+          newImages[0] = simulatedUrl;
+        } else {
+          newImages.push(simulatedUrl);
+        }
+        setImages(newImages);
+        setUploadingProfile(false);
+        return;
+      }
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${profile.id}/profile-${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('creator-assets')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('creator-assets')
+        .getPublicUrl(fileName);
+
+      const newImages = [...images];
+      if (newImages.length > 0) {
+        newImages[0] = publicUrl;
+      } else {
+        newImages.push(publicUrl);
+      }
+      setImages(newImages);
+    } catch (err) {
+      console.error('Profile pic upload failed:', err);
+      setErrorMsg(`Profile image upload failed: ${err.message || 'Check storage configuration.'}`);
+    } finally {
+      setUploadingProfile(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleProfilePicRemove = () => {
+    const newImages = [...images];
+    newImages.shift(); // Remove first element (profile cover)
+    setImages(newImages);
+  };
+
   // Reorder cover photo helper (swaps chosen index to index 0)
   const handleMakeCover = (index) => {
     if (index === 0) return;
@@ -272,6 +340,60 @@ export default function CreatorPortal() {
               <h3 className="font-cormorant text-2xl font-bold text-near-black border-b border-near-black/5 pb-3">
                 Profile Details
               </h3>
+
+              {/* Profile Picture Edit Widget */}
+              <div className="flex flex-col sm:flex-row items-center gap-5 pb-6 border-b border-near-black/5">
+                <div className="relative group w-20 h-20 rounded-full overflow-hidden border border-near-black/5 bg-coral/5 flex-shrink-0 flex items-center justify-center shadow-sm">
+                  {images[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img 
+                      src={images[0]} 
+                      alt="Profile Photo" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-8 h-8 text-coral/40" />
+                  )}
+                  {uploadingProfile && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-white" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-1.5 text-center sm:text-left">
+                  <h4 className="font-semibold text-xs text-near-black">Profile Picture</h4>
+                  <p className="text-[10px] text-neutral-400">This photo will represent you as your primary cover portrait on the roster.</p>
+                  
+                  <div className="flex items-center gap-3 justify-center sm:justify-start">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={profileInputRef}
+                      onChange={handleProfilePicUpload}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      disabled={uploadingProfile || uploading}
+                      onClick={() => profileInputRef.current?.click()}
+                      className="px-3.5 py-1.5 border border-near-black/10 hover:border-coral/30 rounded-lg text-[9px] uppercase font-bold tracking-wider hover:bg-[#FBF9F6] transition-colors cursor-pointer"
+                    >
+                      {uploadingProfile ? 'Uploading...' : 'Change Photo'}
+                    </button>
+                    
+                    {images[0] && (
+                      <button
+                        type="button"
+                        onClick={handleProfilePicRemove}
+                        className="text-[9px] uppercase font-bold tracking-wider text-neutral-400 hover:text-red-500 transition-colors"
+                      >
+                        Remove Photo
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
@@ -450,52 +572,44 @@ export default function CreatorPortal() {
 
               {/* Photos List */}
               <div className="flex flex-col gap-4 max-h-[400px] overflow-y-auto pr-1 no-scrollbar">
-                {images.length === 0 ? (
-                  <p className="text-xs text-neutral-400 italic text-center py-6">No photos in portfolio yet.</p>
+                {images.length <= 1 ? (
+                  <p className="text-xs text-neutral-400 italic text-center py-6">No gallery photos added yet.</p>
                 ) : (
-                  images.map((src, idx) => {
-                    const isCover = idx === 0;
+                  images.slice(1).map((src, idx) => {
+                    const actualIdx = idx + 1; // Map relative index to absolute index in images array
                     return (
                       <div 
-                        key={idx} 
-                        className={`flex gap-3 p-2.5 rounded-xl border transition-all ${
-                          isCover 
-                            ? 'border-coral/20 bg-coral/5 shadow-sm' 
-                            : 'border-near-black/5 bg-soft-white/30 hover:border-near-black/10'
-                        }`}
+                        key={actualIdx} 
+                        className="flex gap-3 p-2.5 rounded-xl border border-near-black/5 bg-soft-white/30 hover:border-near-black/10 transition-all"
                       >
                         {/* Thumbnail */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
                           src={src} 
-                          alt={`Thumbnail ${idx}`} 
+                          alt={`Thumbnail ${actualIdx}`} 
                           className="w-12 h-15 object-cover rounded-lg bg-neutral-100 flex-shrink-0"
                         />
 
                         {/* Actions */}
                         <div className="flex-grow flex flex-col justify-between py-0.5">
                           <div>
-                            <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded inline-block ${
-                              isCover ? 'bg-coral text-white' : 'bg-neutral-100 text-neutral-500'
-                            }`}>
-                              {isCover ? 'Cover Portrait' : `Gallery Image #${idx}`}
+                            <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded inline-block bg-neutral-100 text-neutral-500 font-semibold">
+                              Gallery Image #{idx + 1}
                             </span>
                           </div>
 
                           <div className="flex items-center gap-3">
-                            {!isCover && (
-                              <button
-                                type="button"
-                                onClick={() => handleMakeCover(idx)}
-                                className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors"
-                              >
-                                Set as Cover
-                              </button>
-                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleMakeCover(actualIdx)}
+                              className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors"
+                            >
+                              Set as Profile
+                            </button>
 
                             <button
                               type="button"
-                              onClick={() => handleImageDelete(idx)}
+                              onClick={() => handleImageDelete(actualIdx)}
                               className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 hover:text-red-500 transition-colors flex items-center gap-0.5 ml-auto"
                             >
                               <Trash2 className="w-3 h-3" /> Remove
