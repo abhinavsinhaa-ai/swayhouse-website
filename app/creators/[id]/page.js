@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Instagram, X, ArrowUpRight, Sparkles, Heart } from 'lucide-react';
 import { ROSTER } from '@/utils/roster';
+import { supabase } from '@/utils/supabase';
 
 export default function CreatorDashboard({ params }) {
   const router = useRouter();
@@ -14,13 +15,33 @@ export default function CreatorDashboard({ params }) {
   const [lightboxCaption, setLightboxCaption] = useState('');
 
   useEffect(() => {
-    // Find creator matching params.id
-    const found = ROSTER.find((c) => c.id === params.id);
-    if (found) {
-      setCreator(found);
-    } else {
-      router.push('/');
+    async function loadCreator() {
+      try {
+        // Try fetching creator profile from database first
+        const { data: dbCreator, error } = await supabase
+          .from('creator_profiles')
+          .select('*')
+          .eq('id', params.id)
+          .single();
+
+        if (dbCreator && !error) {
+          setCreator(dbCreator);
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to fetch creator from database, falling back to static roster:', err);
+      }
+
+      // Fallback to static ROSTER if DB is not configured or fails
+      const found = ROSTER.find((c) => c.id === params.id);
+      if (found) {
+        setCreator(found);
+      } else {
+        router.push('/');
+      }
     }
+
+    loadCreator();
   }, [params.id, router]);
 
   if (!creator) {

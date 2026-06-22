@@ -11,6 +11,7 @@ import ContactForm from '@/components/ContactForm';
 import WhatToExpect from '@/components/WhatToExpect';
 import CreatorModal from '@/components/CreatorModal';
 import { ROSTER } from '@/utils/roster';
+import { supabase } from '@/utils/supabase';
 
 // Register GSAP plugins
 if (typeof window !== 'undefined') {
@@ -21,7 +22,37 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeCreator, setActiveCreator] = useState(null);
+  const [rosterList, setRosterList] = useState(ROSTER);
   
+  // Load dynamic roster from Supabase
+  useEffect(() => {
+    async function loadDynamicRoster() {
+      try {
+        const { data: dbCreators, error } = await supabase
+          .from('creator_profiles')
+          .select('id, name, age, location, instagram, niche, bio, message, images')
+          .order('created_at', { ascending: true });
+
+        if (dbCreators && dbCreators.length > 0 && !error) {
+          // Merge database creators with static ROSTER (DB values override static)
+          const merged = [...ROSTER];
+          dbCreators.forEach((dbCreator) => {
+            const index = merged.findIndex((c) => c.id === dbCreator.id);
+            if (index !== -1) {
+              merged[index] = dbCreator;
+            } else {
+              merged.push(dbCreator);
+            }
+          });
+          setRosterList(merged);
+        }
+      } catch (err) {
+        console.warn('Failed to load dynamic roster from database, using static fallback:', err);
+      }
+    }
+    loadDynamicRoster();
+  }, []);
+
   const heroRef = useRef(null);
   const aboutHeadingRef = useRef(null);
 
@@ -717,8 +748,8 @@ export default function Home() {
           </div>
 
           {/* Asymmetric bento-style grid */}
-          <div className={`roster-grid mb-20 roster-size-${ROSTER.length > 3 ? 'multi' : ROSTER.length}`}>
-            {ROSTER.map((creator, index) => {
+          <div className={`roster-grid mb-20 roster-size-${rosterList.length > 3 ? 'multi' : rosterList.length}`}>
+            {rosterList.map((creator, index) => {
               const cardGridClass = `card-grid-${index % 6}`;
               const isLarge = (index % 6 === 0 || index % 6 === 5);
               return (
