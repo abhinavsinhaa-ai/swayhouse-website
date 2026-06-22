@@ -154,13 +154,13 @@ export default function SwaySpace({ params }) {
         {/* Profile Card & Info */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center mb-20">
           {/* Left Column: Profile Cover Photo */}
-          <div className="lg:col-span-5 relative group overflow-hidden rounded-2xl border border-near-black/5 bg-neutral-100 aspect-[4/5] shadow-lg flex items-center justify-center">
+          <div className="lg:col-span-5 relative group overflow-hidden rounded-2xl border border-near-black/5 bg-neutral-100 shadow-lg flex items-center justify-center w-full">
             {profile.images && profile.images[0] ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img 
                 src={profile.images[0]} 
                 alt={profile.name} 
-                className="w-full h-full object-cover transition-transform duration-750 ease-out group-hover:scale-[1.02]" 
+                className="w-full h-auto block transition-transform duration-750 ease-out group-hover:scale-[1.02]" 
               />
             ) : (
               <div className="flex flex-col items-center justify-center p-8 text-neutral-400 gap-2">

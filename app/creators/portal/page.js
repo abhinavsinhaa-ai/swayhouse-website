@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Mail, Instagram, MapPin, Tag, Calendar, Heart, 
-  Trash2, Upload, LogOut, ExternalLink, Check, Loader2, Sparkles, AlertCircle 
+  Trash2, Upload, LogOut, ExternalLink, Check, Loader2, Sparkles, AlertCircle, X 
 } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/utils/supabase';
@@ -29,6 +29,17 @@ export default function CreatorPortal() {
   const [message, setMessage] = useState('');
   const [images, setImages] = useState([]);
   const [uploadingProfile, setUploadingProfile] = useState(false);
+
+  // Cropper Modal States
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [cropperImageSrc, setCropperImageSrc] = useState('');
+  const [cropperType, setCropperType] = useState('gallery'); // 'profile' | 'gallery'
+  const [aspectRatio, setAspectRatio] = useState(1); // 1, 0.8, 1.777, 'free'
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [imageAspectRatio, setImageAspectRatio] = useState(1);
 
   const fileInputRef = useRef(null);
   const profileInputRef = useRef(null);
@@ -119,65 +130,34 @@ export default function CreatorPortal() {
     setImages(images.filter((_, idx) => idx !== indexToDelete));
   };
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       alert('Please upload an image file.');
       return;
     }
 
-    setUploading(true);
-    setErrorMsg('');
-
-    try {
-      // Mock mode fallback if Supabase is not configured
-      if (!supabase || !supabase.storage) {
-        console.warn('[STORAGE MOCK] Supabase is not configured. Simulating image upload.');
-        
-        // Use a high-quality free stock portrait or landscape based on random query
-        const mockRandomId = Math.floor(Math.random() * 1000);
-        const simulatedUrl = `https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=800&q=80&sig=${mockRandomId}`;
-        
-        setImages([...images, simulatedUrl]);
-        setUploading(false);
-        return;
-      }
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${profile.id}/${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-      
-      const { data, error } = await supabase.storage
-        .from('creator-assets')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (error) {
-        // If bucket doesn't exist or RLS issue, report it
-        throw error;
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('creator-assets')
-        .getPublicUrl(fileName);
-
-      setImages([...images, publicUrl]);
-    } catch (err) {
-      console.error('Upload failed error:', err);
-      setErrorMsg(`Image upload failed: ${err.message || 'Make sure the "creator-assets" storage bucket is created and set to public.'}`);
-    } finally {
-      setUploading(false);
-      // Reset file input
-      if (e.target) e.target.value = '';
-    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.src = reader.result;
+      img.onload = () => {
+        setImageAspectRatio(img.width / img.height);
+        setCropperImageSrc(reader.result);
+        setCropperType('gallery');
+        setAspectRatio(1); // default to square
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+        setCropperOpen(true);
+      };
+    };
+    reader.readAsDataURL(file);
+    if (e.target) e.target.value = '';
   };
 
-  const handleProfilePicUpload = async (e) => {
+  const handleProfilePicUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -186,31 +166,155 @@ export default function CreatorPortal() {
       return;
     }
 
-    setUploadingProfile(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.src = reader.result;
+      img.onload = () => {
+        setImageAspectRatio(img.width / img.height);
+        setCropperImageSrc(reader.result);
+        setCropperType('profile');
+        setAspectRatio(0.8); // default to portrait
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+        setCropperOpen(true);
+      };
+    };
+    reader.readAsDataURL(file);
+    if (e.target) e.target.value = '';
+  };
+
+  const handleDragStart = (e) => {
+    setIsDragging(true);
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    setDragStart({ x: clientX - pan.x, y: clientY - pan.y });
+  };
+
+  const handleDragMove = (e) => {
+    if (!isDragging) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    setPan({
+      x: clientX - dragStart.x,
+      y: clientY - dragStart.y
+    });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleCropSave = () => {
+    const image = new Image();
+    image.src = cropperImageSrc;
+    image.onload = () => {
+      const containerWidth = 340;
+      const containerHeight = 340;
+      const naturalWidth = image.naturalWidth;
+      const naturalHeight = image.naturalHeight;
+      const containerRatio = containerWidth / containerHeight;
+      const imageRatio = naturalWidth / naturalHeight;
+
+      let imgRenderedWidth, imgRenderedHeight;
+      if (imageRatio > containerRatio) {
+        imgRenderedWidth = containerWidth;
+        imgRenderedHeight = containerWidth / imageRatio;
+      } else {
+        imgRenderedHeight = containerHeight;
+        imgRenderedWidth = containerHeight * imageRatio;
+      }
+
+      let W = 260;
+      let H = 260;
+      if (aspectRatio === 0.8) {
+        W = 224;
+        H = 280;
+      } else if (aspectRatio === 1.777) {
+        W = 300;
+        H = 169;
+      } else if (aspectRatio === 'free') {
+        const maxW = 300;
+        const maxH = 280;
+        if (imageAspectRatio > maxW / maxH) {
+          W = maxW;
+          H = maxW / imageAspectRatio;
+        } else {
+          H = maxH;
+          W = maxH * imageAspectRatio;
+        }
+      }
+
+      const cropLeft = (containerWidth - W) / 2;
+      const cropTop = (containerHeight - H) / 2;
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const scaleFactor = 3;
+
+      canvas.width = W * scaleFactor;
+      canvas.height = H * scaleFactor;
+      ctx.scale(scaleFactor, scaleFactor);
+
+      // Fill canvas background with white to avoid black margins on zoom out
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.translate(-cropLeft, -cropTop);
+      ctx.translate(containerWidth / 2, containerHeight / 2);
+      ctx.translate(pan.x, pan.y);
+      ctx.scale(zoom, zoom);
+      ctx.translate(-imgRenderedWidth / 2, -imgRenderedHeight / 2);
+
+      ctx.drawImage(image, 0, 0, imgRenderedWidth, imgRenderedHeight);
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const fileExt = 'jpg';
+        const fileName = cropperType === 'profile'
+          ? `${profile.id}/profile-${Date.now()}.${fileExt}`
+          : `${profile.id}/${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        
+        const file = new File([blob], fileName, { type: 'image/jpeg' });
+        await executeUpload(file, cropperType);
+      }, 'image/jpeg', 0.92);
+    };
+  };
+
+  const executeUpload = async (file, type) => {
+    if (type === 'profile') {
+      setUploadingProfile(true);
+    } else {
+      setUploading(true);
+    }
     setErrorMsg('');
+    setCropperOpen(false);
 
     try {
       if (!supabase || !supabase.storage) {
-        console.warn('[STORAGE MOCK] Supabase is not configured. Simulating profile pic upload.');
+        console.warn('[STORAGE MOCK] Supabase is not configured. Simulating crop upload.');
         const mockRandomId = Math.floor(Math.random() * 1000);
-        const simulatedUrl = `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80&sig=${mockRandomId}`;
-        const newImages = [...images];
-        if (newImages.length > 0) {
-          newImages[0] = simulatedUrl;
+        const simulatedUrl = type === 'profile'
+          ? `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80&sig=${mockRandomId}`
+          : `https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=800&q=80&sig=${mockRandomId}`;
+
+        if (type === 'profile') {
+          const newImages = [...images];
+          if (newImages.length > 0) {
+            newImages[0] = simulatedUrl;
+          } else {
+            newImages.push(simulatedUrl);
+          }
+          setImages(newImages);
         } else {
-          newImages.push(simulatedUrl);
+          setImages([...images, simulatedUrl]);
         }
-        setImages(newImages);
-        setUploadingProfile(false);
         return;
       }
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${profile.id}/profile-${Date.now()}.${fileExt}`;
-      
       const { data, error } = await supabase.storage
         .from('creator-assets')
-        .upload(fileName, file, {
+        .upload(file.name, file, {
           cacheControl: '3600',
           upsert: true
         });
@@ -219,21 +323,25 @@ export default function CreatorPortal() {
 
       const { data: { publicUrl } } = supabase.storage
         .from('creator-assets')
-        .getPublicUrl(fileName);
+        .getPublicUrl(file.name);
 
-      const newImages = [...images];
-      if (newImages.length > 0) {
-        newImages[0] = publicUrl;
+      if (type === 'profile') {
+        const newImages = [...images];
+        if (newImages.length > 0) {
+          newImages[0] = publicUrl;
+        } else {
+          newImages.push(publicUrl);
+        }
+        setImages(newImages);
       } else {
-        newImages.push(publicUrl);
+        setImages([...images, publicUrl]);
       }
-      setImages(newImages);
     } catch (err) {
-      console.error('Profile pic upload failed:', err);
-      setErrorMsg(`Profile image upload failed: ${err.message || 'Check storage configuration.'}`);
+      console.error('Upload failed error:', err);
+      setErrorMsg(`Upload failed: ${err.message || 'Check storage configuration.'}`);
     } finally {
+      setUploading(false);
       setUploadingProfile(false);
-      if (e.target) e.target.value = '';
     }
   };
 
@@ -625,6 +733,184 @@ export default function CreatorPortal() {
           </div>
         </form>
       </div>
+
+      {/* ===== INSTAGRAM STYLE CROPPER MODAL ===== */}
+      <AnimatePresence>
+        {cropperOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-near-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-white rounded-3xl p-6 w-full max-w-[420px] shadow-2xl border border-near-black/5 flex flex-col gap-6 relative"
+            >
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setCropperOpen(false)}
+                className="absolute top-4 right-4 w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-near-black flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div>
+                <h3 className="font-cormorant text-2xl font-bold text-near-black leading-none mb-1">
+                  Adjust photo
+                </h3>
+                <p className="text-[10px] text-neutral-400 uppercase tracking-widest font-semibold">
+                  Crop, zoom, and center your image
+                </p>
+              </div>
+
+              {/* Crop Frame Area */}
+              <div 
+                className="w-full h-[340px] bg-neutral-900 overflow-hidden relative rounded-2xl select-none cursor-move flex items-center justify-center border border-near-black/5"
+                onMouseDown={handleDragStart}
+                onMouseMove={handleDragMove}
+                onMouseUp={handleDragEnd}
+                onMouseLeave={handleDragEnd}
+                onTouchStart={handleDragStart}
+                onTouchMove={handleDragMove}
+                onTouchEnd={handleDragEnd}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={cropperImageSrc}
+                  alt="Crop Preview"
+                  draggable={false}
+                  className="max-w-full max-h-full object-contain pointer-events-none"
+                  style={{
+                    transform: `scale(${zoom}) translate(${pan.x}px, ${pan.y}px)`,
+                    transformOrigin: 'center center',
+                    transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+                  }}
+                />
+
+                {/* Overlay bounding crop frame */}
+                {(() => {
+                  let w = 260;
+                  let h = 260;
+                  if (aspectRatio === 0.8) {
+                    w = 224;
+                    h = 280;
+                  } else if (aspectRatio === 1.777) {
+                    w = 300;
+                    h = 169;
+                  } else if (aspectRatio === 'free') {
+                    const maxW = 300;
+                    const maxH = 280;
+                    if (imageAspectRatio > maxW / maxH) {
+                      w = maxW;
+                      h = maxW / imageAspectRatio;
+                    } else {
+                      h = maxH;
+                      w = maxH * imageAspectRatio;
+                    }
+                  }
+                  return (
+                    <div 
+                      className="absolute border-2 border-white/90 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] pointer-events-none rounded-lg"
+                      style={{
+                        width: `${w}px`,
+                        height: `${h}px`,
+                        left: `calc(50% - ${w/2}px)`,
+                        top: `calc(50% - ${h/2}px)`
+                      }}
+                    >
+                      {/* Bounding grid lines */}
+                      <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 border border-white/20 pointer-events-none">
+                        <div className="border-r border-b border-white/20" />
+                        <div className="border-r border-b border-white/20" />
+                        <div className="border-b border-white/20" />
+                        <div className="border-r border-b border-white/20" />
+                        <div className="border-r border-b border-white/20" />
+                        <div className="border-b border-white/20" />
+                        <div className="border-r border-white/20" />
+                        <div className="border-r border-white/20" />
+                        <div />
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Zoom Controls */}
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Zoom</span>
+                  <span className="text-[10px] font-mono text-neutral-600 font-semibold">{Math.round(zoom * 100)}%</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-neutral-400">-</span>
+                  <input
+                    type="range"
+                    min="0.2"
+                    max="4.0"
+                    step="0.01"
+                    value={zoom}
+                    onChange={(e) => setZoom(parseFloat(e.target.value))}
+                    className="w-full accent-coral bg-neutral-100 h-1 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <span className="text-xs text-neutral-400">+</span>
+                </div>
+              </div>
+
+              {/* Aspect Ratio Picker */}
+              <div className="flex flex-col gap-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Aspect Ratio</span>
+                <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                  {[
+                    { label: '1:1 Square', val: 1 },
+                    { label: '4:5 Portrait', val: 0.8 },
+                    { label: '16:9 Wide', val: 1.777 },
+                    { label: 'Original', val: 'free' }
+                  ].map((r) => (
+                    <button
+                      key={r.label}
+                      type="button"
+                      onClick={() => {
+                        setAspectRatio(r.val);
+                        setPan({ x: 0, y: 0 });
+                        setZoom(1);
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-[10px] font-semibold border transition-all flex-shrink-0 cursor-pointer ${
+                        aspectRatio === r.val
+                          ? 'border-coral bg-coral/5 text-coral font-bold'
+                          : 'border-near-black/5 text-neutral-400 hover:text-near-black bg-[#FBF9F6]'
+                      }`}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="flex gap-3 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setCropperOpen(false)}
+                  className="flex-1 py-3 border border-near-black/5 hover:bg-neutral-50 rounded-xl text-[10px] font-bold uppercase tracking-wider text-neutral-500 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCropSave}
+                  className="flex-1 py-3 bg-coral hover:bg-coral-hover text-white rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer shadow-sm"
+                >
+                  Apply & Upload
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
