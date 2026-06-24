@@ -10,6 +10,9 @@ import { ArrowRight, Instagram, Mail, ShieldAlert, Award, Compass, HeartHandshak
 import ContactForm from '@/components/ContactForm';
 import WhatToExpect from '@/components/WhatToExpect';
 import CreatorModal from '@/components/CreatorModal';
+import SwaySpaceModal from '@/components/SwaySpaceModal';
+import SwayAIModal from '@/components/SwayAIModal';
+import CreatorsModalRoster from '@/components/CreatorsModalRoster';
 import { ROSTER } from '@/utils/roster';
 import { supabase } from '@/utils/supabase';
 
@@ -23,6 +26,11 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [activeCreator, setActiveCreator] = useState(null);
   const [rosterList, setRosterList] = useState(ROSTER);
+  
+  // Custom navigation modals state
+  const [isSwaySpaceModalOpen, setIsSwaySpaceModalOpen] = useState(false);
+  const [isSwayAIModalOpen, setIsSwayAIModalOpen] = useState(false);
+  const [isCreatorsModalOpen, setIsCreatorsModalOpen] = useState(false);
   
   // Load dynamic roster from Supabase
   useEffect(() => {
@@ -183,23 +191,55 @@ export default function Home() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {['Home', 'About', 'Services', 'Creators', 'SwaySpace', 'Contact'].map((item) => (
-              <a 
-                key={item} 
-                href={item === 'SwaySpace' ? '#swayspace' : `#${item.toLowerCase()}`}
-                className="text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-1"
-              >
-                {item}
-              </a>
-            ))}
+            {['Home', 'About', 'Services', 'Creators', 'SwaySpace', 'Contact'].map((item) => {
+              if (item === 'SwaySpace') {
+                return (
+                  <motion.button
+                    key={item}
+                    onClick={() => setIsSwaySpaceModalOpen(true)}
+                    animate={{
+                      boxShadow: [
+                        '0 0 4px rgba(255,107,53,0.1)',
+                        '0 0 14px rgba(255,107,53,0.35)',
+                        '0 0 4px rgba(255,107,53,0.1)'
+                      ]
+                    }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 2.5,
+                      ease: 'easeInOut'
+                    }}
+                    className="text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full bg-coral/10 hover:bg-coral border border-coral/30 hover:border-coral text-coral hover:text-white transition-all duration-300 select-none cursor-pointer outline-none active:scale-95"
+                  >
+                    {item}
+                  </motion.button>
+                );
+              }
+              if (item === 'Creators') {
+                return (
+                  <button
+                    key={item}
+                    onClick={() => setIsCreatorsModalOpen(true)}
+                    className="text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-1 outline-none cursor-pointer"
+                  >
+                    {item}
+                  </button>
+                );
+              }
+              return (
+                <a 
+                  key={item} 
+                  href={`#${item.toLowerCase()}`}
+                  className="text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-1"
+                >
+                  {item}
+                </a>
+              );
+            })}
             
-            <a 
-              href="#swayai"
-              onClick={(e) => {
-                e.preventDefault();
-                window.dispatchEvent(new CustomEvent('open-swayai'));
-              }}
-              className="text-xs font-semibold uppercase tracking-wider text-coral hover:text-coral-hover transition-colors flex items-center gap-1.5 py-1 relative"
+            <button 
+              onClick={() => setIsSwayAIModalOpen(true)}
+              className="text-xs font-semibold uppercase tracking-wider text-coral hover:text-coral-hover transition-colors flex items-center gap-1.5 py-1 relative cursor-pointer outline-none"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>SwayAI</span>
@@ -207,7 +247,7 @@ export default function Home() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-coral opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-coral"></span>
               </span>
-            </a>
+            </button>
 
             <a 
               href="#what-to-expect" 
@@ -265,19 +305,31 @@ export default function Home() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-white z-[999] flex flex-col items-center justify-center gap-8 md:hidden"
           >
-            {['Home', 'About', 'Services', 'Creators', 'SwaySpace', 'Contact'].map((item, index) => (
-              <motion.a 
-                key={item} 
-                href={item === 'SwaySpace' ? '#swayspace' : `#${item.toLowerCase()}`}
-                onClick={() => setMobileMenuOpen(false)}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.08, duration: 0.5, ease: 'easeOut' }}
-                className="font-cormorant text-4xl font-bold text-near-black hover:text-coral transition-colors"
-              >
-                {item}
-              </motion.a>
-            ))}
+            {['Home', 'About', 'Services', 'Creators', 'SwaySpace', 'Contact'].map((item, index) => {
+              const handleMobileClick = (e) => {
+                setMobileMenuOpen(false);
+                if (item === 'SwaySpace') {
+                  e.preventDefault();
+                  setIsSwaySpaceModalOpen(true);
+                } else if (item === 'Creators') {
+                  e.preventDefault();
+                  setIsCreatorsModalOpen(true);
+                }
+              };
+              return (
+                <motion.a 
+                  key={item} 
+                  href={item === 'SwaySpace' ? '#swayspace' : `#${item.toLowerCase()}`}
+                  onClick={handleMobileClick}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.08, duration: 0.5, ease: 'easeOut' }}
+                  className="font-cormorant text-4xl font-bold text-near-black hover:text-coral transition-colors"
+                >
+                  {item}
+                </motion.a>
+              );
+            })}
             
             <motion.a 
               href="#what-to-expect"
@@ -290,20 +342,19 @@ export default function Home() {
               What to Expect
             </motion.a>
 
-            <motion.a 
-              href="#swayai"
+            <motion.button 
               onClick={(e) => {
                 e.preventDefault();
                 setMobileMenuOpen(false);
-                window.dispatchEvent(new CustomEvent('open-swayai'));
+                setIsSwayAIModalOpen(true);
               }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 6 * 0.08, duration: 0.5, ease: 'easeOut' }}
-              className="px-6 py-2.5 rounded-full border border-coral text-coral text-sm font-bold uppercase tracking-wider hover:bg-coral hover:text-white transition-colors"
+              className="px-6 py-2.5 rounded-full border border-coral text-coral text-sm font-bold uppercase tracking-wider hover:bg-coral hover:text-white transition-colors cursor-pointer outline-none"
             >
               Talk to SwayAI ✨
-            </motion.a>
+            </motion.button>
 
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
@@ -1177,6 +1228,23 @@ export default function Home() {
       <CreatorModal 
         creator={activeCreator} 
         onClose={() => setActiveCreator(null)} 
+      />
+
+      <SwaySpaceModal 
+        isOpen={isSwaySpaceModalOpen} 
+        onClose={() => setIsSwaySpaceModalOpen(false)} 
+      />
+
+      <SwayAIModal 
+        isOpen={isSwayAIModalOpen} 
+        onClose={() => setIsSwayAIModalOpen(false)} 
+      />
+
+      <CreatorsModalRoster 
+        isOpen={isCreatorsModalOpen} 
+        onClose={() => setIsCreatorsModalOpen(false)} 
+        roster={rosterList}
+        onSelectCreator={(creator) => setActiveCreator(creator)}
       />
 
     </main>
