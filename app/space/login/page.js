@@ -262,7 +262,7 @@ export default function SpaceLogin() {
                     <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Your Space Username</label>
                     <input
                       type="text"
-                      placeholder="e.g. sarahj"
+                      placeholder="e.g. aanyagarg"
                       required
                       value={resetUsername}
                       onChange={(e) => setResetUsername(e.target.value)}
@@ -388,7 +388,7 @@ export default function SpaceLogin() {
                     <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Space Username</label>
                     <input
                       type="text"
-                      placeholder="e.g. sarahj"
+                      placeholder="e.g. aanyagarg"
                       required
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
@@ -446,7 +446,7 @@ export default function SpaceLogin() {
                     <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Your Name</label>
                     <input
                       type="text"
-                      placeholder="e.g. Sarah Jenkins"
+                      placeholder="e.g. Aanya Garg"
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -458,7 +458,7 @@ export default function SpaceLogin() {
                     <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Choose Username</label>
                     <input
                       type="text"
-                      placeholder="e.g. sarahj"
+                      placeholder="e.g. aanyagarg"
                       required
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}

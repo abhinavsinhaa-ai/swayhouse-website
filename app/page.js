@@ -894,7 +894,7 @@ export default function Home() {
             >
               <div className="flex items-center gap-2 mb-4">
                 <span className="w-1.5 h-1.5 rounded-full bg-coral"></span>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-coral">Marketing Tool for Creators</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-coral">Personal Visual Canvas</span>
               </div>
               
               <h2 className="font-cormorant text-5xl md:text-6xl font-light text-near-black leading-tight mb-6">
@@ -903,7 +903,7 @@ export default function Home() {
               </h2>
               
               <p className="text-sm text-neutral-500 leading-relaxed mb-8 max-w-[500px]">
-                Ditch generic link-in-bio pages. SwaySpace gives you a premium, editorial VSCO-style visual grid page to showcase your lifestyle, moments, and aesthetic brand partnerships. Completely integrated with SwayAI.
+                Create your personal space, capture your moments, and showcase your aesthetic. Anyone can create their own custom grid to share in their bio and update anytime.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
@@ -934,15 +934,15 @@ export default function Home() {
               <div className="flex items-center gap-4">
                 <Link 
                   href="/space/login"
-                  className="px-8 py-4 rounded-full bg-near-black text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all active:scale-[0.98] shadow-md flex items-center justify-center cursor-pointer"
+                  className="px-8 py-4 rounded-full bg-near-black text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all active:scale-[0.98] shadow-md flex items-center justify-center cursor-pointer font-semibold"
                 >
                   Create Your Space
                 </Link>
                 <Link 
                   href="/space/login"
-                  className="px-6 py-4 rounded-full border border-near-black/10 text-near-black text-xs font-bold uppercase tracking-wider hover:border-coral transition-all active:scale-[0.98] flex items-center justify-center cursor-pointer"
+                  className="px-6 py-4 rounded-full border border-near-black/10 text-near-black text-xs font-bold uppercase tracking-wider hover:border-coral transition-all active:scale-[0.98] flex items-center justify-center cursor-pointer font-semibold"
                 >
-                  Member Login
+                  Log In
                 </Link>
               </div>
             </motion.div>
@@ -957,12 +957,12 @@ export default function Home() {
             >
               {/* Header profile mockup */}
               <div className="flex items-center gap-3 pb-4 border-b border-near-black/5">
-                <div className="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex items-center justify-center border border-near-black/5">
-                  <img src="/assets/sarah.jpg" alt="Sarah Jenkins" className="w-full h-full object-cover" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-coral to-[#FF8C61] text-white flex items-center justify-center font-bold text-xs shadow-sm select-none">
+                  YS
                 </div>
                 <div className="flex-grow">
-                  <h4 className="font-cormorant text-base font-bold text-near-black leading-none">Sarah Jenkins</h4>
-                  <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-400">@sarahj &bull; Lifestyle</span>
+                  <h4 className="font-cormorant text-base font-bold text-near-black leading-none">Your Space</h4>
+                  <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-400">@username &bull; Aesthetic Journal</span>
                 </div>
                 <span className="text-[8px] font-bold text-coral border border-coral/20 px-2 py-0.5 rounded bg-coral/5 select-none uppercase tracking-wider">
                   Live Preview
@@ -972,15 +972,17 @@ export default function Home() {
               {/* Grid content mockup */}
               <div className="grid grid-cols-3 gap-3 my-4 flex-grow items-center">
                 {[
-                  '/assets/aditi-gallery-1.jpg',
-                  '/assets/aditi-gallery-2.jpg',
-                  '/assets/aditi-gallery-3.jpg',
-                  '/assets/aditi-gallery-4.jpg',
-                  '/assets/aditi-gallery-5.jpg',
-                  '/assets/aditi-gallery-6.jpg',
-                ].map((src, i) => (
-                  <div key={i} className="aspect-square rounded-lg overflow-hidden bg-neutral-50 border border-near-black/5 hover:scale-[1.03] transition-transform duration-300">
-                    <img src={src} alt="Gallery item" className="w-full h-full object-cover" />
+                  'from-orange-100 to-amber-100',
+                  'from-rose-50 to-orange-100',
+                  'from-amber-50 to-orange-50',
+                  'from-orange-100 to-amber-50',
+                  'from-rose-100 to-peach/20',
+                  'from-amber-100 to-orange-100',
+                ].map((gradient, i) => (
+                  <div key={i} className={`aspect-square rounded-lg bg-gradient-to-br ${gradient} border border-near-black/5 hover:scale-[1.03] transition-transform duration-300 flex items-center justify-center`}>
+                    <svg className="w-4.5 h-4.5 text-coral/25" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
                   </div>
                 ))}
               </div>

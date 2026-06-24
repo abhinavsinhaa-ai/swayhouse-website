@@ -35,6 +35,14 @@ export default function SpacePortal() {
   const [generatingBio, setGeneratingBio] = useState(false);
   const [captions, setCaptions] = useState([]);
   const [cropperCaption, setCropperCaption] = useState('');
+
+  // Email enforcement fields
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [emailEnforcementOpen, setEmailEnforcementOpen] = useState(false);
+  const [enforcedEmailInput, setEnforcedEmailInput] = useState('');
+  const [enforceError, setEnforceError] = useState('');
+  const [enforceSaving, setEnforceSaving] = useState(false);
   const [generatingCaption, setGeneratingCaption] = useState(false);
   const [generatingCaptionIndex, setGeneratingCaptionIndex] = useState(null);
 
@@ -85,6 +93,13 @@ export default function SpacePortal() {
         setImages(p.images || []);
         setGender(p.gender || 'prefer_not_to_say');
         setCaptions(p.captions || []);
+        setEmail(p.email || '');
+        setPhone(p.phone || '');
+        
+        // Enforce email configuration for existing accounts
+        if (!p.email) {
+          setEmailEnforcementOpen(true);
+        }
       } else {
         // Not authenticated, redirect to login
         router.push('/space/login');
@@ -99,6 +114,10 @@ export default function SpacePortal() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!email.trim()) {
+      setErrorMsg('Email address is mandatory.');
+      return;
+    }
     setSaving(true);
     setSuccessMsg('');
     setErrorMsg('');
@@ -118,7 +137,9 @@ export default function SpacePortal() {
           images,
           gender,
           captions,
-          designation
+          designation,
+          email: email.trim(),
+          phone: phone.trim()
         })
       });
 
@@ -133,6 +154,57 @@ export default function SpacePortal() {
       setErrorMsg('Network error. Failed to save changes.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleEnforceEmailSave = async (e) => {
+    e.preventDefault();
+    if (!enforcedEmailInput.trim()) {
+      setEnforceError('Email address is required');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(enforcedEmailInput.trim())) {
+      setEnforceError('Please enter a valid email address');
+      return;
+    }
+
+    setEnforceSaving(true);
+    setEnforceError('');
+
+    try {
+      const res = await fetch('/api/space/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name || profile?.name || 'SwaySpace Creator',
+          age: age || profile?.age || 18,
+          location: location || profile?.location || 'India',
+          instagram: instagram || profile?.instagram || profile?.id || '',
+          niche: niche || profile?.niche || 'Lifestyle',
+          bio: bio || profile?.bio || '',
+          message: message || profile?.message || '',
+          images: images || profile?.images || [],
+          gender: gender || profile?.gender || 'prefer_not_to_say',
+          captions: captions || profile?.captions || [],
+          designation: designation || profile?.designation || '',
+          email: enforcedEmailInput.trim(),
+          phone: phone || profile?.phone || ''
+        })
+      });
+
+      if (res.ok) {
+        setEmail(enforcedEmailInput.trim());
+        setEmailEnforcementOpen(false);
+        fetchProfile();
+      } else {
+        const data = await res.json();
+        setEnforceError(data.error || 'Failed to save email address.');
+      }
+    } catch (err) {
+      setEnforceError('Network error. Failed to save email address.');
+    } finally {
+      setEnforceSaving(false);
     }
   };
 
@@ -918,6 +990,29 @@ export default function SpacePortal() {
                   </select>
                 </div>
 
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Email Address (Mandatory)</label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. name@example.com"
+                    className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Phone Number (Optional)</label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="e.g. +91 98765 43210"
+                    className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-mono"
+                  />
+                </div>
+
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
                   <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Niche Description</label>
                   <input
@@ -1333,6 +1428,61 @@ export default function SpacePortal() {
                   Apply & Upload
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Email Enforcement Modal Overlay */}
+      <AnimatePresence>
+        {emailEnforcementOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 select-none"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-white border border-near-black/5 rounded-2xl p-8 max-w-[400px] w-full shadow-2xl flex flex-col items-center gap-6"
+            >
+              <div className="w-12 h-12 rounded-full bg-coral/10 text-coral flex items-center justify-center">
+                <Mail className="w-5 h-5" />
+              </div>
+
+              <div className="text-center flex flex-col gap-2">
+                <h3 className="font-cormorant text-2xl font-bold text-near-black">Email Address Required</h3>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  To ensure you can recover your password if forgotten, configuring a valid email address is now mandatory for your SwaySpace account.
+                </p>
+              </div>
+
+              <form onSubmit={handleEnforceEmailSave} className="w-full flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5 text-left">
+                  <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="e.g. name@example.com"
+                    value={enforcedEmailInput}
+                    onChange={(e) => setEnforcedEmailInput(e.target.value)}
+                    className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all"
+                  />
+                </div>
+
+                {enforceError && (
+                  <p className="text-[11px] text-red-600 bg-red-50 border border-red-100 rounded-lg p-2.5 text-center flex items-center gap-2 justify-center">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {enforceError}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={enforceSaving}
+                  className="w-full py-3.5 rounded-xl bg-near-black text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {enforceSaving ? 'Saving...' : 'Save and Continue'}
+                </button>
+              </form>
             </motion.div>
           </motion.div>
         )}

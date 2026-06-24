@@ -56,13 +56,32 @@ export async function GET(req) {
     profile.designation = parsedDesignation;
 
     let cleanMessage = profile.message || '';
+    let email = '';
+    let phone = '';
+    
+    // Extract OTP if present (and clean it from message)
+    if (cleanMessage.includes('[otp:')) {
+      const otpIndex = cleanMessage.indexOf('\n\n[otp:');
+      if (otpIndex !== -1) {
+        cleanMessage = cleanMessage.substring(0, otpIndex);
+      }
+    }
+
+    // Extract Contact Info
     if (cleanMessage.includes('[contact:')) {
       const index = cleanMessage.indexOf('\n\n[contact:');
       if (index !== -1) {
+        const marker = cleanMessage.substring(index);
         cleanMessage = cleanMessage.substring(0, index);
+        const content = marker.replace('\n\n[contact:', '').replace(']', '');
+        const parts = content.split('||');
+        email = parts[0] || '';
+        phone = parts[1] || '';
       }
     }
     profile.message = cleanMessage;
+    profile.email = email;
+    profile.phone = phone;
 
     // Exclude password from response
     const { password, ...safeProfile } = profile;
@@ -83,7 +102,7 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { name, age, location, instagram, niche, bio, message, images, gender, captions, designation } = body;
+    const { name, age, location, instagram, niche, bio, message, images, gender, captions, designation, email, phone } = body;
 
     if (!name || !instagram || !niche) {
       return NextResponse.json({ error: 'Name, Instagram, and Niche are required' }, { status: 400 });
@@ -103,22 +122,45 @@ export async function POST(req) {
 
     const mergedNiche = designation ? `${niche}||${designation}` : niche;
 
-    // Fetch the existing profile to extract the contact marker
+    // Fetch the existing profile to extract the contact marker and OTP marker
     const { data: existingProfile } = await supabase
       .from('personal_grids')
       .select('message')
       .eq('id', spaceId)
       .single();
 
-    let contactMarker = '';
-    if (existingProfile && existingProfile.message && existingProfile.message.includes('[contact:')) {
-      const index = existingProfile.message.indexOf('\n\n[contact:');
-      if (index !== -1) {
-        contactMarker = existingProfile.message.substring(index);
+    let contactEmail = email !== undefined ? email : '';
+    let contactPhone = phone !== undefined ? phone : '';
+    let otpMarker = '';
+
+    if (existingProfile && existingProfile.message) {
+      const msg = existingProfile.message;
+      
+      // Keep existing OTP marker if present
+      if (msg.includes('[otp:')) {
+        const otpIdx = msg.indexOf('\n\n[otp:');
+        if (otpIdx !== -1) {
+          otpMarker = msg.substring(otpIdx);
+        }
+      }
+
+      // If email/phone are undefined in body, load them from existing message
+      if (email === undefined && phone === undefined) {
+        if (msg.includes('[contact:')) {
+          const contactIdx = msg.indexOf('\n\n[contact:');
+          if (contactIdx !== -1) {
+            const marker = msg.substring(contactIdx);
+            const content = marker.split('\n\n[otp:')[0].replace('\n\n[contact:', '').replace(']', '');
+            const parts = content.split('||');
+            contactEmail = parts[0] || '';
+            contactPhone = parts[1] || '';
+          }
+        }
       }
     }
 
-    const mergedMessage = message ? `${message}${contactMarker}` : contactMarker;
+    const contactMarker = `\n\n[contact:${contactEmail || ''}||${contactPhone || ''}]`;
+    const mergedMessage = (message || '') + contactMarker + otpMarker;
 
     const updateObj = {
       name,

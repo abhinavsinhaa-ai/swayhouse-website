@@ -35,16 +35,16 @@ aditi 🤍`,
 
 export const SPACES = [
   {
-    id: "sarahj",
-    name: "Sarah Jenkins",
-    password: "sarahsgrid",
+    id: "aanyagarg",
+    name: "Aanya Garg",
+    password: "aanyasgrid",
     age: 19,
     location: "Mumbai, India",
-    instagram: "sarahj",
+    instagram: "aanyagarg",
     niche: "Lifestyle & Aesthetics",
     bio: "Curating moments and visual vibes.",
     gender: "female",
-    message: `Hii I’m Sarah 🤍
+    message: `Hii I’m Aanya 🤍
 
 Welcome to my space. Lost in aesthetic corners, quiet moments, and visual inspirations.`,
     images: [
