@@ -70,7 +70,49 @@ export async function POST(req) {
         return NextResponse.json({ error: 'Failed to generate OTP' }, { status: 500 });
       }
 
-      console.log(`[MOCK EMAIL] Sent password reset OTP "${generatedOtp}" to ${email}`);
+      // Send real email if RESEND_API_KEY is configured
+      if (process.env.RESEND_API_KEY) {
+        try {
+          const emailResponse = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+            },
+            body: JSON.stringify({
+              from: process.env.EMAIL_FROM || 'SwaySpace <onboarding@resend.dev>',
+              to: email,
+              subject: 'SwaySpace Password Reset OTP',
+              html: `
+                <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff;">
+                  <div style="text-align: center; margin-bottom: 20px;">
+                    <span style="font-size: 18px; font-weight: bold; color: #1a1a1a;">SwayHouse</span>
+                  </div>
+                  <h3 style="color: #FF6B35; font-size: 20px; margin-bottom: 10px;">Reset Your Password</h3>
+                  <p style="color: #666666; font-size: 14px; line-height: 1.5;">You requested to reset the password for your SwaySpace account. Use the 6-digit OTP code below to proceed:</p>
+                  <div style="background-color: #FBF9F6; padding: 20px; border-radius: 8px; font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 6px; color: #1a1a1a; margin: 24px 0; border: 1px solid #efefef;">
+                    ${generatedOtp}
+                  </div>
+                  <p style="color: #999999; font-size: 11px; line-height: 1.4; border-top: 1px solid #eeeeee; padding-top: 15px; margin-top: 20px;">
+                    This code is valid for 10 minutes. If you did not request a password reset, you can safely ignore this email.
+                  </p>
+                </div>
+              `
+            })
+          });
+
+          if (!emailResponse.ok) {
+            const errText = await emailResponse.text();
+            console.error('Failed to send email via Resend API:', errText);
+          } else {
+            console.log(`Successfully sent real reset email to ${email} via Resend.`);
+          }
+        } catch (mailErr) {
+          console.error('Error executing Resend email fetch:', mailErr);
+        }
+      } else {
+        console.log(`[MOCK EMAIL] Sent password reset OTP "${generatedOtp}" to ${email}`);
+      }
 
       return NextResponse.json({ 
         success: true, 
