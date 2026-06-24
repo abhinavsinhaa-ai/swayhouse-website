@@ -42,9 +42,15 @@ export async function POST(req) {
       openRouterApiKey = openRouterApiKey.trim().replace(/^["']|["']$/g, '');
     }
 
-    if (apiKeys.length === 0 && !groqApiKey && !openRouterApiKey) {
+    // Configure GLM API key (Zhipu AI / BigModel)
+    let glmApiKey = process.env.GLM_API_KEY || process.env.ZHIPUAI_API_KEY;
+    if (glmApiKey) {
+      glmApiKey = glmApiKey.trim().replace(/^["']|["']$/g, '');
+    }
+
+    if (apiKeys.length === 0 && !groqApiKey && !openRouterApiKey && !glmApiKey) {
       return NextResponse.json(
-        { error: 'No API keys configured on the server. Please set GEMINI_API_KEY, GROQ_API_KEY, or OPENROUTER_API_KEY in your environment.' },
+        { error: 'No API keys configured on the server. Please set GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY, or GLM_API_KEY in your environment.' },
         { status: 500 }
       );
     }
@@ -352,6 +358,69 @@ Current User Message: ${message}
           console.error(`Fetch error for model ${modelConfig.name}:`, err);
           lastErrorText = err.message;
         }
+      }
+    }
+
+    // Fallback: Try GLM API (Zhipu AI / BigModel) if Gemini fails
+    if (!success && glmApiKey) {
+      try {
+        console.log(`Gemini API exhausted. Attempting GLM API call...`);
+        const modelName = imageData ? 'glm-4v' : 'glm-4-flash';
+        
+        let contentPayload;
+        if (imageData) {
+          contentPayload = [
+            {
+              type: 'text',
+              text: prompt
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:${imageData.mimeType};base64,${imageData.data}`
+              }
+            }
+          ];
+        } else {
+          contentPayload = prompt;
+        }
+
+        const response = await fetch(
+          'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${glmApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: modelName,
+              messages: [
+                {
+                  role: 'user',
+                  content: contentPayload,
+                },
+              ],
+              temperature: 0.7,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          reply = data.choices?.[0]?.message?.content;
+          if (reply) {
+            success = true;
+            console.log(`Successfully generated response using GLM model: ${modelName}`);
+          }
+        } else {
+          const errText = await response.text();
+          console.error(`GLM API Error:`, errText);
+          lastErrorText = `GLM fallback failed: ${errText}`;
+        }
+      } catch (err) {
+        console.error(`GLM Fetch error:`, err);
+        lastErrorText = `GLM fallback error: ${err.message}`;
       }
     }
 
