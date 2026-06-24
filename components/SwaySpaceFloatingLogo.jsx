@@ -20,7 +20,7 @@ export default function SwaySpaceFloatingLogo() {
   }, []);
 
   return (
-    <div className="fixed right-6 bottom-6 md:top-24 md:right-6 z-[999] select-none flex items-center gap-3 flex-row-reverse">
+    <div className="fixed right-4 bottom-4 md:top-24 md:right-6 z-[999] select-none flex items-center gap-2 flex-row-reverse">
       <Link
         href="/space/login"
         onClick={() => setShowCallout(false)}
@@ -47,9 +47,9 @@ export default function SwaySpaceFloatingLogo() {
               x: 0, 
               scale: [1, 1.03, 1],
               boxShadow: [
-                '0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08)',
-                '0 10px 25px -5px rgba(255, 107, 53, 0.25), 0 8px 10px -6px rgba(255, 107, 53, 0.25)',
-                '0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08)'
+                '0 4px 12px rgba(0, 0, 0, 0.05)',
+                '0 4px 12px rgba(255, 107, 53, 0.15)',
+                '0 4px 12px rgba(0, 0, 0, 0.05)'
               ]
             }}
             transition={{
@@ -57,15 +57,15 @@ export default function SwaySpaceFloatingLogo() {
               boxShadow: { repeat: Infinity, duration: 2.5, ease: "easeInOut" },
               default: { duration: 0.3 }
             }}
-            className="hidden md:flex bg-white border border-near-black/5 px-4 py-2.5 rounded-xl shadow-xl items-center gap-2.5 relative after:content-[''] after:absolute after:left-full after:top-1/2 after:-translate-y-1/2 after:border-[6px] after:border-transparent after:border-l-white before:content-[''] before:absolute before:left-full before:top-1/2 before:-translate-y-1/2 before:border-[7px] before:border-transparent before:border-l-near-black/5 cursor-pointer hover:border-coral/20 mr-1"
+            className="bg-white border border-near-black/5 px-2.5 py-1.5 rounded-lg shadow-md flex items-center gap-2 relative after:content-[''] after:absolute after:left-full after:top-1/2 after:-translate-y-1/2 after:border-[5px] after:border-transparent after:border-l-white before:content-[''] before:absolute before:left-full before:top-1/2 before:-translate-y-1/2 before:border-[6px] before:border-transparent before:border-l-near-black/5 cursor-pointer hover:border-coral/20 mr-0.5"
           >
-            <Link href="/space/login" className="flex items-center gap-1.5 cursor-pointer decoration-transparent">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-near-black flex items-center gap-1.5">
-                <span className="relative flex h-2 w-2">
+            <Link href="/space/login" className="flex items-center gap-1 cursor-pointer decoration-transparent">
+              <span className="text-[8px] font-bold uppercase tracking-widest text-near-black flex items-center gap-1">
+                <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-coral opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-coral"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-coral"></span>
                 </span>
-                Access SwaySpace ⚡
+                SwaySpace
               </span>
             </Link>
             <button 
@@ -75,7 +75,7 @@ export default function SwaySpaceFloatingLogo() {
               }}
               className="text-neutral-400 hover:text-near-black p-0.5 cursor-pointer"
             >
-              <X className="w-3 h-3" />
+              <X className="w-2.5 h-2.5" />
             </button>
           </motion.div>
         )}
