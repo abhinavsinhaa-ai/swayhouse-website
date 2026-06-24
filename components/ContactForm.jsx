@@ -133,7 +133,7 @@ export default function ContactForm() {
                 id="formName"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Ayush" 
+                placeholder="e.g. Alex" 
                 required
                 className="w-full bg-white text-near-black placeholder-neutral-400 focus:ring-2 focus:ring-near-black rounded-lg px-4 py-3 text-sm outline-none transition-all duration-300"
               />

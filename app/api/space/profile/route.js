@@ -55,6 +55,15 @@ export async function GET(req) {
     profile.niche = cleanNiche;
     profile.designation = parsedDesignation;
 
+    let cleanMessage = profile.message || '';
+    if (cleanMessage.includes('[contact:')) {
+      const index = cleanMessage.indexOf('\n\n[contact:');
+      if (index !== -1) {
+        cleanMessage = cleanMessage.substring(0, index);
+      }
+    }
+    profile.message = cleanMessage;
+
     // Exclude password from response
     const { password, ...safeProfile } = profile;
 
@@ -94,6 +103,23 @@ export async function POST(req) {
 
     const mergedNiche = designation ? `${niche}||${designation}` : niche;
 
+    // Fetch the existing profile to extract the contact marker
+    const { data: existingProfile } = await supabase
+      .from('personal_grids')
+      .select('message')
+      .eq('id', spaceId)
+      .single();
+
+    let contactMarker = '';
+    if (existingProfile && existingProfile.message && existingProfile.message.includes('[contact:')) {
+      const index = existingProfile.message.indexOf('\n\n[contact:');
+      if (index !== -1) {
+        contactMarker = existingProfile.message.substring(index);
+      }
+    }
+
+    const mergedMessage = message ? `${message}${contactMarker}` : contactMarker;
+
     const updateObj = {
       name,
       age: parseInt(age) || 0,
@@ -101,7 +127,7 @@ export async function POST(req) {
       instagram,
       niche: mergedNiche,
       bio,
-      message,
+      message: mergedMessage,
       images: mergedImages,
       gender,
       captions

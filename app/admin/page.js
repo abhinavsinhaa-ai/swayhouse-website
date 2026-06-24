@@ -922,14 +922,16 @@ export default function AdminDashboard() {
                           <tr className="border-b border-near-black/5 text-neutral-400 uppercase text-[9px] tracking-wider">
                             <th className="pb-3">Creator Name</th>
                             <th className="pb-3">Username / ID</th>
-                            <th className="pb-3">Niche</th>
+                            <th className="pb-3">Niche / Type</th>
+                            <th className="pb-3">Contact Details</th>
+                            <th className="pb-3">Registered On</th>
                             <th className="pb-3 text-right">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {dbCreators.length === 0 ? (
                             <tr>
-                              <td colSpan={4} className="py-8 text-center text-neutral-400 italic">No creators registered in Supabase yet.</td>
+                              <td colSpan={6} className="py-8 text-center text-neutral-400 italic">No creators registered in Supabase yet.</td>
                             </tr>
                           ) : (
                             dbCreators.map((c) => (
@@ -951,6 +953,25 @@ export default function AdminDashboard() {
                                       </span>
                                     )}
                                   </div>
+                                </td>
+                                <td className="py-4">
+                                  {c.is_space ? (
+                                    <div className="flex flex-col gap-0.5 text-neutral-600">
+                                      {c.email && <span className="truncate max-w-[150px] inline-block" title={c.email}>{c.email}</span>}
+                                      {c.phone && <span className="font-mono text-[10px]">{c.phone}</span>}
+                                      {c.otp && (
+                                        <span className="inline-flex items-center gap-1 bg-yellow-50 text-yellow-700 border border-yellow-100 rounded px-1.5 py-0.5 text-[9px] font-bold mt-1 max-w-max select-all" title="Click to copy OTP">
+                                          🔑 OTP: {c.otp}
+                                        </span>
+                                      )}
+                                      {!c.email && !c.phone && <span className="text-neutral-400 italic text-[10px]">No contact info</span>}
+                                    </div>
+                                  ) : (
+                                    <span className="text-neutral-400 italic text-[10px]">Manual Account</span>
+                                  )}
+                                </td>
+                                <td className="py-4 text-neutral-500 text-[10px]">
+                                  {c.created_at ? new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
                                 </td>
                                 <td className="py-4 text-right">
                                   <button

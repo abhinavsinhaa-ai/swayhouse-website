@@ -68,6 +68,15 @@ export default function SwaySpace({ params }) {
           profileData.niche = cleanNiche;
           profileData.designation = parsedDesignation;
 
+          let cleanMessage = profileData.message || '';
+          if (cleanMessage.includes('[contact:')) {
+            const index = cleanMessage.indexOf('\n\n[contact:');
+            if (index !== -1) {
+              cleanMessage = cleanMessage.substring(0, index);
+            }
+          }
+          profileData.message = cleanMessage;
+
           setProfile(profileData);
           return;
         }

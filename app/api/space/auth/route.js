@@ -24,12 +24,14 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Username and password are required' }, { status: 400 });
     }
 
-    // Query database for personal space matching id and password
+    const crypto = await import('crypto');
+    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+
+    // Query database for personal space by username
     const { data: space, error } = await supabase
       .from('personal_grids')
-      .select('id, name')
+      .select('id, name, password')
       .ilike('id', username.trim())
-      .eq('password', password)
       .single();
 
     if (error) {
@@ -43,7 +45,9 @@ export async function POST(req) {
       }, { status: 500 });
     }
 
-    if (!space) {
+    const match = (space.password === password) || (space.password === hashedPassword);
+    if (!match) {
+      console.warn('[SPACE AUTH FAILED] Password mismatch for:', username);
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 });
     }
 

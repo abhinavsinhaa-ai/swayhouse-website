@@ -183,10 +183,10 @@ export default function Home() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {['Home', 'About', 'Services', 'Creators', 'Contact'].map((item) => (
+            {['Home', 'About', 'Services', 'Creators', 'SwaySpace', 'Contact'].map((item) => (
               <a 
                 key={item} 
-                href={`#${item.toLowerCase()}`}
+                href={item === 'SwaySpace' ? '#swayspace' : `#${item.toLowerCase()}`}
                 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-1"
               >
                 {item}
@@ -265,10 +265,10 @@ export default function Home() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-white z-[999] flex flex-col items-center justify-center gap-8 md:hidden"
           >
-            {['Home', 'About', 'Services', 'Creators', 'Contact'].map((item, index) => (
+            {['Home', 'About', 'Services', 'Creators', 'SwaySpace', 'Contact'].map((item, index) => (
               <motion.a 
                 key={item} 
-                href={`#${item.toLowerCase()}`}
+                href={item === 'SwaySpace' ? '#swayspace' : `#${item.toLowerCase()}`}
                 onClick={() => setMobileMenuOpen(false)}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -879,6 +879,123 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ===== SECTION 4.2 — SWAYSPACE ===== */}
+      <section id="swayspace" className="py-24 md:py-36 bg-[#FBF9F6] border-t border-b border-near-black/5 overflow-hidden">
+        <div className="w-full max-w-[1200px] mx-auto px-6 md:px-10">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 lg:gap-24 items-center">
+            
+            {/* Left Content */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="flex flex-col"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <span className="w-1.5 h-1.5 rounded-full bg-coral"></span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-coral">Marketing Tool for Creators</span>
+              </div>
+              
+              <h2 className="font-cormorant text-5xl md:text-6xl font-light text-near-black leading-tight mb-6">
+                Your Own <br />
+                <span className="italic text-coral font-medium">SwaySpace</span> Grid
+              </h2>
+              
+              <p className="text-sm text-neutral-500 leading-relaxed mb-8 max-w-[500px]">
+                Ditch generic link-in-bio pages. SwaySpace gives you a premium, editorial VSCO-style visual grid page to showcase your lifestyle, moments, and aesthetic brand partnerships. Completely integrated with SwayAI.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs font-bold uppercase tracking-wider text-near-black flex items-center gap-2">
+                    <svg className="w-4 h-4 text-coral" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    End-to-End Encrypted
+                  </div>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    We secure your credentials. Your passwords are one-way hashed and entirely inaccessible, even to our admins.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs font-bold uppercase tracking-wider text-near-black flex items-center gap-2">
+                    <svg className="w-4 h-4 text-coral" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Instant Setup
+                  </div>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Create your profile in 10 seconds. Customize your photos, bio links, and visual caption prompts with SwayAI.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <Link 
+                  href="/space/login"
+                  className="px-8 py-4 rounded-full bg-near-black text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all active:scale-[0.98] shadow-md flex items-center justify-center cursor-pointer"
+                >
+                  Create Your Space
+                </Link>
+                <Link 
+                  href="/space/login"
+                  className="px-6 py-4 rounded-full border border-near-black/10 text-near-black text-xs font-bold uppercase tracking-wider hover:border-coral transition-all active:scale-[0.98] flex items-center justify-center cursor-pointer"
+                >
+                  Member Login
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* Right Visual (Interactive Mockup Grid) */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="relative aspect-square w-full max-w-[420px] mx-auto bg-white rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-near-black/5 flex flex-col justify-between"
+            >
+              {/* Header profile mockup */}
+              <div className="flex items-center gap-3 pb-4 border-b border-near-black/5">
+                <div className="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex items-center justify-center border border-near-black/5">
+                  <img src="/assets/sarah.jpg" alt="Sarah Jenkins" className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-grow">
+                  <h4 className="font-cormorant text-base font-bold text-near-black leading-none">Sarah Jenkins</h4>
+                  <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-400">@sarahj &bull; Lifestyle</span>
+                </div>
+                <span className="text-[8px] font-bold text-coral border border-coral/20 px-2 py-0.5 rounded bg-coral/5 select-none uppercase tracking-wider">
+                  Live Preview
+                </span>
+              </div>
+
+              {/* Grid content mockup */}
+              <div className="grid grid-cols-3 gap-3 my-4 flex-grow items-center">
+                {[
+                  '/assets/aditi-gallery-1.jpg',
+                  '/assets/aditi-gallery-2.jpg',
+                  '/assets/aditi-gallery-3.jpg',
+                  '/assets/aditi-gallery-4.jpg',
+                  '/assets/aditi-gallery-5.jpg',
+                  '/assets/aditi-gallery-6.jpg',
+                ].map((src, i) => (
+                  <div key={i} className="aspect-square rounded-lg overflow-hidden bg-neutral-50 border border-near-black/5 hover:scale-[1.03] transition-transform duration-300">
+                    <img src={src} alt="Gallery item" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Footer info mockup */}
+              <div className="pt-3 border-t border-near-black/5 flex justify-between items-center text-[9px] font-bold uppercase tracking-wider text-neutral-400">
+                <span>✨ Built by SwayHouse</span>
+                <span className="text-coral">Free Bio-Grid Page</span>
+              </div>
+            </motion.div>
+
+          </div>
+        </div>
+      </section>
+
       {/* ===== SECTION 4.5 — EXPECTATIONS ===== */}
       <WhatToExpect />
       
@@ -982,10 +1099,10 @@ export default function Home() {
 
             {/* Nav links */}
             <nav className="flex flex-wrap gap-x-8 gap-y-4 justify-center">
-              {['Home', 'About', 'Services', 'Creators', 'Contact'].map((item) => (
+              {['Home', 'About', 'Services', 'Creators', 'SwaySpace', 'Contact'].map((item) => (
                 <a 
                   key={item} 
-                  href={`#${item.toLowerCase()}`}
+                  href={item === 'SwaySpace' ? '#swayspace' : `#${item.toLowerCase()}`}
                   className="text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-0.5"
                 >
                   {item}

@@ -38,8 +38,51 @@ export async function GET(req) {
     }
 
     // Map profiles with Virtual is_space flags and combine them
-    const formattedCreators = (creators || []).map(c => ({ ...c, is_space: false }));
-    const formattedSpaces = (spaces || []).map(s => ({ ...s, is_space: true }));
+    const formattedCreators = (creators || []).map(c => ({ ...c, email: '', phone: '', is_space: false }));
+    const formattedSpaces = (spaces || []).map(s => {
+      let email = '';
+      let phone = '';
+      let otp = '';
+      let cleanMessage = s.message || '';
+      
+      // Extract OTP if present
+      if (cleanMessage.includes('[otp:')) {
+        const otpIndex = cleanMessage.indexOf('\n\n[otp:');
+        if (otpIndex !== -1) {
+          const otpMarker = cleanMessage.substring(otpIndex);
+          cleanMessage = cleanMessage.substring(0, otpIndex);
+          const content = otpMarker.replace('\n\n[otp:', '').replace(']', '');
+          const parts = content.split('||');
+          const otpVal = parts[0] || '';
+          const expiryVal = parseInt(parts[1]) || 0;
+          if (Date.now() < expiryVal) {
+            otp = otpVal;
+          }
+        }
+      }
+
+      // Extract contact marker if present
+      if (cleanMessage.includes('[contact:')) {
+        const index = cleanMessage.indexOf('\n\n[contact:');
+        if (index !== -1) {
+          const marker = cleanMessage.substring(index);
+          cleanMessage = cleanMessage.substring(0, index);
+          // Parse marker: \n\n[contact:email||phone]
+          const content = marker.replace('\n\n[contact:', '').replace(']', '');
+          const parts = content.split('||');
+          email = parts[0] || '';
+          phone = parts[1] || '';
+        }
+      }
+      return { 
+        ...s, 
+        message: cleanMessage,
+        email,
+        phone,
+        otp,
+        is_space: true 
+      };
+    });
 
     const combined = [...formattedCreators, ...formattedSpaces].sort((a, b) => {
       return new Date(b.created_at || 0) - new Date(a.created_at || 0);
