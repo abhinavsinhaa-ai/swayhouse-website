@@ -57,7 +57,7 @@ export default function SwaySpaceFloatingLogo() {
               boxShadow: { repeat: Infinity, duration: 2.5, ease: "easeInOut" },
               default: { duration: 0.3 }
             }}
-            className="bg-white border border-near-black/5 px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2.5 relative after:content-[''] after:absolute after:left-full after:top-1/2 after:-translate-y-1/2 after:border-[6px] after:border-transparent after:border-l-white before:content-[''] before:absolute before:left-full before:top-1/2 before:-translate-y-1/2 before:border-[7px] before:border-transparent before:border-l-near-black/5 cursor-pointer hover:border-coral/20 mr-1"
+            className="hidden md:flex bg-white border border-near-black/5 px-4 py-2.5 rounded-xl shadow-xl items-center gap-2.5 relative after:content-[''] after:absolute after:left-full after:top-1/2 after:-translate-y-1/2 after:border-[6px] after:border-transparent after:border-l-white before:content-[''] before:absolute before:left-full before:top-1/2 before:-translate-y-1/2 before:border-[7px] before:border-transparent before:border-l-near-black/5 cursor-pointer hover:border-coral/20 mr-1"
           >
             <Link href="/space/login" className="flex items-center gap-1.5 cursor-pointer decoration-transparent">
               <span className="text-[10px] font-bold uppercase tracking-wider text-near-black flex items-center gap-1.5">
