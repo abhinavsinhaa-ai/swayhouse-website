@@ -277,32 +277,95 @@ export default function SwaySpaceModal({ isOpen, onClose }) {
           {/* Main Space Layout Content */}
           <div className="flex-grow w-full max-w-[1200px] mx-auto px-6 md:px-12 py-10 md:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-stretch">
             
-            {/* Left Side: Editorial Banner / Mock visual grid */}
-            <div className="lg:col-span-5 bg-gradient-to-br from-near-black to-[#2A2A2A] rounded-3xl p-8 text-white relative overflow-hidden shadow-xl border border-white/5 flex flex-col justify-between min-h-[450px]">
-              {/* Decorative backgrounds */}
-              <div className="absolute top-0 right-0 w-80 h-80 bg-coral/20 rounded-full blur-[90px] -mr-24 -mt-24 pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-[70px] -ml-20 -mb-20 pointer-events-none" />
+            {/* Left Side: Editorial Details Panel (Cream theme as in screenshot) */}
+            <div className="lg:col-span-5 bg-white border border-near-black/5 rounded-3xl p-8 flex flex-col justify-between min-h-[500px]">
+              <div className="flex flex-col gap-6 text-left">
+                {/* Header Tag */}
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-coral animate-ping" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-coral font-inter">
+                    Personal Visual Canvas
+                  </span>
+                </div>
 
-              <div className="relative z-10 flex flex-col gap-6">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-coral bg-coral/10 border border-coral/20 px-3 py-1 rounded-full self-start">
-                  Ecosystem Active
-                </span>
-                <h2 className="font-cormorant text-5xl md:text-6xl font-light leading-[1.1] tracking-tight">
-                  Your own space grid.
+                {/* Title */}
+                <h2 className="font-cormorant text-5xl font-light text-near-black tracking-tight leading-tight">
+                  Your Own <span className="text-coral italic font-medium">SwaySpace</span> Grid
                 </h2>
-                <p className="text-sm text-neutral-300 leading-relaxed max-w-sm">
-                  Create your personal space, capture your moments, and showcase. Yesterday anyone could dream—today anyone can create.
+
+                {/* Main Paragraph */}
+                <p className="text-xs text-neutral-500 leading-relaxed font-inter">
+                  Create your personal space, capture your moments, and showcase your aesthetic. Anyone can create their own custom grid to share in their bio and update anytime.
                 </p>
+
+                {/* Features List */}
+                <div className="flex flex-col gap-5 mt-4">
+                  {/* Point 1 */}
+                  <div className="flex gap-3.5 items-start">
+                    <div className="w-8 h-8 rounded-full bg-coral/5 text-coral flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-near-black font-inter">
+                        End-to-End Encrypted
+                      </span>
+                      <p className="text-[10px] text-neutral-400 leading-normal font-inter">
+                        We secure your credentials. Your passwords are one-way hashed and entirely inaccessible, even to our admins.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Point 2 */}
+                  <div className="flex gap-3.5 items-start">
+                    <div className="w-8 h-8 rounded-full bg-coral/5 text-coral flex items-center justify-center flex-shrink-0 mt-0.5 animate-pulse-slow">
+                      <svg className="w-4 h-4 text-coral" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-near-black font-inter">
+                        Instant Setup
+                      </span>
+                      <p className="text-[10px] text-neutral-400 leading-normal font-inter">
+                        Create your profile in 10 seconds. Customize your photos, bio links, and visual caption prompts with SwayAI.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Mini visual mockup grid inside the left sidebar */}
-              <div className="relative z-10 grid grid-cols-3 gap-3 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-lg mt-8 select-none">
-                <div className="aspect-square bg-white/10 rounded-lg border border-white/5 flex items-center justify-center text-[10px] font-bold text-coral/80 uppercase">Aesthetic</div>
-                <div className="aspect-square bg-white/10 rounded-lg border border-white/5 flex items-center justify-center text-[10px] font-bold text-coral/80 uppercase">Moments</div>
-                <div className="aspect-square bg-white/10 rounded-lg border border-white/5 flex items-center justify-center text-[10px] font-bold text-coral/80 uppercase">Links</div>
-                <div className="col-span-3 h-[1px] bg-white/10 my-1" />
-                <div className="col-span-2 text-[9px] text-neutral-400">swayhouse.in/space/username</div>
-                <div className="text-right text-[9px] text-coral font-bold uppercase">Live</div>
+              {/* Action buttons at the bottom that toggle state */}
+              <div className="flex gap-4 mt-8 pt-6 border-t border-near-black/5">
+                <button
+                  onClick={() => {
+                    setIsLogin(false);
+                    setIsForgotPassword(false);
+                    setError('');
+                    setSignupSuccess('');
+                  }}
+                  className={`flex-1 py-3 px-4 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all cursor-pointer ${
+                    !isLogin && !isForgotPassword
+                      ? 'bg-near-black text-white border-near-black shadow-sm'
+                      : 'bg-white text-near-black border-near-black/10 hover:border-near-black/30'
+                  }`}
+                >
+                  Create Your Space
+                </button>
+                <button
+                  onClick={() => {
+                    setIsLogin(true);
+                    setIsForgotPassword(false);
+                    setError('');
+                    setSignupSuccess('');
+                  }}
+                  className={`flex-1 py-3 px-4 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all cursor-pointer ${
+                    isLogin && !isForgotPassword
+                      ? 'bg-near-black text-white border-near-black shadow-sm'
+                      : 'bg-white text-coral border-coral hover:bg-coral/5'
+                  }`}
+                >
+                  Log In
+                </button>
               </div>
             </div>
 

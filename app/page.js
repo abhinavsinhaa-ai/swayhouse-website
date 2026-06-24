@@ -209,9 +209,15 @@ export default function Home() {
                       duration: 2.5,
                       ease: 'easeInOut'
                     }}
-                    className="text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full bg-coral/10 hover:bg-coral border border-coral/30 hover:border-coral text-coral hover:text-white transition-all duration-300 select-none cursor-pointer outline-none active:scale-95"
+                    className="text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full bg-coral/10 hover:bg-coral border border-coral/30 hover:border-coral text-coral hover:text-white transition-all duration-300 select-none cursor-pointer outline-none active:scale-95 flex items-center gap-1.5"
                   >
-                    {item}
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                    </svg>
+                    <span>{item}</span>
                   </motion.button>
                 );
               }
@@ -324,9 +330,17 @@ export default function Home() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.08, duration: 0.5, ease: 'easeOut' }}
-                  className="font-cormorant text-4xl font-bold text-near-black hover:text-coral transition-colors"
+                  className={`font-cormorant text-4xl font-bold transition-all flex items-center gap-2 relative ${
+                    item === 'SwaySpace' ? 'text-coral scale-105' : 'text-near-black hover:text-coral'
+                  }`}
                 >
-                  {item}
+                  <span>{item}</span>
+                  {item === 'SwaySpace' && (
+                    <span className="flex h-2.5 w-2.5 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-coral opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-coral"></span>
+                    </span>
+                  )}
                 </motion.a>
               );
             })}
