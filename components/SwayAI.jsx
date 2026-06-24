@@ -422,7 +422,7 @@ export default function SwayAI() {
                   </div>
                   <div>
                     <h3 className="font-cormorant text-lg font-bold text-near-black">SwayAI</h3>
-                    <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-400 block -mt-1">Google Gemini Powered</span>
+                    <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-400 block -mt-1">SwayAI Operations Workspace</span>
                   </div>
                 </div>
 
@@ -683,7 +683,7 @@ export default function SwayAI() {
                         Growth Plan Audit
                       </h4>
                       <p className="text-xs text-neutral-400 leading-relaxed">
-                        Get a data-driven content matrix evaluation instantly powered by Gemini 2.5 Flash.
+                        Get a data-driven content matrix evaluation instantly.
                       </p>
 
                       <form onSubmit={handleAuditSubmit} className="flex flex-col gap-4">

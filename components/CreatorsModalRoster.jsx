@@ -46,58 +46,60 @@ export default function CreatorsModalRoster({ isOpen, onClose, roster, onSelectC
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 w-full h-full bg-black/40 backdrop-blur-sm z-[2000] flex items-center justify-center p-4 md:p-6"
-          onClick={onClose}
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 28, stiffness: 120 }}
+          className="fixed inset-0 w-full h-full bg-[#FBF9F6] z-[2000] overflow-y-auto select-text flex flex-col"
+          data-lenis-prevent="true"
         >
-          {/* Main Modal Card */}
-          <motion.div
-            initial={{ scale: 0.95, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="w-full max-w-[900px] h-[85vh] bg-[#FBF9F6] border border-near-black/5 rounded-3xl shadow-2xl flex flex-col overflow-hidden relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <header className="sticky top-0 z-10 w-full h-20 bg-[#FBF9F6]/90 backdrop-blur-md border-b border-near-black/5 flex items-center justify-between px-6 md:px-10 flex-shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-coral/10 text-coral flex items-center justify-center">
-                  <Users className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <h3 className="font-cormorant text-xl font-bold text-near-black">Exclusive Creators Roster</h3>
-                  <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-400 block -mt-0.5">SwayHouse Elite Talent Portfolio</span>
-                </div>
-              </div>
-              
-              <button 
-                onClick={onClose}
-                className="w-9 h-9 rounded-full border border-near-black/10 hover:border-near-black/30 hover:bg-near-black hover:text-white flex items-center justify-center transition-all duration-300"
-                aria-label="Close"
-              >
-                <X className="w-4.5 h-4.5" />
-              </button>
-            </header>
+          {/* Top Bar Header */}
+          <header className="sticky top-0 z-50 w-full h-20 bg-[#FBF9F6]/90 backdrop-blur-md border-b border-near-black/5 flex items-center justify-between px-6 md:px-12 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="font-inter text-sm font-extrabold tracking-tight text-near-black">
+                SwayHouse
+              </span>
+              <span className="text-neutral-300 text-xs">|</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+                Creators Roster
+              </span>
+            </div>
+            
+            <button 
+              onClick={onClose}
+              className="group flex items-center gap-2 px-4 py-2 rounded-full border border-near-black/10 hover:border-near-black/30 hover:bg-near-black hover:text-white transition-all duration-300 cursor-pointer"
+              aria-label="Close portal"
+            >
+              <span className="text-xs font-bold uppercase tracking-widest select-none">
+                Close Portal
+              </span>
+              <X className="w-4 h-4 transition-transform duration-300 group-hover:rotate-90" />
+            </button>
+          </header>
 
-            {/* Filter and Search Bar */}
-            <div className="px-6 md:px-10 py-4 bg-[#FBF9F6] border-b border-near-black/5 flex flex-col md:flex-row gap-4 justify-between items-center flex-shrink-0">
+          {/* Search, filters, and title */}
+          <div className="w-full max-w-[1200px] mx-auto px-6 md:px-12 pt-8 flex flex-col gap-6 flex-shrink-0 select-none">
+            <div className="text-center md:text-left">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-coral">Exclusive Representation</span>
+              <h2 className="font-cormorant text-4xl md:text-5xl font-light text-near-black mt-1">Our Managed Creators</h2>
+            </div>
+
+            {/* Filter and Search controls */}
+            <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white border border-near-black/5 p-4 rounded-2xl shadow-sm">
               {/* Search */}
               <div className="relative w-full md:w-80">
                 <input
                   type="text"
-                  placeholder="Search creator or handle..."
+                  placeholder="Search creator or instagram..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-white border border-near-black/5 rounded-full pl-10 pr-4 py-2.5 text-xs outline-none focus:ring-1 focus:ring-coral transition-all"
+                  className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-semibold"
                 />
                 <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               </div>
 
               {/* Niche Pills */}
-              <div className="flex gap-2 overflow-x-auto max-w-full no-scrollbar pb-1 md:pb-0 select-none">
+              <div className="flex gap-2 overflow-x-auto max-w-full no-scrollbar pb-1 md:pb-0">
                 {niches.map((niche) => (
                   <button
                     key={niche}
@@ -105,7 +107,7 @@ export default function CreatorsModalRoster({ isOpen, onClose, roster, onSelectC
                     className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer border ${
                       selectedNiche === niche
                         ? 'bg-near-black text-white border-near-black'
-                        : 'bg-white text-neutral-500 border-near-black/5 hover:text-near-black'
+                        : 'bg-[#FBF9F6] text-neutral-500 border-near-black/5 hover:text-near-black'
                     }`}
                   >
                     {niche}
@@ -113,92 +115,104 @@ export default function CreatorsModalRoster({ isOpen, onClose, roster, onSelectC
                 ))}
               </div>
             </div>
+          </div>
 
-            {/* Content list (Line-by-line / structured layout) */}
-            <div className="flex-1 overflow-y-auto px-6 md:px-10 py-6 no-scrollbar flex flex-col gap-4">
-              {filteredRoster.length > 0 ? (
-                filteredRoster.map((creator, index) => (
+          {/* Immersive Symmetric Roster Grid */}
+          <div className="flex-1 w-full max-w-[1200px] mx-auto px-6 md:px-12 py-10 md:py-16">
+            {filteredRoster.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredRoster.map((creator, index) => (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05, duration: 0.3 }}
+                    transition={{ delay: index * 0.05, duration: 0.5, ease: 'easeOut' }}
                     key={creator.id}
-                    className="bg-white border border-near-black/5 rounded-2xl p-4 md:p-6 shadow-sm hover:shadow-md hover:border-coral/15 transition-all duration-300 flex flex-col sm:flex-row items-center justify-between gap-6"
+                    className="bg-white border border-near-black/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-500 flex flex-col group"
                   >
-                    {/* Left: Avatar & Info */}
-                    <div className="flex flex-col sm:flex-row items-center gap-5 w-full sm:w-auto text-center sm:text-left">
-                      {/* Avatar */}
-                      <div className="w-16 h-16 md:w-20 md:h-20 relative rounded-2xl overflow-hidden border border-near-black/5 bg-neutral-100 flex-shrink-0">
-                        <Image
-                          src={creator.images[0]}
-                          alt={creator.name}
-                          fill
-                          sizes="80px"
-                          className="object-cover"
-                        />
+                    {/* Large Image container */}
+                    <div 
+                      onClick={() => handleSelect(creator)}
+                      className="aspect-[4/5] relative bg-neutral-100 overflow-hidden cursor-pointer"
+                    >
+                      <Image
+                        src={creator.images[0]}
+                        alt={creator.name}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 30vw"
+                        className="object-cover transition-transform duration-750 ease-out group-hover:scale-[1.03]"
+                      />
+                      {/* Hover Overlay */}
+                      <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white text-[9px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-4 py-2 rounded-full select-none">
+                          View Bio-Grid
+                        </span>
                       </div>
+                      
+                      {/* Niche tag overlay */}
+                      <span className="absolute top-4 left-4 text-[8px] font-bold uppercase tracking-wider text-coral bg-[#FBF9F6] border border-near-black/5 px-2.5 py-1 rounded-full">
+                        {creator.niche}
+                      </span>
+                    </div>
 
-                      {/* Info details */}
+                    {/* Meta info & direct click actions */}
+                    <div className="p-6 flex flex-col gap-4">
                       <div className="flex flex-col gap-1">
-                        <div className="flex items-center flex-wrap gap-2 justify-center sm:justify-start">
-                          <h4 className="font-cormorant text-xl md:text-2xl font-bold text-near-black">{creator.name}</h4>
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-coral bg-coral/5 px-2.5 py-0.5 rounded-full">
-                            {creator.niche}
-                          </span>
+                        <div className="flex justify-between items-start">
+                          <h4 
+                            onClick={() => handleSelect(creator)}
+                            className="font-cormorant text-2xl font-bold text-near-black hover:text-coral transition-colors cursor-pointer"
+                          >
+                            {creator.name}
+                          </h4>
+                          <a
+                            href={`https://instagram.com/${creator.instagram}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-neutral-400 hover:text-coral transition-colors p-0.5"
+                            aria-label={`Instagram profile for ${creator.name}`}
+                          >
+                            <Instagram className="w-4.5 h-4.5" />
+                          </a>
                         </div>
-
-                        {/* Location / Meta */}
-                        <div className="flex items-center gap-3 text-[10px] font-semibold text-neutral-400 justify-center sm:justify-start uppercase tracking-wider">
+                        <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-neutral-400">
                           <span className="flex items-center gap-1">
-                            <MapPin className="w-3.5 h-3.5 text-coral" /> Based in {creator.location}
+                            <MapPin className="w-3 h-3 text-coral" /> {creator.location}
                           </span>
                           <span>•</span>
                           <span>Age {creator.age}</span>
                         </div>
-
-                        {/* Bio snippet */}
-                        <p className="text-[11px] text-neutral-500 max-w-md leading-normal line-clamp-1 italic mt-1 font-cormorant">
-                          "{creator.message?.substring(0, 100)}..."
-                        </p>
                       </div>
-                    </div>
 
-                    {/* Right: Instagram & View Button */}
-                    <div className="flex items-center gap-4 w-full sm:w-auto justify-center sm:justify-end border-t sm:border-t-0 pt-4 sm:pt-0 border-near-black/5">
-                      <a
-                        href={`https://instagram.com/${creator.instagram}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-coral transition-colors font-semibold"
-                      >
-                        <Instagram className="w-4 h-4" />
-                        <span className="hidden md:inline">@{creator.instagram}</span>
-                      </a>
+                      {/* Bio preview snippet */}
+                      <p className="text-[11px] text-neutral-500 font-cormorant italic leading-relaxed line-clamp-2 border-t border-near-black/5 pt-3">
+                        "{creator.message?.substring(0, 110) || creator.bio?.substring(0, 110)}..."
+                      </p>
+
                       <button
                         onClick={() => handleSelect(creator)}
-                        className="px-5 py-2.5 rounded-full bg-near-black text-white text-[10px] font-bold uppercase tracking-wider hover:bg-coral transition-colors flex items-center gap-1.5 shadow-sm"
+                        className="w-full mt-2 py-3 rounded-xl bg-near-black text-white text-[10px] font-bold uppercase tracking-wider hover:bg-coral hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
                       >
-                        Open Space <ArrowRight className="w-3 h-3" />
+                        Open Creator Space <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </motion.div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center py-16 text-center select-none">
-                  <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-400 mb-3">
-                    <Users className="w-6 h-6" />
-                  </div>
-                  <span className="font-cormorant text-xl text-near-black font-bold">No creators match filter</span>
-                  <p className="text-xs text-neutral-400 mt-1">Try resetting search parameters.</p>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-center select-none">
+                <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-400 mb-3">
+                  <Users className="w-6 h-6" />
                 </div>
-              )}
-            </div>
+                <span className="font-cormorant text-xl text-near-black font-bold">No creators match criteria</span>
+                <p className="text-xs text-neutral-400 mt-1">Try adjusting search parameters.</p>
+              </div>
+            )}
+          </div>
 
-            {/* Footer */}
-            <footer className="p-6 border-t border-near-black/5 bg-[#FBF9F6] text-center select-none flex-shrink-0">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-400">Total Exclusive Roster Size: {roster.length} Creators</span>
-            </footer>
-          </motion.div>
+          {/* Footer Roster stats */}
+          <footer className="p-8 border-t border-near-black/5 bg-[#FBF9F6] text-center select-none flex-shrink-0">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-400">Total Represented: {roster.length} Exclusive Creators</span>
+          </footer>
         </motion.div>
       )}
     </AnimatePresence>
