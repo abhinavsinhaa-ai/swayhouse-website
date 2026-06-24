@@ -116,9 +116,40 @@ export async function POST(req) {
 
       return NextResponse.json({ 
         success: true, 
-        email: email.replace(/(?<=.{2}).(?=[^@]*?.@)/g, '*'), // Mask email for privacy
-        otp: generatedOtp // Return OTP directly for easy local testing
+        email: email.replace(/(?<=.{2}).(?=[^@]*?.@)/g, '*') // Mask email for privacy
       });
+    }
+
+    if (action === 'verify_otp') {
+      if (!otp) {
+        return NextResponse.json({ error: 'OTP code is required' }, { status: 400 });
+      }
+
+      // Parse OTP and expiry from message field
+      const cleanMessage = space.message || '';
+      let savedOtp = '';
+      let expiry = 0;
+      
+      if (cleanMessage.includes('[otp:')) {
+        const index = cleanMessage.indexOf('\n\n[otp:');
+        if (index !== -1) {
+          const marker = cleanMessage.substring(index);
+          const content = marker.replace('\n\n[otp:', '').replace(']', '');
+          const parts = content.split('||');
+          savedOtp = parts[0] || '';
+          expiry = parseInt(parts[1]) || 0;
+        }
+      }
+
+      if (!savedOtp || Date.now() > expiry) {
+        return NextResponse.json({ error: 'OTP has expired or does not exist. Please request a new one.' }, { status: 400 });
+      }
+
+      if (otp.trim() !== savedOtp) {
+        return NextResponse.json({ error: 'Invalid OTP code' }, { status: 400 });
+      }
+
+      return NextResponse.json({ success: true });
     }
 
     if (action === 'reset_password') {

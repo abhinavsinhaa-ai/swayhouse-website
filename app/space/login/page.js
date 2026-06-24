@@ -21,8 +21,9 @@ export default function SpaceLogin() {
   const [resetOtp, setResetOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [step, setStep] = useState(1); // 1: Username, 2: OTP + New Password
-  const [testOtp, setTestOtp] = useState('');
   const [resetStatus, setResetStatus] = useState('');
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
 
   const [error, setError] = useState('');
   const [signupSuccess, setSignupSuccess] = useState('');
@@ -130,7 +131,6 @@ export default function SpaceLogin() {
     setLoading(true);
     setError('');
     setResetStatus('');
-    setTestOtp('');
 
     try {
       const res = await fetch('/api/space/reset-password', {
@@ -143,10 +143,8 @@ export default function SpaceLogin() {
 
       if (res.ok) {
         setResetStatus(`OTP code sent to your registered email (${data.email})!`);
-        if (data.otp) {
-          setTestOtp(data.otp);
-        }
         setStep(2);
+        setIsOtpVerified(false);
       } else {
         setError(data.error || 'Failed to request OTP');
       }
@@ -157,8 +155,46 @@ export default function SpaceLogin() {
     }
   };
 
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!resetUsername.trim() || !resetOtp.trim()) return;
+
+    setOtpVerifying(true);
+    setError('');
+    setResetStatus('');
+
+    try {
+      const res = await fetch('/api/space/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'verify_otp',
+          username: resetUsername,
+          otp: resetOtp,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setIsOtpVerified(true);
+        setResetStatus('OTP code verified successfully! You can now enter your new password.');
+      } else {
+        setError(data.error || 'Invalid or expired OTP code');
+      }
+    } catch (err) {
+      setError('Connection to server failed. Please try again.');
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
   const handleResetPassword = async (e) => {
     e.preventDefault();
+    if (!isOtpVerified) {
+      handleVerifyOtp(e);
+      return;
+    }
     if (!resetUsername.trim() || !resetOtp.trim() || !newPassword) return;
 
     setLoading(true);
@@ -189,7 +225,7 @@ export default function SpaceLogin() {
           setResetUsername('');
           setResetOtp('');
           setNewPassword('');
-          setTestOtp('');
+          setIsOtpVerified(false);
         }, 2000);
       } else {
         setError(data.error || 'Password reset failed');
@@ -241,7 +277,7 @@ export default function SpaceLogin() {
                 setStep(1);
                 setError('');
                 setResetStatus('');
-                setTestOtp('');
+                setIsOtpVerified(false);
               }}
               className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-coral transition-colors self-start outline-none"
             >
@@ -284,19 +320,13 @@ export default function SpaceLogin() {
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
-                  onSubmit={handleResetPassword}
+                  onSubmit={isOtpVerified ? handleResetPassword : handleVerifyOtp}
                   className="w-full flex flex-col gap-4 mt-2"
                 >
                   {resetStatus && (
-                    <span className="text-[10px] text-green-700 bg-green-50 border border-green-100 rounded-lg p-2.5 leading-normal block">
+                    <span className="text-[10px] text-green-700 bg-green-50 border border-green-100 rounded-lg p-2.5 leading-normal block text-center font-medium">
                       {resetStatus}
                     </span>
-                  )}
-                  {testOtp && (
-                    <div className="bg-yellow-50 border border-yellow-100 text-yellow-800 rounded-lg p-2.5 text-[10px] flex flex-col gap-1">
-                      <span className="font-bold uppercase tracking-wider">🔑 Testing Assistant:</span>
-                      <p>Use OTP code <strong className="font-mono text-xs">{testOtp}</strong> to verify immediately.</p>
-                    </div>
                   )}
 
                   <div className="flex flex-col gap-1.5">
@@ -306,30 +336,65 @@ export default function SpaceLogin() {
                       placeholder="e.g. 123456"
                       required
                       maxLength={6}
+                      disabled={isOtpVerified}
                       value={resetOtp}
                       onChange={(e) => setResetOtp(e.target.value)}
-                      className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-mono tracking-widest text-center text-sm font-bold"
+                      className={`w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-mono tracking-widest text-center text-sm font-bold ${
+                        isOtpVerified ? 'opacity-60 cursor-not-allowed bg-green-50/10 border-green-100 text-green-700' : ''
+                      }`}
                     />
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">New Password</label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      required
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-mono"
-                    />
+                  <div className="flex flex-col gap-1.5 relative">
+                    <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
+                      <span>New Password</span>
+                      {!isOtpVerified && (
+                        <span className="text-[8px] text-coral font-bold bg-coral/5 px-1.5 py-0.5 rounded flex items-center gap-1 uppercase tracking-wider">
+                          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                          Locked
+                        </span>
+                      )}
+                    </label>
+                    <div className="relative w-full">
+                      <input
+                        type="password"
+                        placeholder={isOtpVerified ? "••••••••" : "Verify OTP to unlock"}
+                        required
+                        disabled={!isOtpVerified}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className={`w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl pl-4 pr-10 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-mono ${
+                          !isOtpVerified ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400">
+                        {isOtpVerified ? (
+                          <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || otpVerifying}
                     className="w-full py-3.5 rounded-xl bg-near-black text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm cursor-pointer mt-2"
                   >
-                    {loading ? 'Resetting...' : 'Update Password'}
+                    {otpVerifying 
+                      ? 'Verifying...' 
+                      : loading 
+                        ? 'Updating...' 
+                        : isOtpVerified 
+                          ? 'Update Password' 
+                          : 'Verify OTP'}
                   </button>
                 </motion.form>
               )}
@@ -416,7 +481,7 @@ export default function SpaceLogin() {
                         setStep(1);
                         setError('');
                         setResetStatus('');
-                        setTestOtp('');
+                        setIsOtpVerified(false);
                       }}
                       className="text-[10px] font-bold text-coral hover:underline cursor-pointer outline-none"
                     >
