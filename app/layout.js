@@ -21,16 +21,20 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'SwayHouse — Creator Management Company',
-  description: 'SwayHouse handles brand deals, strategy, and growth for creators who are serious about building a career.',
+  title: 'SwayHouse — Creator Management Agency by Abhinav Sinha',
+  description: 'SwayHouse is a premium creator management agency in India founded by Abhinav Sinha. We handle brand deals, partnerships, strategy, and growth for selective creators.',
+  authors: [{ name: 'Abhinav Sinha', url: 'https://abhinavsinha.online' }],
+  creator: 'Abhinav Sinha',
+  publisher: 'Abhinav Sinha',
+  keywords: ['SwayHouse', 'Sway House', 'Abhinav Sinha', 'Creator Management', 'Influencer Agency India', 'SwaySpace', 'SwayAI', 'SwayHouse Agency', 'Sway House Agency'],
   icons: {
     icon: '/assets/swayhouse-logo.png',
     shortcut: '/assets/swayhouse-logo.png',
     apple: '/assets/swayhouse-logo.png',
   },
   openGraph: {
-    title: 'SwayHouse — Creator Management Company',
-    description: 'SwayHouse handles brand deals, strategy, and growth for creators who are serious about building a career.',
+    title: 'SwayHouse — Creator Management Agency by Abhinav Sinha',
+    description: 'SwayHouse is a premium creator management agency in India founded by Abhinav Sinha. We handle brand deals, partnerships, strategy, and growth for selective creators.',
     url: 'https://swayhouse.in',
     siteName: 'SwayHouse',
     locale: 'en_US',
@@ -46,8 +50,8 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SwayHouse — Creator Management Company',
-    description: 'SwayHouse handles brand deals, strategy, and growth for creators who are serious about building a career.',
+    title: 'SwayHouse — Creator Management Agency by Abhinav Sinha',
+    description: 'SwayHouse is a premium creator management agency in India founded by Abhinav Sinha. We handle brand deals, partnerships, strategy, and growth for selective creators.',
     images: ['https://swayhouse.in/swayhouse-logo.jpeg'],
   },
 };

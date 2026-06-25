@@ -520,9 +520,15 @@ export default function Home() {
               transition={{ delay: 0.2, duration: 0.8, ease: 'easeOut' }}
               className="text-base md:text-md text-neutral-500 leading-normal"
             >
-              <p>
+              <p className="mb-6">
                 SwayHouse was built on a simple belief — that creators shouldn&apos;t have to choose between making great content and building a sustainable career. We sit between you and the commercial world, handling brand relationships, negotiations, and strategy so your creative energy stays exactly where it belongs. We&apos;re starting small, intentionally. One creator at a time, done right.
               </p>
+              <div className="pt-6 border-t border-near-black/5 flex items-center gap-3">
+                <div>
+                  <span className="text-neutral-400 block font-bold uppercase tracking-wider text-[9px] mb-0.5">Founder & Lead Director</span>
+                  <span className="font-semibold text-near-black text-sm">Abhinav Sinha</span>
+                </div>
+              </div>
             </motion.div>
           </div>
 
