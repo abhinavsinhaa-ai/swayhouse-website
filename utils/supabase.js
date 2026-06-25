@@ -4,7 +4,11 @@ import { ROSTER, SPACES } from './roster';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-const isConfigured = !!(supabaseUrl && supabaseAnonKey);
+// Use service_role key on server side to bypass RLS, fallback to anon key on client side or if service key is missing
+const isServer = typeof window === 'undefined';
+const supabaseKey = (isServer ? process.env.SUPABASE_SERVICE_ROLE_KEY : null) || supabaseAnonKey;
+
+const isConfigured = !!(supabaseUrl && supabaseKey);
 
 // Mock data for demo mode when Supabase is not configured
 const MOCK_CONTACTS = [
@@ -100,7 +104,7 @@ const createMockQueryBuilder = (tableName) => {
 };
 
 export const supabase = isConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseKey)
   : {
       from: (tableName) => createMockQueryBuilder(tableName)
     };

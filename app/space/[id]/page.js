@@ -20,7 +20,7 @@ export default function SwaySpace({ params }) {
     async function loadProfile() {
       try {
         const staticProfile = SPACES.find((c) => c.id.toLowerCase().trim() === params.id.toLowerCase().trim());
-        let query = supabase.from('personal_grids').select('*');
+        let query = supabase.from('personal_grids').select('id, name, age, location, instagram, niche, bio, message, images, captions, gender');
         if (staticProfile) {
           const parts = [`id.ilike.${params.id.trim()}`];
           if (staticProfile.instagram) {
