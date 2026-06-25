@@ -18,7 +18,7 @@ export default function CreatorDashboard({ params }) {
     async function loadCreator() {
       try {
         const staticCreator = ROSTER.find((c) => c.id.toLowerCase().trim() === params.id.toLowerCase().trim());
-        let query = supabase.from('creator_profiles').select('id, name, age, location, instagram, niche, bio, message, images, captions');
+        let query = supabase.from('creator_profiles').select('id, name, age, location, instagram, niche, bio, message, images');
         if (staticCreator) {
           const parts = [`id.ilike.${params.id.trim()}`];
           if (staticCreator.instagram) {
