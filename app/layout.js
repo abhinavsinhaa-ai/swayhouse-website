@@ -28,9 +28,9 @@ export const metadata = {
   publisher: 'Abhinav Sinha',
   keywords: ['SwayHouse', 'Sway House', 'Abhinav Sinha', 'Creator Management', 'Influencer Agency India', 'SwaySpace', 'SwayAI', 'SwayHouse Agency', 'Sway House Agency'],
   icons: {
-    icon: '/assets/swayhouse-logo.png',
-    shortcut: '/assets/swayhouse-logo.png',
-    apple: '/assets/swayhouse-logo.png',
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
   },
   openGraph: {
     title: 'SwayHouse — Creator Management Agency by Abhinav Sinha',
