@@ -190,7 +190,7 @@ export default function Home() {
           </a>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-3 lg:gap-5 xl:gap-8">
             {['Home', 'About', 'Services', 'Creators', 'SwaySpace', 'Contact'].map((item) => {
               if (item === 'SwaySpace') {
                 return (
@@ -209,9 +209,9 @@ export default function Home() {
                       duration: 2.5,
                       ease: 'easeInOut'
                     }}
-                    className="text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full bg-coral/10 hover:bg-coral border border-coral/30 hover:border-coral text-coral hover:text-white transition-all duration-300 select-none cursor-pointer outline-none active:scale-95 flex items-center gap-1.5"
+                    className="text-[11px] xl:text-xs font-bold uppercase tracking-wider px-3.5 py-2 rounded-full bg-coral/10 hover:bg-coral border border-coral/30 hover:border-coral text-coral hover:text-white transition-all duration-300 select-none cursor-pointer outline-none active:scale-95 flex items-center gap-1.5 whitespace-nowrap"
                   >
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <rect x="3" y="3" width="7" height="7" rx="1.5" />
                       <rect x="14" y="3" width="7" height="7" rx="1.5" />
                       <rect x="14" y="14" width="7" height="7" rx="1.5" />
@@ -226,7 +226,7 @@ export default function Home() {
                   <button
                     key={item}
                     onClick={() => setIsCreatorsModalOpen(true)}
-                    className="text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-1 outline-none cursor-pointer"
+                    className="text-[11px] xl:text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-1 outline-none cursor-pointer whitespace-nowrap"
                   >
                     {item}
                   </button>
@@ -236,7 +236,7 @@ export default function Home() {
                 <a 
                   key={item} 
                   href={`#${item.toLowerCase()}`}
-                  className="text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-1"
+                  className="text-[11px] xl:text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-1 whitespace-nowrap"
                 >
                   {item}
                 </a>
@@ -245,19 +245,19 @@ export default function Home() {
             
             <button 
               onClick={() => setIsSwayAIModalOpen(true)}
-              className="text-xs font-semibold uppercase tracking-wider text-coral hover:text-coral-hover transition-colors flex items-center gap-1.5 py-1 relative cursor-pointer outline-none"
+              className="text-[11px] xl:text-xs font-semibold uppercase tracking-wider text-coral hover:text-coral-hover transition-colors flex items-center gap-1.5 py-1 relative cursor-pointer outline-none whitespace-nowrap"
             >
-              <MessageSquare className="w-3.5 h-3.5" />
+              <MessageSquare className="w-3.5 h-3.5 flex-shrink-0" />
               <span>SwayAI</span>
               <span className="flex h-1.5 w-1.5 relative -top-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-coral opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-coral"></span>
               </span>
             </button>
-
+ 
             <a 
               href="#what-to-expect" 
-              className="relative overflow-hidden px-4 py-2 rounded-full bg-coral text-white text-[10px] font-bold uppercase tracking-wider hover:shadow-[0_4px_15px_rgba(255,107,53,0.2)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 group clickable"
+              className="relative overflow-hidden px-3.5 py-2 rounded-full bg-coral text-white text-[10px] font-bold uppercase tracking-wider hover:shadow-[0_4px_15px_rgba(255,107,53,0.2)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 group clickable whitespace-nowrap"
             >
               <div className="absolute inset-0 bg-coral-hover scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
               <span className="relative z-10">What to Expect</span>
