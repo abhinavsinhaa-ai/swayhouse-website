@@ -159,7 +159,7 @@ export default function Home() {
       <header className={`fixed top-0 left-0 w-full h-[72px] z-[1000] flex items-center transition-all duration-500 ${
         scrolled ? 'bg-white/85 backdrop-blur-md shadow-sm border-b border-near-black/5' : 'bg-transparent'
       }`}>
-        <div className="w-full max-w-[1200px] mx-auto px-6 md:px-10 flex items-center justify-between">
+        <div className="w-full max-w-[1200px] mx-auto px-6 md:px-10 flex items-center justify-between gap-6">
           {/* Logo */}
           <a href="#home" className="flex items-center gap-2.5 group logo-element clickable">
             <svg className="w-[34px] h-[30px] flex-shrink-0 text-coral" viewBox="0 0 40 36" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -190,7 +190,7 @@ export default function Home() {
           </a>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-3 lg:gap-5 xl:gap-8">
+          <nav className="hidden lg:flex items-center gap-3 xl:gap-6 2xl:gap-8">
             {['Home', 'About', 'Services', 'Creators', 'SwaySpace', 'Contact'].map((item) => {
               if (item === 'SwaySpace') {
                 return (
@@ -209,7 +209,7 @@ export default function Home() {
                       duration: 2.5,
                       ease: 'easeInOut'
                     }}
-                    className="text-[11px] xl:text-xs font-bold uppercase tracking-wider px-3.5 py-2 rounded-full bg-coral/10 hover:bg-coral border border-coral/30 hover:border-coral text-coral hover:text-white transition-all duration-300 select-none cursor-pointer outline-none active:scale-95 flex items-center gap-1.5 whitespace-nowrap"
+                    className="text-[10px] xl:text-[11px] 2xl:text-xs font-bold uppercase tracking-wider px-3.5 py-2 rounded-full bg-coral/10 hover:bg-coral border border-coral/30 hover:border-coral text-coral hover:text-white transition-all duration-300 select-none cursor-pointer outline-none active:scale-95 flex items-center gap-1.5 whitespace-nowrap"
                   >
                     <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <rect x="3" y="3" width="7" height="7" rx="1.5" />
@@ -226,7 +226,7 @@ export default function Home() {
                   <button
                     key={item}
                     onClick={() => setIsCreatorsModalOpen(true)}
-                    className="text-[11px] xl:text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-1 outline-none cursor-pointer whitespace-nowrap"
+                    className="text-[10px] xl:text-[11px] 2xl:text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-1 outline-none cursor-pointer whitespace-nowrap"
                   >
                     {item}
                   </button>
@@ -236,7 +236,7 @@ export default function Home() {
                 <a 
                   key={item} 
                   href={`#${item.toLowerCase()}`}
-                  className="text-[11px] xl:text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-1 whitespace-nowrap"
+                  className="text-[10px] xl:text-[11px] 2xl:text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-near-black transition-colors link-hover-draw py-1 whitespace-nowrap"
                 >
                   {item}
                 </a>
@@ -245,7 +245,7 @@ export default function Home() {
             
             <button 
               onClick={() => setIsSwayAIModalOpen(true)}
-              className="text-[11px] xl:text-xs font-semibold uppercase tracking-wider text-coral hover:text-coral-hover transition-colors flex items-center gap-1.5 py-1 relative cursor-pointer outline-none whitespace-nowrap"
+              className="text-[10px] xl:text-[11px] 2xl:text-xs font-semibold uppercase tracking-wider text-coral hover:text-coral-hover transition-colors flex items-center gap-1.5 py-1 relative cursor-pointer outline-none whitespace-nowrap"
             >
               <MessageSquare className="w-3.5 h-3.5 flex-shrink-0" />
               <span>SwayAI</span>
@@ -257,7 +257,7 @@ export default function Home() {
  
             <a 
               href="#what-to-expect" 
-              className="relative overflow-hidden px-3.5 py-2 rounded-full bg-coral text-white text-[10px] font-bold uppercase tracking-wider hover:shadow-[0_4px_15px_rgba(255,107,53,0.2)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 group clickable whitespace-nowrap"
+              className="relative overflow-hidden px-3.5 py-2 rounded-full bg-coral text-white text-[9px] xl:text-[10px] font-bold uppercase tracking-wider hover:shadow-[0_4px_15px_rgba(255,107,53,0.2)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 group clickable whitespace-nowrap"
             >
               <div className="absolute inset-0 bg-coral-hover scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
               <span className="relative z-10">What to Expect</span>
@@ -286,7 +286,7 @@ export default function Home() {
           {/* Mobile Hamburguer */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden flex flex-col justify-center items-center w-8 h-8 gap-1.5 z-[1001] outline-none"
+            className="lg:hidden flex flex-col justify-center items-center w-8 h-8 gap-1.5 z-[1001] outline-none"
             aria-label="Toggle Menu"
           >
             <span className={`w-6 h-[2px] bg-near-black rounded transition-all duration-350 ${
@@ -301,7 +301,7 @@ export default function Home() {
           </button>
         </div>
       </header>
-
+ 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {mobileMenuOpen && (
@@ -309,7 +309,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-white z-[999] flex flex-col items-center justify-center gap-8 md:hidden"
+            className="fixed inset-0 bg-white z-[999] flex flex-col items-center justify-center gap-8 lg:hidden"
           >
             {['Home', 'About', 'Services', 'Creators', 'SwaySpace', 'Contact'].map((item, index) => {
               const handleMobileClick = (e) => {
