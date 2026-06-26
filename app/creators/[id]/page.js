@@ -4,9 +4,60 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Instagram, X, ArrowUpRight, Sparkles, Heart } from 'lucide-react';
+import { ArrowLeft, Instagram, X, ArrowUpRight, Sparkles, Heart, Play } from 'lucide-react';
 import { ROSTER } from '@/utils/roster';
 import { supabase } from '@/utils/supabase';
+import { useRef } from 'react';
+
+function LazyVideoPlayer({ videoSrc, posterSrc, alt, onClick }) {
+  const videoRef = useRef(null);
+  const [isIntersecting, setIsIntersecting] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsIntersecting(entry.isIntersecting);
+      },
+      { threshold: 0.1, rootMargin: '120px' }
+    );
+
+    if (videoRef.current) {
+      observer.observe(videoRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isIntersecting) {
+        videoRef.current.play().catch(() => {});
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isIntersecting]);
+
+  return (
+    <div className="relative w-full h-full" onClick={onClick}>
+      <video
+        ref={videoRef}
+        src={isIntersecting ? videoSrc : undefined}
+        poster={posterSrc}
+        muted
+        loop
+        playsInline
+        className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02] block"
+      />
+      <div className="absolute top-3 left-3 px-2 py-1 bg-black/60 text-white rounded-lg flex items-center gap-1 border border-white/10 shadow-sm select-none pointer-events-none z-10">
+        <Play className="w-2.5 h-2.5 fill-current text-white" />
+        <span className="text-[7.5px] font-bold uppercase tracking-wider">Video</span>
+      </div>
+    </div>
+  );
+}
 
 export default function CreatorDashboard({ params }) {
   const router = useRouter();
@@ -253,19 +304,34 @@ export default function CreatorDashboard({ params }) {
               {creator.images.slice(1).map((src, index) => {
                 const originalIndex = index + 1;
                 const caption = (creator.captions && creator.captions[originalIndex]) || galleryCaptions[index % galleryCaptions.length];
+                const isVideo = src && src.includes('&&');
+                const videoUrl = isVideo ? src.split('&&')[0] : '';
+                const posterUrl = isVideo ? src.split('&&')[1] : src;
+
                 return (
                   <div 
                     key={index} 
-                    onClick={() => handleOpenLightbox(src, caption)}
                     className="break-inside-avoid mb-6 relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img 
-                      src={src} 
-                      alt={`${creator.name} Gallery Photo ${index + 1}`} 
-                      className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]" 
-                    />
-                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    {isVideo ? (
+                      <LazyVideoPlayer 
+                        videoSrc={videoUrl} 
+                        posterSrc={posterUrl} 
+                        alt={`${creator.name} Gallery Video ${index + 1}`} 
+                        onClick={() => handleOpenLightbox(src, caption)}
+                      />
+                    ) : (
+                      <div onClick={() => handleOpenLightbox(src, caption)}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src={src} 
+                          alt={`${creator.name} Gallery Photo ${index + 1}`} 
+                          loading="lazy"
+                          className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02] block" 
+                        />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                       <span className="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">
                         Zoom View
                       </span>
@@ -326,12 +392,24 @@ export default function CreatorDashboard({ params }) {
               className="max-w-[90vw] max-h-[75vh] overflow-hidden rounded-xl relative shadow-2xl border border-white/10"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src={lightboxImage} 
-                alt="Lightbox Zoom" 
-                className="w-auto h-auto max-w-full max-h-[75vh] object-contain" 
-              />
+              {lightboxImage && lightboxImage.includes('&&') ? (
+                <video 
+                  src={lightboxImage.split('&&')[0]} 
+                  poster={lightboxImage.split('&&')[1]}
+                  controls 
+                  autoPlay 
+                  loop
+                  playsInline
+                  className="w-auto h-auto max-w-full max-h-[75vh] object-contain block" 
+                />
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img 
+                  src={lightboxImage} 
+                  alt="Lightbox Zoom" 
+                  className="w-auto h-auto max-w-full max-h-[75vh] object-contain" 
+                />
+              )}
             </motion.div>
 
             {/* Lightbox Caption */}

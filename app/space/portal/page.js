@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Mail, Instagram, MapPin, Tag, 
-  Trash2, Upload, LogOut, ExternalLink, Check, Loader2, Sparkles, AlertCircle, Copy, X 
+  Trash2, Upload, LogOut, ExternalLink, Check, Loader2, Sparkles, AlertCircle, Copy, X, Play, Video
 } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/utils/supabase';
@@ -58,6 +58,13 @@ export default function SpacePortal() {
   const [imageAspectRatio, setImageAspectRatio] = useState(1);
   const [cropBox, setCropBox] = useState({ x: 40, y: 40, w: 260, h: 260 });
   const [resizingCorner, setResizingCorner] = useState(null);
+
+  // Video Upload & Compression States
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
+  const [compressionMessage, setCompressionMessage] = useState('');
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingVideoFile, setPendingVideoFile] = useState(null);
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, box: { x: 40, y: 40, w: 260, h: 260 } });
 
   const fileInputRef = useRef(null);
@@ -358,12 +365,226 @@ export default function SpacePortal() {
     return { zoom: clampedZoom, pan: clampedPan };
   };
 
+  const checkVideoDuration = (file) => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        resolve(video.duration);
+      };
+      video.onerror = () => {
+        window.URL.revokeObjectURL(video.src);
+        resolve(-1);
+      };
+      video.src = URL.createObjectURL(file);
+    });
+  };
+
+  const generatePosterFrame = (file) => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'auto';
+      video.muted = true;
+      video.playsInline = true;
+      video.src = URL.createObjectURL(file);
+      video.onloadeddata = () => {
+        // Seek to 0.5s to avoid a black or blank initial frame
+        video.currentTime = 0.5;
+      };
+      video.onseeked = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob) => {
+            window.URL.revokeObjectURL(video.src);
+            resolve(blob);
+          }, 'image/jpeg', 0.85);
+        } catch (err) {
+          console.warn('Canvas export failed:', err);
+          window.URL.revokeObjectURL(video.src);
+          resolve(null);
+        }
+      };
+      video.onerror = () => {
+        window.URL.revokeObjectURL(video.src);
+        resolve(null);
+      };
+    });
+  };
+
+  const compressVideoWithWorker = (file, quality = '720p') => {
+    return new Promise((resolve, reject) => {
+      const worker = new Worker('/videoCompressor.worker.js');
+      
+      setCompressionProgress(0);
+      setCompressionMessage('Starting compression...');
+      setIsCompressing(true);
+
+      worker.onmessage = (e) => {
+        const { type, progress, message, blob, error } = e.data;
+        if (type === 'progress') {
+          setCompressionProgress(progress);
+          setCompressionMessage(message);
+        } else if (type === 'done') {
+          worker.terminate();
+          setIsCompressing(false);
+          resolve(blob);
+        } else if (type === 'error') {
+          worker.terminate();
+          setIsCompressing(false);
+          reject(new Error(error));
+        }
+      };
+
+      worker.postMessage({ file, quality });
+    });
+  };
+
+  const uploadVideoAsset = async (videoFile, posterBlob, originalName) => {
+    setUploading(true);
+    setErrorMsg('');
+    try {
+      let finalVideoUrl = '';
+      let finalPosterUrl = '';
+
+      if (!supabase || !supabase.storage) {
+        console.warn('[STORAGE MOCK] Supabase is not configured. Creating local object URLs.');
+        // Generate mock URLs for local sandbox testing
+        finalVideoUrl = URL.createObjectURL(videoFile);
+        finalPosterUrl = URL.createObjectURL(posterBlob);
+      } else {
+        const cleanName = originalName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_.-]/g, '');
+        const videoFilename = `video_${Date.now()}_${cleanName}`;
+        
+        const { error: videoError } = await supabase.storage
+          .from('creator-assets')
+          .upload(videoFilename, videoFile, {
+            contentType: 'video/mp4',
+            cacheControl: '3600',
+            upsert: true
+          });
+        if (videoError) throw videoError;
+
+        const { data: { publicUrl: vUrl } } = supabase.storage
+          .from('creator-assets')
+          .getPublicUrl(videoFilename);
+        finalVideoUrl = vUrl;
+
+        const posterFilename = `poster_${Date.now()}.jpg`;
+        const { error: posterError } = await supabase.storage
+          .from('creator-assets')
+          .upload(posterFilename, posterBlob, {
+            contentType: 'image/jpeg',
+            cacheControl: '3600',
+            upsert: true
+          });
+        if (posterError) throw posterError;
+
+        const { data: { publicUrl: pUrl } } = supabase.storage
+          .from('creator-assets')
+          .getPublicUrl(posterFilename);
+        finalPosterUrl = pUrl;
+      }
+
+      // Merge into videoUrl&&posterUrl structure
+      const mergedUrl = `${finalVideoUrl}&&${finalPosterUrl}`;
+
+      // Update states
+      setImages([...images, mergedUrl]);
+      setCaptions([...captions, '']);
+
+      setSuccessMsg('Video uploaded successfully!');
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch (err) {
+      console.error('Video upload failed:', err);
+      setErrorMsg(`Upload failed: ${err.message || 'Check storage configuration.'}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const processAndUploadVideo = async (file) => {
+    try {
+      let videoFileToUpload = file;
+      
+      if (pendingVideoFile) {
+        setUploading(true);
+        try {
+          const compressed = await compressVideoWithWorker(pendingVideoFile, '720p');
+          videoFileToUpload = compressed;
+        } catch (compErr) {
+          console.warn('Compression failed, falling back to original file:', compErr);
+          videoFileToUpload = pendingVideoFile;
+        }
+      }
+
+      setUploading(true);
+      setCompressionMessage('Generating thumbnail...');
+      const posterBlob = await generatePosterFrame(videoFileToUpload);
+      if (!posterBlob) {
+        throw new Error('Failed to generate video thumbnail poster.');
+      }
+
+      setCompressionMessage('Uploading files...');
+      await uploadVideoAsset(videoFileToUpload, posterBlob, file.name);
+    } catch (err) {
+      console.error('Error processing video:', err);
+      setErrorMsg(err.message || 'Failed to process and upload video.');
+    } finally {
+      setPendingVideoFile(null);
+      setShowConfirmModal(false);
+      setIsCompressing(false);
+      setUploading(false);
+    }
+  };
+
+  const handleVideoSelection = async (file) => {
+    if (file.size > 150 * 1024 * 1024) {
+      alert('Video file is too large. Maximum allowed size is 150MB.');
+      return;
+    }
+
+    setUploading(true);
+    setErrorMsg('');
+    const duration = await checkVideoDuration(file);
+    setUploading(false);
+
+    if (duration === -1) {
+      alert('Unable to read video metadata. The file might be corrupted.');
+      return;
+    }
+
+    if (duration > 20) {
+      alert('Videos must be 20 seconds or shorter — trim it and try again.');
+      return;
+    }
+
+    const sizeThreshold = 15 * 1024 * 1024;
+    if (file.size > sizeThreshold) {
+      setPendingVideoFile(file);
+      setShowConfirmModal(true);
+    } else {
+      await processAndUploadVideo(file);
+    }
+  };
+
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.type.startsWith('video/')) {
+      handleVideoSelection(file);
+      if (e.target) e.target.value = '';
+      return;
+    }
+
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file.');
+      alert('Please upload an image or video file.');
+      if (e.target) e.target.value = '';
       return;
     }
 
@@ -1095,7 +1316,7 @@ export default function SpacePortal() {
                 <div>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/mp4,video/webm,video/quicktime"
                     ref={fileInputRef}
                     onChange={handleImageUpload}
                     className="hidden"
@@ -1111,7 +1332,7 @@ export default function SpacePortal() {
                     ) : (
                       <Upload className="w-3.5 h-3.5" />
                     )}
-                    <span>Add Photo</span>
+                    <span>Add Photo / Video</span>
                   </button>
                 </div>
               </div>
@@ -1126,33 +1347,48 @@ export default function SpacePortal() {
                 <div className="columns-2 sm:columns-3 gap-4">
                   {images.slice(1).reverse().map((src, index) => {
                     const actualIndex = images.length - 1 - index;
+                    const isVideo = src && src.includes('&&');
+                    const displaySrc = isVideo ? src.split('&&')[1] : src;
                     return (
                       <div key={index} className="break-inside-avoid mb-4 rounded-xl overflow-hidden bg-white border border-near-black/5 shadow-sm flex flex-col">
                         <div className="relative group overflow-hidden">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img 
-                            src={src} 
+                            src={displaySrc} 
                             alt={`Gallery ${actualIndex}`} 
                             className="w-full h-auto block"
                           />
+
+                          {isVideo && (
+                            <div className="absolute top-2.5 left-2.5 px-2 py-1 bg-black/60 text-white rounded-lg flex items-center gap-1 select-none pointer-events-none border border-white/10 shadow-sm">
+                              <Play className="w-2.5 h-2.5 fill-current text-white" />
+                              <span className="text-[7.5px] font-bold uppercase tracking-wider">Video</span>
+                            </div>
+                          )}
                           
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2.5">
                             <button
                               type="button"
                               onClick={() => handleImageDelete(actualIndex)}
                               className="self-end p-1.5 bg-white/10 hover:bg-red-500/20 text-white hover:text-red-100 border border-white/10 rounded-lg transition-colors"
-                              title="Delete image"
+                              title="Delete item"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
 
-                            <button
-                              type="button"
-                              onClick={() => handleMakeCover(actualIndex)}
-                              className="w-full py-1.5 bg-white/90 hover:bg-white text-coral rounded-lg text-[9px] uppercase font-bold tracking-wider transition-all"
-                            >
-                              Make Cover
-                            </button>
+                            {!isVideo ? (
+                              <button
+                                type="button"
+                                onClick={() => handleMakeCover(actualIndex)}
+                                className="w-full py-1.5 bg-white/90 hover:bg-white text-coral rounded-lg text-[9px] uppercase font-bold tracking-wider transition-all"
+                              >
+                                Make Cover
+                              </button>
+                            ) : (
+                              <div className="w-full py-1.5 bg-black/40 border border-white/10 text-white/80 rounded-lg text-[9px] uppercase font-bold tracking-wider text-center select-none backdrop-blur-sm">
+                                Video Asset
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="p-2 border-t border-near-black/5 flex flex-col gap-1 bg-[#FBF9F6]/50">
@@ -1485,6 +1721,86 @@ export default function SpacePortal() {
               </form>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Video Compression Confirmation Modal */}
+      <AnimatePresence>
+        {showConfirmModal && pendingVideoFile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 select-none"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white border border-near-black/5 rounded-2xl p-8 max-w-[400px] w-full shadow-2xl flex flex-col items-center gap-6"
+            >
+              <div className="w-12 h-12 rounded-full bg-coral/10 text-coral flex items-center justify-center">
+                <Video className="w-5 h-5" />
+              </div>
+
+              <div className="text-center flex flex-col gap-2">
+                <h3 className="font-cormorant text-2xl font-bold text-near-black">Optimize Video?</h3>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  This file is large ({Math.round(pendingVideoFile.size / (1024 * 1024))}MB). We will compress it for smooth scrolling, fast loading, and mobile compatibility. Duration and timing will not be changed.
+                </p>
+              </div>
+
+              <div className="w-full flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => processAndUploadVideo(pendingVideoFile)}
+                  className="w-full py-3.5 rounded-xl bg-coral text-white text-xs font-bold uppercase tracking-wider hover:bg-coral-hover transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                >
+                  Optimize & Upload
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPendingVideoFile(null);
+                    setShowConfirmModal(false);
+                  }}
+                  className="w-full py-3.5 rounded-xl border border-near-black/10 text-neutral-500 text-xs font-bold uppercase tracking-wider hover:bg-neutral-50 transition-all active:scale-[0.98] flex items-center justify-center cursor-pointer"
+                >
+                  Cancel Upload
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Video Compression Progress Overlay */}
+      <AnimatePresence>
+        {isCompressing && (
+          <div className="fixed inset-0 z-[10000] bg-black/75 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white select-none">
+            <div className="max-w-xs w-full flex flex-col items-center gap-6 text-center animate-fade-in">
+              <div className="relative w-16 h-16 flex items-center justify-center">
+                <Loader2 className="w-16 h-16 text-coral animate-spin absolute" strokeWidth={1.5} />
+                <span className="text-[10px] font-bold text-white tracking-widest">{compressionProgress}%</span>
+              </div>
+              
+              <div className="flex flex-col gap-2">
+                <h4 className="font-cormorant text-xl font-semibold">Processing Video</h4>
+                <p className="text-[9px] text-neutral-400 uppercase tracking-widest font-mono">{compressionMessage}</p>
+              </div>
+
+              <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+                <div 
+                  className="bg-coral h-full transition-all duration-300 rounded-full" 
+                  style={{ width: `${compressionProgress}%` }}
+                ></div>
+              </div>
+
+              <p className="text-[10px] text-neutral-500 italic leading-normal max-w-[200px]">
+                Please keep this browser window open. We are tailoring the video to be buttery smooth.
+              </p>
+            </div>
+          </div>
         )}
       </AnimatePresence>
     </main>

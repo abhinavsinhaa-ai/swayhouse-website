@@ -7,12 +7,15 @@ import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Instagram, Mail, ShieldAlert, Award, Compass, HeartHandshake, MessageSquare, Users } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import ContactForm from '@/components/ContactForm';
 import WhatToExpect from '@/components/WhatToExpect';
-import CreatorModal from '@/components/CreatorModal';
-import SwaySpaceModal from '@/components/SwaySpaceModal';
-import SwayAIModal from '@/components/SwayAIModal';
-import CreatorsModalRoster from '@/components/CreatorsModalRoster';
+
+const CreatorModal = dynamic(() => import('@/components/CreatorModal'), { ssr: false });
+const SwaySpaceModal = dynamic(() => import('@/components/SwaySpaceModal'), { ssr: false });
+const SwayAIModal = dynamic(() => import('@/components/SwayAIModal'), { ssr: false });
+const CreatorsModalRoster = dynamic(() => import('@/components/CreatorsModalRoster'), { ssr: false });
+
 import { ROSTER } from '@/utils/roster';
 import { supabase } from '@/utils/supabase';
 
@@ -95,7 +98,7 @@ export default function Home() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
