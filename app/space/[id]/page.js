@@ -381,7 +381,7 @@ export default function SwaySpace({ params }) {
             <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
               {[...profile.images].slice(1).reverse().map((src, index) => {
                 const originalIndex = profile.images.length - 1 - index;
-                const caption = (profile.captions && profile.captions[originalIndex]) || galleryCaptions[index % galleryCaptions.length];
+                const caption = profile.captions ? (profile.captions[originalIndex] || '') : galleryCaptions[index % galleryCaptions.length];
                 const isVideo = src && src.includes('&&');
                 const videoUrl = isVideo ? src.split('&&')[0] : '';
                 const posterUrl = isVideo ? src.split('&&')[1] : src;

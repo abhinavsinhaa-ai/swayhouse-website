@@ -48,7 +48,7 @@ export const SPACES = [
 
 Welcome to my space. Lost in aesthetic corners, quiet moments, and visual inspirations.`,
     images: [
-      "/assets/sarah.jpg"
+      "/assets/aanya.jpg"
     ]
   },
   {

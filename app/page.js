@@ -441,7 +441,7 @@ export default function Home() {
             transition={{ delay: 2.1, duration: 0.8, ease: 'easeOut' }}
             className="text-base md:text-lg text-neutral-500 leading-snug max-w-[650px] mb-12"
           >
-            SwayHouse is a creator management company built for the new era of content. 
+            SwayHouse is a creator management agency built for the new era of content. 
             We handle the business so you never have to stop creating.
           </motion.p>
 
@@ -856,10 +856,10 @@ export default function Home() {
                   className={`w-full group rounded-[24px] bg-white border border-near-black/5 p-5 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col ${cardGridClass}`}
                 >
                   <motion.div 
-                    initial={{ clipPath: "inset(100% 0% 0% 0%)", opacity: 0, y: 40 }}
-                    whileInView={{ clipPath: "inset(0% 0% 0% 0%)", opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.8, delay: (index % 6) * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.8, delay: (index % 6) * 0.12, ease: [0.16, 1, 0.3, 1] }}
                     className="w-full flex flex-col"
                   >
                     {/* Image container */}

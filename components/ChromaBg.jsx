@@ -29,12 +29,18 @@ export default function ChromaBg() {
     let creatorsVisible = false;
     let contactVisible = false;
     let formFocused = false;
+    let isLooping = false;
 
     const handleScroll = () => {
       const isMobile = window.innerWidth < 768;
       const scrolled = window.scrollY;
       targetRotation = isMobile ? scrolled * 0.015 : scrolled * 0.04;
       targetY = isMobile ? scrolled * 0.02 : scrolled * 0.04;
+
+      if (!isLooping && !isMobile) {
+        isLooping = true;
+        animationId = requestAnimationFrame(() => updateAnimation(containerRef.current));
+      }
     };
 
     function updateVisibility(logoImg) {
@@ -48,17 +54,34 @@ export default function ChromaBg() {
     }
 
     function updateAnimation(logoImg) {
+      if (!logoImg) {
+        isLooping = false;
+        animationId = null;
+        return;
+      }
+
       if (document.hidden) {
         animationId = requestAnimationFrame(() => updateAnimation(logoImg));
         return;
       }
 
-      currentRotation += (targetRotation - currentRotation) * 0.07;
-      currentY += (targetY - currentY) * 0.07;
+      const diffRotation = targetRotation - currentRotation;
+      const diffY = targetY - currentY;
 
-      if (logoImg) {
+      // If the values are very close, snap them and stop the animation loop to save CPU/GPU cycles
+      if (Math.abs(diffRotation) < 0.01 && Math.abs(diffY) < 0.1) {
+        currentRotation = targetRotation;
+        currentY = targetY;
         logoImg.style.transform = `translate(-50%, -50%) translate3d(0, ${currentY}px, 0) rotate(${currentRotation}deg)`;
+        isLooping = false;
+        animationId = null;
+        return;
       }
+
+      currentRotation += diffRotation * 0.07;
+      currentY += diffY * 0.07;
+
+      logoImg.style.transform = `translate(-50%, -50%) translate3d(0, ${currentY}px, 0) rotate(${currentRotation}deg)`;
       
       animationId = requestAnimationFrame(() => updateAnimation(logoImg));
     }
@@ -118,6 +141,7 @@ export default function ChromaBg() {
       window.addEventListener('scroll', handleScroll, { passive: true });
       
       // Start loop
+      isLooping = true;
       animationId = requestAnimationFrame(() => updateAnimation(logoImg));
 
       // Intersection Observer for sections

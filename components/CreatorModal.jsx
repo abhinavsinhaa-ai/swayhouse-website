@@ -214,7 +214,7 @@ export default function CreatorModal({ creator, onClose }) {
                 <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
                   {creator.images.slice(1).map((src, index) => {
                     const originalIndex = index + 1;
-                    const caption = (creator.captions && creator.captions[originalIndex]) || galleryCaptions[index % galleryCaptions.length];
+                    const caption = creator.captions ? (creator.captions[originalIndex] || '') : galleryCaptions[index % galleryCaptions.length];
                     return (
                       <div 
                         key={index}
