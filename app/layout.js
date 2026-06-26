@@ -21,20 +21,18 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'SwayHouse — Creator Management Agency by Abhinav Sinha',
-  description: 'SwayHouse is a premium creator management agency in India founded by Abhinav Sinha. We handle brand deals, partnerships, strategy, and growth for selective creators.',
-  authors: [{ name: 'Abhinav Sinha', url: 'https://abhinavsinha.online' }],
-  creator: 'Abhinav Sinha',
-  publisher: 'Abhinav Sinha',
-  keywords: ['SwayHouse', 'Sway House', 'Abhinav Sinha', 'Creator Management', 'Influencer Agency India', 'SwaySpace', 'SwayAI', 'SwayHouse Agency', 'Sway House Agency'],
+  title: 'SwayHouse — A Creator Management Agency',
+  description: 'SwayHouse is a premium creator management agency in India. We handle brand deals, partnerships, strategy, and growth for selective creators.',
+  authors: [{ name: 'SwayHouse' }],
+  keywords: ['SwayHouse', 'Sway House', 'Creator Management', 'Influencer Agency India', 'SwaySpace', 'SwayAI', 'SwayHouse Agency', 'Sway House Agency'],
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
     apple: '/favicon.ico',
   },
   openGraph: {
-    title: 'SwayHouse — Creator Management Agency by Abhinav Sinha',
-    description: 'SwayHouse is a premium creator management agency in India founded by Abhinav Sinha. We handle brand deals, partnerships, strategy, and growth for selective creators.',
+    title: 'SwayHouse — A Creator Management Agency',
+    description: 'SwayHouse is a premium creator management agency in India. We handle brand deals, partnerships, strategy, and growth for selective creators.',
     url: 'https://swayhouse.in',
     siteName: 'SwayHouse',
     locale: 'en_US',
@@ -50,8 +48,8 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SwayHouse — Creator Management Agency by Abhinav Sinha',
-    description: 'SwayHouse is a premium creator management agency in India founded by Abhinav Sinha. We handle brand deals, partnerships, strategy, and growth for selective creators.',
+    title: 'SwayHouse — A Creator Management Agency',
+    description: 'SwayHouse is a premium creator management agency in India. We handle brand deals, partnerships, strategy, and growth for selective creators.',
     images: ['https://swayhouse.in/swayhouse-logo.jpeg'],
   },
 };
