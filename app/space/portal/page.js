@@ -34,6 +34,7 @@ export default function SpacePortal() {
   const [gender, setGender] = useState('prefer_not_to_say');
   const [generatingBio, setGeneratingBio] = useState(false);
   const [captions, setCaptions] = useState([]);
+  const [dates, setDates] = useState([]);
   const [cropperCaption, setCropperCaption] = useState('');
 
   // Email enforcement fields
@@ -100,6 +101,7 @@ export default function SpacePortal() {
         setImages(p.images || []);
         setGender(p.gender || 'prefer_not_to_say');
         setCaptions(p.captions || []);
+        setDates(p.dates || []);
         setEmail(p.email || '');
         setPhone(p.phone || '');
         
@@ -144,6 +146,7 @@ export default function SpacePortal() {
           images,
           gender,
           captions,
+          dates,
           designation,
           email: email.trim(),
           phone: phone.trim()
@@ -323,6 +326,7 @@ export default function SpacePortal() {
   const handleImageDelete = (indexToDelete) => {
     setImages(images.filter((_, idx) => idx !== indexToDelete));
     setCaptions(captions.filter((_, idx) => idx !== indexToDelete));
+    setDates(dates.filter((_, idx) => idx !== indexToDelete));
   };
 
   const clampPanAndZoom = (currentZoom, currentPan, box, customRatio = null) => {
@@ -496,6 +500,7 @@ export default function SpacePortal() {
       // Update states
       setImages([...images, mergedUrl]);
       setCaptions([...captions, '']);
+      setDates([...dates, new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()]);
 
       setSuccessMsg('Video uploaded successfully!');
       setTimeout(() => setSuccessMsg(''), 3000);
@@ -672,6 +677,12 @@ export default function SpacePortal() {
     newCaptions[0] = newCaptions[index];
     newCaptions[index] = tempCaption;
     setCaptions(newCaptions);
+
+    const newDates = [...dates];
+    const tempDate = newDates[0];
+    newDates[0] = newDates[index];
+    newDates[index] = tempDate;
+    setDates(newDates);
   };
 
   // Dragging and Resizing event handlers
@@ -917,9 +928,13 @@ export default function SpacePortal() {
             const newCaptions = [...captions];
             newCaptions[0] = '';
             setCaptions(newCaptions);
+            const newDates = [...dates];
+            newDates[0] = '';
+            setDates(newDates);
           } else {
             setImages([...images, simulatedUrl]);
             setCaptions([...captions, cropperCaption || '']);
+            setDates([...dates, new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()]);
           }
         };
         reader.readAsDataURL(file);
@@ -950,9 +965,13 @@ export default function SpacePortal() {
         const newCaptions = [...captions];
         newCaptions[0] = '';
         setCaptions(newCaptions);
+        const newDates = [...dates];
+        newDates[0] = '';
+        setDates(newDates);
       } else {
         setImages([...images, publicUrl]);
         setCaptions([...captions, cropperCaption || '']);
+        setDates([...dates, new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()]);
       }
     } catch (err) {
       console.error('Upload failed error:', err);
@@ -1394,6 +1413,11 @@ export default function SpacePortal() {
                         <div className="p-2 border-t border-near-black/5 flex flex-col gap-1 bg-[#FBF9F6]/50">
                           <div className="flex justify-between items-center gap-1">
                             <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400">Caption</span>
+                            {dates[actualIndex] && (
+                              <span className="text-[8px] text-neutral-400 font-semibold tracking-wider uppercase">
+                                {dates[actualIndex]}
+                              </span>
+                            )}
                             <button
                               type="button"
                               disabled={generatingCaptionIndex === actualIndex}

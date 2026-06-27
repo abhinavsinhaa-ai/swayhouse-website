@@ -64,6 +64,7 @@ export default function CreatorDashboard({ params }) {
   const [creator, setCreator] = useState(null);
   const [lightboxImage, setLightboxImage] = useState(null);
   const [lightboxCaption, setLightboxCaption] = useState('');
+  const [lightboxDate, setLightboxDate] = useState('');
 
   useEffect(() => {
     async function loadCreator() {
@@ -86,20 +87,24 @@ export default function CreatorDashboard({ params }) {
           const creatorData = dbCreators[0];
           const cleanImages = [];
           const parsedCaptions = [];
+          const parsedDates = [];
           if (creatorData.images) {
             creatorData.images.forEach((img, idx) => {
               if (img && img.includes('||')) {
                 const parts = img.split('||');
                 cleanImages.push(parts[0]);
                 parsedCaptions.push(parts[1] || '');
+                parsedDates.push(parts[2] || '');
               } else {
                 cleanImages.push(img);
                 parsedCaptions.push((creatorData.captions && creatorData.captions[idx]) || '');
+                parsedDates.push('');
               }
             });
           }
           creatorData.images = cleanImages;
           creatorData.captions = parsedCaptions;
+          creatorData.dates = parsedDates;
           setCreator(creatorData);
           return;
         }
@@ -139,9 +144,10 @@ export default function CreatorDashboard({ params }) {
     "Confidence in every detail."
   ];
 
-  const handleOpenLightbox = (src, caption) => {
+  const handleOpenLightbox = (src, caption, date) => {
     setLightboxImage(src);
     setLightboxCaption(caption || '');
+    setLightboxDate(date || '');
   };
 
   return (
@@ -304,6 +310,7 @@ export default function CreatorDashboard({ params }) {
               {creator.images.slice(1).map((src, index) => {
                 const originalIndex = index + 1;
                 const caption = creator.captions ? (creator.captions[originalIndex] || '') : galleryCaptions[index % galleryCaptions.length];
+                const date = creator.dates ? (creator.dates[originalIndex] || '') : '';
                 const isVideo = src && src.includes('&&');
                 const videoUrl = isVideo ? src.split('&&')[0] : '';
                 const posterUrl = isVideo ? src.split('&&')[1] : src;
@@ -318,10 +325,10 @@ export default function CreatorDashboard({ params }) {
                         videoSrc={videoUrl} 
                         posterSrc={posterUrl} 
                         alt={`${creator.name} Gallery Video ${index + 1}`} 
-                        onClick={() => handleOpenLightbox(src, caption)}
+                        onClick={() => handleOpenLightbox(src, caption, date)}
                       />
                     ) : (
-                      <div onClick={() => handleOpenLightbox(src, caption)}>
+                      <div onClick={() => handleOpenLightbox(src, caption, date)}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
                           src={src} 
@@ -331,10 +338,19 @@ export default function CreatorDashboard({ params }) {
                         />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                      <span className="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">
-                        Zoom View
-                      </span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4 pointer-events-none">
+                      <div className="flex justify-end w-full">
+                        {date && (
+                          <span className="text-white text-[8px] font-bold uppercase tracking-widest bg-black/35 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                            {date}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <span className="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">
+                          Zoom View
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );
@@ -412,11 +428,20 @@ export default function CreatorDashboard({ params }) {
               )}
             </motion.div>
 
-            {/* Lightbox Caption */}
-            {lightboxCaption && (
-              <p className="text-white/80 font-cormorant italic text-lg md:text-xl text-center mt-6 max-w-md px-4 leading-normal">
-                {lightboxCaption}
-              </p>
+            {/* Lightbox Caption & Date */}
+            {(lightboxCaption || lightboxDate) && (
+              <div className="text-center mt-6 max-w-md px-4 flex flex-col gap-1.5">
+                {lightboxDate && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 font-inter">
+                    {lightboxDate}
+                  </span>
+                )}
+                {lightboxCaption && (
+                  <p className="text-white/80 font-cormorant italic text-lg md:text-xl leading-normal">
+                    {lightboxCaption}
+                  </p>
+                )}
+              </div>
             )}
           </motion.div>
         )}

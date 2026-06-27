@@ -64,6 +64,7 @@ export default function SwaySpace({ params }) {
   const [profile, setProfile] = useState(null);
   const [lightboxImage, setLightboxImage] = useState(null);
   const [lightboxCaption, setLightboxCaption] = useState('');
+  const [lightboxDate, setLightboxDate] = useState('');
   const [copied, setCopied] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
 
@@ -88,20 +89,24 @@ export default function SwaySpace({ params }) {
           const profileData = dbProfiles[0];
           const cleanImages = [];
           const parsedCaptions = [];
+          const parsedDates = [];
           if (profileData.images) {
             profileData.images.forEach((img, idx) => {
               if (img && img.includes('||')) {
                 const parts = img.split('||');
                 cleanImages.push(parts[0]);
                 parsedCaptions.push(parts[1] || '');
+                parsedDates.push(parts[2] || '');
               } else {
                 cleanImages.push(img);
                 parsedCaptions.push((profileData.captions && profileData.captions[idx]) || '');
+                parsedDates.push('');
               }
             });
           }
           profileData.images = cleanImages;
           profileData.captions = parsedCaptions;
+          profileData.dates = parsedDates;
 
           // Parse niche and designation
           let cleanNiche = '';
@@ -190,9 +195,10 @@ export default function SwaySpace({ params }) {
     "Confidence in every detail."
   ];
 
-  const handleOpenLightbox = (src, caption) => {
+  const handleOpenLightbox = (src, caption, date) => {
     setLightboxImage(src);
     setLightboxCaption(caption || '');
+    setLightboxDate(date || '');
   };
 
   return (
@@ -382,6 +388,7 @@ export default function SwaySpace({ params }) {
               {[...profile.images].slice(1).reverse().map((src, index) => {
                 const originalIndex = profile.images.length - 1 - index;
                 const caption = profile.captions ? (profile.captions[originalIndex] || '') : galleryCaptions[index % galleryCaptions.length];
+                const date = profile.dates ? (profile.dates[originalIndex] || '') : '';
                 const isVideo = src && src.includes('&&');
                 const videoUrl = isVideo ? src.split('&&')[0] : '';
                 const posterUrl = isVideo ? src.split('&&')[1] : src;
@@ -396,10 +403,10 @@ export default function SwaySpace({ params }) {
                         videoSrc={videoUrl} 
                         posterSrc={posterUrl} 
                         alt={`${profile.name} Gallery Video ${index + 1}`} 
-                        onClick={() => handleOpenLightbox(src, caption)}
+                        onClick={() => handleOpenLightbox(src, caption, date)}
                       />
                     ) : (
-                      <div onClick={() => handleOpenLightbox(src, caption)}>
+                      <div onClick={() => handleOpenLightbox(src, caption, date)}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
                           src={src} 
@@ -409,10 +416,19 @@ export default function SwaySpace({ params }) {
                         />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                      <span className="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">
-                        Zoom View
-                      </span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4 pointer-events-none">
+                      <div className="flex justify-end w-full">
+                        {date && (
+                          <span className="text-white text-[8px] font-bold uppercase tracking-widest bg-black/35 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                            {date}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <span className="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">
+                          Zoom View
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );
@@ -521,11 +537,20 @@ export default function SwaySpace({ params }) {
               )}
             </motion.div>
 
-            {/* Lightbox Caption */}
-            {lightboxCaption && (
-              <p className="text-white/80 font-cormorant italic text-lg md:text-xl text-center mt-6 max-w-md px-4 leading-normal">
-                {lightboxCaption}
-              </p>
+            {/* Lightbox Caption & Date */}
+            {(lightboxCaption || lightboxDate) && (
+              <div className="text-center mt-6 max-w-md px-4 flex flex-col gap-1.5">
+                {lightboxDate && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 font-inter">
+                    {lightboxDate}
+                  </span>
+                )}
+                {lightboxCaption && (
+                  <p className="text-white/80 font-cormorant italic text-lg md:text-xl leading-normal">
+                    {lightboxCaption}
+                  </p>
+                )}
+              </div>
             )}
           </motion.div>
         )}

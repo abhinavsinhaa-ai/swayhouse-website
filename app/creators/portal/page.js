@@ -30,6 +30,7 @@ export default function CreatorPortal() {
   const [images, setImages] = useState([]);
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const [captions, setCaptions] = useState([]);
+  const [dates, setDates] = useState([]);
   const [cropperCaption, setCropperCaption] = useState('');
   const [generatingCaption, setGeneratingCaption] = useState(false);
   const [generatingCaptionIndex, setGeneratingCaptionIndex] = useState(null);
@@ -79,6 +80,7 @@ export default function CreatorPortal() {
         setMessage(p.message || '');
         setImages(p.images || []);
         setCaptions(p.captions || []);
+        setDates(p.dates || []);
       } else {
         // Not authenticated, redirect to login
         router.push('/creators/login');
@@ -110,7 +112,8 @@ export default function CreatorPortal() {
           bio,
           message,
           images,
-          captions
+          captions,
+          dates
         })
       });
 
@@ -203,6 +206,7 @@ export default function CreatorPortal() {
   const handleImageDelete = (indexToDelete) => {
     setImages(images.filter((_, idx) => idx !== indexToDelete));
     setCaptions(captions.filter((_, idx) => idx !== indexToDelete));
+    setDates(dates.filter((_, idx) => idx !== indexToDelete));
   };
 
   const clampPanAndZoom = (currentZoom, currentPan, box, customRatio = null) => {
@@ -562,9 +566,13 @@ export default function CreatorPortal() {
             const newCaptions = [...captions];
             newCaptions[0] = '';
             setCaptions(newCaptions);
+            const newDates = [...dates];
+            newDates[0] = '';
+            setDates(newDates);
           } else {
             setImages([...images, simulatedUrl]);
             setCaptions([...captions, cropperCaption || '']);
+            setDates([...dates, new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()]);
           }
         };
         reader.readAsDataURL(file);
@@ -595,9 +603,13 @@ export default function CreatorPortal() {
         const newCaptions = [...captions];
         newCaptions[0] = '';
         setCaptions(newCaptions);
+        const newDates = [...dates];
+        newDates[0] = '';
+        setDates(newDates);
       } else {
         setImages([...images, publicUrl]);
         setCaptions([...captions, cropperCaption || '']);
+        setDates([...dates, new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()]);
       }
     } catch (err) {
       console.error('Upload failed error:', err);
@@ -616,6 +628,10 @@ export default function CreatorPortal() {
     const newCaptions = [...captions];
     newCaptions.shift();
     setCaptions(newCaptions);
+
+    const newDates = [...dates];
+    newDates.shift();
+    setDates(newDates);
   };
 
   // Reorder cover photo helper (swaps chosen index to index 0)
@@ -632,6 +648,12 @@ export default function CreatorPortal() {
     newCaptions[0] = newCaptions[index];
     newCaptions[index] = tempCaption;
     setCaptions(newCaptions);
+
+    const newDates = [...dates];
+    const tempDate = newDates[0];
+    newDates[0] = newDates[index];
+    newDates[index] = tempDate;
+    setDates(newDates);
   };
 
   if (loading) {
@@ -1003,6 +1025,11 @@ export default function CreatorPortal() {
                         <div className="pt-2 border-t border-near-black/5 flex flex-col gap-1 bg-[#FBF9F6]/30 px-1 rounded-lg">
                           <div className="flex justify-between items-center gap-1">
                             <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400">Caption</span>
+                            {dates[actualIdx] && (
+                              <span className="text-[8px] text-neutral-400 font-semibold tracking-wider uppercase">
+                                {dates[actualIdx]}
+                              </span>
+                            )}
                             <button
                               type="button"
                               disabled={generatingCaptionIndex === actualIdx}

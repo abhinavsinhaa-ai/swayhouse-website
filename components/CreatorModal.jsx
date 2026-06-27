@@ -8,6 +8,7 @@ import Image from 'next/image';
 export default function CreatorModal({ creator, onClose }) {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [lightboxCaption, setLightboxCaption] = useState('');
+  const [lightboxDate, setLightboxDate] = useState('');
 
   // Disable main body scroll when creator space is open
   useEffect(() => {
@@ -49,9 +50,10 @@ export default function CreatorModal({ creator, onClose }) {
     "Confidence in every detail."
   ];
 
-  const handleOpenLightbox = (src, caption) => {
+  const handleOpenLightbox = (src, caption, date) => {
     setLightboxImage(src);
     setLightboxCaption(caption || '');
+    setLightboxDate(date || '');
   };
 
   return (
@@ -215,10 +217,11 @@ export default function CreatorModal({ creator, onClose }) {
                   {creator.images.slice(1).map((src, index) => {
                     const originalIndex = index + 1;
                     const caption = creator.captions ? (creator.captions[originalIndex] || '') : galleryCaptions[index % galleryCaptions.length];
+                    const date = creator.dates ? (creator.dates[originalIndex] || '') : '';
                     return (
                       <div 
                         key={index}
-                        onClick={() => handleOpenLightbox(src, caption)}
+                        onClick={() => handleOpenLightbox(src, caption, date)}
                         className="break-inside-avoid mb-6 relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable"
                       >
                         <Image 
@@ -228,10 +231,19 @@ export default function CreatorModal({ creator, onClose }) {
                           height={500}
                           className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]" 
                         />
-                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <span className="text-white text-[10px] font-bold uppercase tracking-wider bg-black/45 backdrop-blur px-4 py-2 rounded-full select-none">
-                            Zoom View
-                          </span>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4 pointer-events-none">
+                          <div className="flex justify-end w-full">
+                            {date && (
+                              <span className="text-white text-[8px] font-bold uppercase tracking-widest bg-black/35 backdrop-blur-sm px-2.5 py-1.5 rounded-full">
+                                {date}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-center">
+                            <span className="text-white text-[10px] font-bold uppercase tracking-wider bg-black/45 backdrop-blur px-4 py-2 rounded-full select-none">
+                              Zoom View
+                            </span>
+                          </div>
                         </div>
                       </div>
                     );
@@ -277,14 +289,26 @@ export default function CreatorModal({ creator, onClose }) {
               />
             </motion.div>
 
-            <motion.p 
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 0.8 }}
-              exit={{ y: 10, opacity: 0 }}
-              className="text-white font-cormorant italic text-lg md:text-xl text-center mt-6 max-w-md px-4 leading-normal select-none"
-            >
-              {lightboxCaption}
-            </motion.p>
+            {/* Lightbox Caption & Date */}
+            {(lightboxCaption || lightboxDate) && (
+              <div className="text-center mt-6 max-w-md px-4 flex flex-col gap-1.5 select-none">
+                {lightboxDate && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 font-inter">
+                    {lightboxDate}
+                  </span>
+                )}
+                {lightboxCaption && (
+                  <motion.p 
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 0.8 }}
+                    exit={{ y: 10, opacity: 0 }}
+                    className="text-white font-cormorant italic text-lg md:text-xl leading-normal"
+                  >
+                    {lightboxCaption}
+                  </motion.p>
+                )}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

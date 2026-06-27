@@ -25,20 +25,24 @@ export async function GET(req) {
     // Parse images and captions
     const cleanImages = [];
     const parsedCaptions = [];
+    const parsedDates = [];
     if (profile.images) {
       profile.images.forEach((img, idx) => {
         if (img && img.includes('||')) {
           const parts = img.split('||');
           cleanImages.push(parts[0]);
           parsedCaptions.push(parts[1] || '');
+          parsedDates.push(parts[2] || '');
         } else {
           cleanImages.push(img);
           parsedCaptions.push((profile.captions && profile.captions[idx]) || '');
+          parsedDates.push('');
         }
       });
     }
     profile.images = cleanImages;
     profile.captions = parsedCaptions;
+    profile.dates = parsedDates;
 
     // Exclude password from response
     const { password, ...safeProfile } = profile;
@@ -59,7 +63,7 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { name, age, location, instagram, niche, bio, message, images, captions } = body;
+    const { name, age, location, instagram, niche, bio, message, images, captions, dates } = body;
 
     if (!name || !instagram || !niche) {
       return NextResponse.json({ error: 'Name, Instagram, and Niche are required' }, { status: 400 });
@@ -69,8 +73,9 @@ export async function POST(req) {
     if (images) {
       images.forEach((img, idx) => {
         const caption = (captions && captions[idx]) || '';
-        if (caption) {
-          mergedImages.push(`${img}||${caption}`);
+        const date = (dates && dates[idx]) || '';
+        if (caption || date) {
+          mergedImages.push(`${img}||${caption}||${date}`);
         } else {
           mergedImages.push(img);
         }
