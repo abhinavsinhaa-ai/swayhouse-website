@@ -81,8 +81,8 @@ export async function POST(req) {
               subject: 'SwaySpace Password Reset OTP',
               html: `
                 <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff;">
-                  <div style="text-align: center; margin-bottom: 20px;">
-                    <span style="font-size: 18px; font-weight: bold; color: #1a1a1a;">SwayHouse</span>
+                  <div style="text-align: center; margin-bottom: 24px;">
+                    <img src="https://swayhouse.in/assets/logo.jpg" alt="SwayHouse Logo" style="width: 80px; height: 80px; object-fit: contain; margin: 0 auto; display: block;" />
                   </div>
                   <h3 style="color: #FF6B35; font-size: 20px; margin-bottom: 10px;">Reset Your Password</h3>
                   <p style="color: #666666; font-size: 14px; line-height: 1.5;">You requested to reset the password for your SwaySpace account. Use the 6-digit OTP code below to proceed:</p>
