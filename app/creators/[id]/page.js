@@ -310,7 +310,7 @@ export default function CreatorDashboard({ params }) {
               {creator.images.slice(1).map((src, index) => {
                 const originalIndex = index + 1;
                 const caption = creator.captions ? (creator.captions[originalIndex] || '') : galleryCaptions[index % galleryCaptions.length];
-                const date = creator.dates ? (creator.dates[originalIndex] || '') : '';
+                const date = creator.dates ? (creator.dates[originalIndex] || 'JUN 2026') : 'JUN 2026';
                 const isVideo = src && src.includes('&&');
                 const videoUrl = isVideo ? src.split('&&')[0] : '';
                 const posterUrl = isVideo ? src.split('&&')[1] : src;

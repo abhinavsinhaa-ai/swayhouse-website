@@ -388,7 +388,7 @@ export default function SwaySpace({ params }) {
               {[...profile.images].slice(1).reverse().map((src, index) => {
                 const originalIndex = profile.images.length - 1 - index;
                 const caption = profile.captions ? (profile.captions[originalIndex] || '') : galleryCaptions[index % galleryCaptions.length];
-                const date = profile.dates ? (profile.dates[originalIndex] || '') : '';
+                const date = profile.dates ? (profile.dates[originalIndex] || 'JUN 2026') : 'JUN 2026';
                 const isVideo = src && src.includes('&&');
                 const videoUrl = isVideo ? src.split('&&')[0] : '';
                 const posterUrl = isVideo ? src.split('&&')[1] : src;

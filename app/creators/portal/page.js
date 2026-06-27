@@ -1022,34 +1022,48 @@ export default function CreatorPortal() {
                           </div>
                         </div>
 
-                        <div className="pt-2 border-t border-near-black/5 flex flex-col gap-1 bg-[#FBF9F6]/30 px-1 rounded-lg">
-                          <div className="flex justify-between items-center gap-1">
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400">Caption</span>
-                            {dates[actualIdx] && (
-                              <span className="text-[8px] text-neutral-400 font-semibold tracking-wider uppercase">
-                                {dates[actualIdx]}
-                              </span>
-                            )}
-                            <button
-                              type="button"
-                              disabled={generatingCaptionIndex === actualIdx}
-                              onClick={() => handleGenerateCaptionForIndex(actualIdx, src)}
-                              className="text-[8px] font-bold uppercase tracking-wider text-coral hover:text-coral-hover disabled:opacity-50 transition-colors flex items-center gap-0.5"
-                            >
-                              {generatingCaptionIndex === actualIdx ? '...' : '✨ SwayAI'}
-                            </button>
+                        <div className="pt-2 border-t border-near-black/5 flex flex-col gap-2 bg-[#FBF9F6]/30 px-1 rounded-lg">
+                          {/* Caption block */}
+                          <div className="flex flex-col gap-1">
+                            <div className="flex justify-between items-center gap-1">
+                              <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400">Caption</span>
+                              <button
+                                type="button"
+                                disabled={generatingCaptionIndex === actualIdx}
+                                onClick={() => handleGenerateCaptionForIndex(actualIdx, src)}
+                                className="text-[8px] font-bold uppercase tracking-wider text-coral hover:text-coral-hover disabled:opacity-50 transition-colors flex items-center gap-0.5"
+                              >
+                                {generatingCaptionIndex === actualIdx ? '...' : '✨ SwayAI'}
+                              </button>
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="No caption set"
+                              value={captions[actualIdx] || ''}
+                              onChange={(e) => {
+                                const newCaptions = [...captions];
+                                newCaptions[actualIdx] = e.target.value;
+                                setCaptions(newCaptions);
+                              }}
+                              className="w-full bg-white border border-near-black/5 rounded-lg px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-coral"
+                            />
                           </div>
-                          <input
-                            type="text"
-                            placeholder="No caption set"
-                            value={captions[actualIdx] || ''}
-                            onChange={(e) => {
-                              const newCaptions = [...captions];
-                              newCaptions[actualIdx] = e.target.value;
-                              setCaptions(newCaptions);
-                            }}
-                            className="w-full bg-white border border-near-black/5 rounded-lg px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-coral"
-                          />
+
+                          {/* Date block */}
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400">Display Date</span>
+                            <input
+                              type="text"
+                              placeholder="e.g. JUN 2026"
+                              value={dates[actualIdx] || ''}
+                              onChange={(e) => {
+                                const newDates = [...dates];
+                                newDates[actualIdx] = e.target.value;
+                                setDates(newDates);
+                              }}
+                              className="w-full bg-white border border-near-black/5 rounded-lg px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-coral"
+                            />
+                          </div>
                         </div>
                       </div>
                     );
