@@ -149,7 +149,7 @@ export default function CreatorPortal() {
     if (!musicQuery.trim()) return;
     setSearchingMusic(true);
     try {
-      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(musicQuery)}&media=music&limit=15`);
+      const res = await fetch(`/api/music/search?term=${encodeURIComponent(musicQuery)}`);
       const data = await res.json();
       setMusicResults(data.results || []);
     } catch (err) {
