@@ -76,7 +76,7 @@ export async function POST(req) {
               'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
             },
             body: JSON.stringify({
-              from: process.env.EMAIL_FROM || 'SwaySpace <onboarding@resend.dev>',
+              from: process.env.EMAIL_FROM || 'SwaySpace <noreply@swayhouse.in>',
               to: email,
               subject: 'SwaySpace Password Reset OTP',
               html: `
