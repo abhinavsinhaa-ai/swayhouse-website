@@ -31,6 +31,21 @@ export default function CreatorPortal() {
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const [captions, setCaptions] = useState([]);
   const [dates, setDates] = useState([]);
+  const [musicTracks, setMusicTracks] = useState([]);
+  const [musicArtists, setMusicArtists] = useState([]);
+  const [musicPreviews, setMusicPreviews] = useState([]);
+  const [musicOffsets, setMusicOffsets] = useState([]);
+
+  // Search & Select Modal States
+  const [musicSearchOpen, setMusicSearchOpen] = useState(false);
+  const [musicIndex, setMusicIndex] = useState(null);
+  const [musicQuery, setMusicQuery] = useState('');
+  const [musicResults, setMusicResults] = useState([]);
+  const [searchingMusic, setSearchingMusic] = useState(false);
+  const [activeMusicTrack, setActiveMusicTrack] = useState(null);
+  const [activeStartOffset, setActiveStartOffset] = useState(0);
+  const [previewAudio, setPreviewAudio] = useState(null);
+
   const [cropperCaption, setCropperCaption] = useState('');
   const [generatingCaption, setGeneratingCaption] = useState(false);
   const [generatingCaptionIndex, setGeneratingCaptionIndex] = useState(null);
@@ -81,6 +96,10 @@ export default function CreatorPortal() {
         setImages(p.images || []);
         setCaptions(p.captions || []);
         setDates(p.dates || []);
+        setMusicTracks(p.musicTracks || []);
+        setMusicArtists(p.musicArtists || []);
+        setMusicPreviews(p.musicPreviews || []);
+        setMusicOffsets(p.musicOffsets || []);
       } else {
         // Not authenticated, redirect to login
         router.push('/creators/login');
@@ -91,6 +110,121 @@ export default function CreatorPortal() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Music Selection functions
+  const handleOpenMusicSearch = (index) => {
+    setMusicIndex(index);
+    setMusicQuery('');
+    setMusicResults([]);
+    
+    // If there is already a song selected, pre-populate activeMusicTrack
+    if (musicPreviews[index]) {
+      setActiveMusicTrack({
+        trackName: musicTracks[index],
+        artistName: musicArtists[index],
+        previewUrl: musicPreviews[index],
+        trackId: 'existing'
+      });
+      setActiveStartOffset(parseInt(musicOffsets[index]) || 0);
+    } else {
+      setActiveMusicTrack(null);
+      setActiveStartOffset(0);
+    }
+    
+    setMusicSearchOpen(true);
+  };
+
+  const handleCloseMusicSearch = () => {
+    if (previewAudio) {
+      previewAudio.pause();
+      setPreviewAudio(null);
+    }
+    setActiveMusicTrack(null);
+    setMusicSearchOpen(false);
+  };
+
+  const handleSearchMusic = async (e) => {
+    if (e) e.preventDefault();
+    if (!musicQuery.trim()) return;
+    setSearchingMusic(true);
+    try {
+      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(musicQuery)}&media=music&limit=15`);
+      const data = await res.json();
+      setMusicResults(data.results || []);
+    } catch (err) {
+      console.error('Music search failed:', err);
+    } finally {
+      setSearchingMusic(false);
+    }
+  };
+
+  const playTrimmerPreview = (url, offset) => {
+    if (previewAudio) {
+      previewAudio.pause();
+    }
+    const audioObj = new Audio(url);
+    audioObj.currentTime = offset;
+    audioObj.loop = true;
+    audioObj.play().catch(e => console.log('Audio preview block:', e));
+    setPreviewAudio(audioObj);
+
+    // Loop offset logic (limit clip to 15s to emulate trimmer preview)
+    audioObj.ontimeupdate = () => {
+      if (audioObj.currentTime >= offset + 15 || audioObj.currentTime >= audioObj.duration) {
+        audioObj.currentTime = offset;
+      }
+    };
+  };
+
+  const handleOffsetChange = (val) => {
+    setActiveStartOffset(val);
+    if (activeMusicTrack) {
+      playTrimmerPreview(activeMusicTrack.previewUrl, val);
+    }
+  };
+
+  const handleSelectTrack = (track) => {
+    setActiveMusicTrack(track);
+    setActiveStartOffset(0);
+    playTrimmerPreview(track.previewUrl, 0);
+  };
+
+  const handleSaveMusicTrack = () => {
+    if (musicIndex === null || !activeMusicTrack) return;
+    const newMusicTracks = [...musicTracks];
+    const newMusicArtists = [...musicArtists];
+    const newMusicPreviews = [...musicPreviews];
+    const newMusicOffsets = [...musicOffsets];
+
+    newMusicTracks[musicIndex] = activeMusicTrack.trackName;
+    newMusicArtists[musicIndex] = activeMusicTrack.artistName;
+    newMusicPreviews[musicIndex] = activeMusicTrack.previewUrl;
+    newMusicOffsets[musicIndex] = String(activeStartOffset);
+
+    setMusicTracks(newMusicTracks);
+    setMusicArtists(newMusicArtists);
+    setMusicPreviews(newMusicPreviews);
+    setMusicOffsets(newMusicOffsets);
+
+    handleCloseMusicSearch();
+  };
+
+  const handleRemoveMusicTrack = (index) => {
+    const newMusicTracks = [...musicTracks];
+    const newMusicArtists = [...musicArtists];
+    const newMusicPreviews = [...musicPreviews];
+    const newMusicOffsets = [...musicOffsets];
+
+    newMusicTracks[index] = '';
+    newMusicArtists[index] = '';
+    newMusicPreviews[index] = '';
+    newMusicOffsets[index] = '0';
+
+    setMusicTracks(newMusicTracks);
+    setMusicArtists(newMusicArtists);
+    setMusicPreviews(newMusicPreviews);
+    setMusicOffsets(newMusicOffsets);
   };
 
   const handleSave = async (e) => {
@@ -113,7 +247,11 @@ export default function CreatorPortal() {
           message,
           images,
           captions,
-          dates
+          dates,
+          musicTracks,
+          musicArtists,
+          musicPreviews,
+          musicOffsets
         })
       });
 
@@ -207,6 +345,10 @@ export default function CreatorPortal() {
     setImages(images.filter((_, idx) => idx !== indexToDelete));
     setCaptions(captions.filter((_, idx) => idx !== indexToDelete));
     setDates(dates.filter((_, idx) => idx !== indexToDelete));
+    setMusicTracks(musicTracks.filter((_, idx) => idx !== indexToDelete));
+    setMusicArtists(musicArtists.filter((_, idx) => idx !== indexToDelete));
+    setMusicPreviews(musicPreviews.filter((_, idx) => idx !== indexToDelete));
+    setMusicOffsets(musicOffsets.filter((_, idx) => idx !== indexToDelete));
   };
 
   const clampPanAndZoom = (currentZoom, currentPan, box, customRatio = null) => {
@@ -569,11 +711,29 @@ export default function CreatorPortal() {
             const newDates = [...dates];
             newDates[0] = '';
             setDates(newDates);
+
+            const newMusicTracks = [...musicTracks];
+            newMusicTracks[0] = '';
+            setMusicTracks(newMusicTracks);
+            const newMusicArtists = [...musicArtists];
+            newMusicArtists[0] = '';
+            setMusicArtists(newMusicArtists);
+            const newMusicPreviews = [...musicPreviews];
+            newMusicPreviews[0] = '';
+            setMusicPreviews(newMusicPreviews);
+            const newMusicOffsets = [...musicOffsets];
+            newMusicOffsets[0] = '0';
+            setMusicOffsets(newMusicOffsets);
+          } else {
             setImages([...images, simulatedUrl]);
             setCaptions([...captions, cropperCaption || '']);
             const uploadDateObj = new Date();
             const uploadDateStr = `${uploadDateObj.getDate()} ${uploadDateObj.toLocaleString('en-US', { month: 'long' }).toUpperCase()} ${uploadDateObj.getFullYear()}`;
             setDates([...dates, uploadDateStr]);
+            setMusicTracks([...musicTracks, '']);
+            setMusicArtists([...musicArtists, '']);
+            setMusicPreviews([...musicPreviews, '']);
+            setMusicOffsets([...musicOffsets, '0']);
           }
         };
         reader.readAsDataURL(file);
@@ -607,12 +767,29 @@ export default function CreatorPortal() {
         const newDates = [...dates];
         newDates[0] = '';
         setDates(newDates);
+
+        const newMusicTracks = [...musicTracks];
+        newMusicTracks[0] = '';
+        setMusicTracks(newMusicTracks);
+        const newMusicArtists = [...musicArtists];
+        newMusicArtists[0] = '';
+        setMusicArtists(newMusicArtists);
+        const newMusicPreviews = [...musicPreviews];
+        newMusicPreviews[0] = '';
+        setMusicPreviews(newMusicPreviews);
+        const newMusicOffsets = [...musicOffsets];
+        newMusicOffsets[0] = '0';
+        setMusicOffsets(newMusicOffsets);
       } else {
         setImages([...images, publicUrl]);
         setCaptions([...captions, cropperCaption || '']);
         const uploadDateObj = new Date();
         const uploadDateStr = `${uploadDateObj.getDate()} ${uploadDateObj.toLocaleString('en-US', { month: 'long' }).toUpperCase()} ${uploadDateObj.getFullYear()}`;
         setDates([...dates, uploadDateStr]);
+        setMusicTracks([...musicTracks, '']);
+        setMusicArtists([...musicArtists, '']);
+        setMusicPreviews([...musicPreviews, '']);
+        setMusicOffsets([...musicOffsets, '0']);
       }
     } catch (err) {
       console.error('Upload failed error:', err);
@@ -635,6 +812,19 @@ export default function CreatorPortal() {
     const newDates = [...dates];
     newDates.shift();
     setDates(newDates);
+
+    const newMusicTracks = [...musicTracks];
+    newMusicTracks.shift();
+    setMusicTracks(newMusicTracks);
+    const newMusicArtists = [...musicArtists];
+    newMusicArtists.shift();
+    setMusicArtists(newMusicArtists);
+    const newMusicPreviews = [...musicPreviews];
+    newMusicPreviews.shift();
+    setMusicPreviews(newMusicPreviews);
+    const newMusicOffsets = [...musicOffsets];
+    newMusicOffsets.shift();
+    setMusicOffsets(newMusicOffsets);
   };
 
   // Reorder cover photo helper (swaps chosen index to index 0)
@@ -657,6 +847,30 @@ export default function CreatorPortal() {
     newDates[0] = newDates[index];
     newDates[index] = tempDate;
     setDates(newDates);
+
+    const newMusicTracks = [...musicTracks];
+    const tempMusicTrack = newMusicTracks[0];
+    newMusicTracks[0] = newMusicTracks[index];
+    newMusicTracks[index] = tempMusicTrack;
+    setMusicTracks(newMusicTracks);
+
+    const newMusicArtists = [...musicArtists];
+    const tempMusicArtist = newMusicArtists[0];
+    newMusicArtists[0] = newMusicArtists[index];
+    newMusicArtists[index] = tempMusicArtist;
+    setMusicArtists(newMusicArtists);
+
+    const newMusicPreviews = [...musicPreviews];
+    const tempMusicPreview = newMusicPreviews[0];
+    newMusicPreviews[0] = newMusicPreviews[index];
+    newMusicPreviews[index] = tempMusicPreview;
+    setMusicPreviews(newMusicPreviews);
+
+    const newMusicOffsets = [...musicOffsets];
+    const tempMusicOffset = newMusicOffsets[0];
+    newMusicOffsets[0] = newMusicOffsets[index];
+    newMusicOffsets[index] = tempMusicOffset;
+    setMusicOffsets(newMusicOffsets);
   };
 
   if (loading) {
@@ -1067,6 +1281,42 @@ export default function CreatorPortal() {
                               className="w-full bg-white border border-near-black/5 rounded-lg px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-coral"
                             />
                           </div>
+
+                          {/* Music block */}
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400">Background Music</span>
+                            {musicTracks[actualIdx] ? (
+                              <div className="flex items-center justify-between bg-white border border-near-black/5 rounded-lg px-2 py-1 text-[9px]">
+                                <span className="font-semibold text-neutral-600 truncate max-w-[125px]">
+                                  🎵 {musicTracks[actualIdx]}
+                                </span>
+                                <div className="flex gap-1.5 flex-shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenMusicSearch(actualIdx)}
+                                    className="text-[8px] font-bold uppercase tracking-wider text-coral hover:text-coral-hover transition-colors"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveMusicTrack(actualIdx)}
+                                    className="text-[8px] font-bold uppercase tracking-wider text-red-400 hover:text-red-600 transition-colors"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenMusicSearch(actualIdx)}
+                                className="w-full py-1 bg-white border border-dashed border-near-black/10 hover:border-coral/40 text-neutral-400 hover:text-coral rounded-lg text-[8px] uppercase font-bold tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer"
+                              >
+                                🎵 Add Music
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -1290,6 +1540,154 @@ export default function CreatorPortal() {
                   Apply & Upload
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Background Music Search & Trimmer Modal */}
+      <AnimatePresence>
+        {musicSearchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 select-none"
+            onClick={handleCloseMusicSearch}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white border border-near-black/5 rounded-2xl p-6 max-w-[420px] w-full shadow-2xl flex flex-col gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center border-b border-near-black/5 pb-3">
+                <h3 className="font-cormorant text-2xl font-bold text-near-black">Select Background Music</h3>
+                <button
+                  type="button"
+                  onClick={handleCloseMusicSearch}
+                  className="p-1 text-neutral-400 hover:text-near-black transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Search Form */}
+              <form onSubmit={handleSearchMusic} className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Search songs, artists..."
+                  value={musicQuery}
+                  onChange={(e) => setMusicQuery(e.target.value)}
+                  className="flex-1 bg-[#FBF9F6] border border-near-black/5 rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-coral"
+                />
+                <button
+                  type="submit"
+                  disabled={searchingMusic}
+                  className="px-4 py-2 bg-coral hover:bg-coral-hover text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer"
+                >
+                  {searchingMusic ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Search'}
+                </button>
+              </form>
+
+              {/* Results List */}
+              <div className="max-h-[180px] overflow-y-auto flex flex-col gap-1.5 pr-1">
+                {musicResults.length > 0 ? (
+                  musicResults.map((track) => {
+                    const isSelected = activeMusicTrack && activeMusicTrack.trackId === track.trackId;
+                    return (
+                      <div
+                        key={track.trackId}
+                        onClick={() => handleSelectTrack(track)}
+                        className={`flex items-center gap-3 p-2 rounded-xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-coral bg-coral/5 shadow-sm'
+                            : 'border-near-black/5 hover:bg-[#FBF9F6]'
+                        }`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={track.artworkUrl60}
+                          alt="Album Art"
+                          className="w-10 h-10 rounded-lg object-cover shadow-sm select-none pointer-events-none"
+                        />
+                        <div className="flex-1 min-w-0 flex flex-col">
+                          <span className="text-xs font-bold text-near-black truncate select-none">
+                            {track.trackName}
+                          </span>
+                          <span className="text-[10px] text-neutral-400 truncate select-none">
+                            {track.artistName}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          {isSelected && previewAudio && !previewAudio.paused ? (
+                            <div className="w-6 h-6 rounded-full bg-coral text-white flex items-center justify-center">
+                              <span className="text-[10px]">⏸</span>
+                            </div>
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-neutral-100 text-neutral-600 hover:bg-coral/10 hover:text-coral flex items-center justify-center transition-colors">
+                              <span className="text-[10px] ml-0.5">▶</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-6 text-[10px] text-neutral-400 select-none">
+                    {searchingMusic ? 'Searching catalog...' : 'Type a song or artist name to search.'}
+                  </div>
+                )}
+              </div>
+
+              {/* Trimmer Area */}
+              {activeMusicTrack && (
+                <div className="border-t border-near-black/5 pt-4 flex flex-col gap-3">
+                  <div className="flex justify-between items-center text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
+                    <span>Trim Duration (15s Preview)</span>
+                    <span className="text-coral">Start Offset: {activeStartOffset}s</span>
+                  </div>
+
+                  {/* Scrubber slider */}
+                  <div className="relative flex items-center py-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max="15"
+                      step="1"
+                      value={activeStartOffset}
+                      onChange={(e) => handleOffsetChange(parseInt(e.target.value))}
+                      className="w-full h-1 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-coral outline-none"
+                    />
+                    
+                    {/* Glowing chorus/hotspot point at 5 seconds */}
+                    <div 
+                      className="absolute w-2 h-2 rounded-full bg-coral border border-white shadow shadow-coral/50 cursor-pointer pointer-events-none"
+                      style={{ left: '33.33%' }}
+                      title="Catchy Part (Hotspot)"
+                    />
+                    {/* Glowing chorus/hotspot point at 10 seconds */}
+                    <div 
+                      className="absolute w-2 h-2 rounded-full bg-coral border border-white shadow shadow-coral/50 cursor-pointer pointer-events-none"
+                      style={{ left: '66.66%' }}
+                      title="Chorus (Hotspot)"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 justify-center text-[9px] text-neutral-400 select-none">
+                    <span>* Glowing dots represent catchy parts / chorus starts</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveMusicTrack}
+                    className="w-full py-3 bg-coral hover:bg-coral-hover text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-[0.98] cursor-pointer shadow-sm mt-1"
+                  >
+                    Confirm Track Selection
+                  </button>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}

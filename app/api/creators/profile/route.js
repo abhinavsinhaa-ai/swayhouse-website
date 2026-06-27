@@ -26,6 +26,10 @@ export async function GET(req) {
     const cleanImages = [];
     const parsedCaptions = [];
     const parsedDates = [];
+    const parsedMusicTracks = [];
+    const parsedMusicArtists = [];
+    const parsedMusicPreviews = [];
+    const parsedMusicOffsets = [];
     if (profile.images) {
       profile.images.forEach((img, idx) => {
         if (img && img.includes('||')) {
@@ -33,16 +37,28 @@ export async function GET(req) {
           cleanImages.push(parts[0]);
           parsedCaptions.push(parts[1] || '');
           parsedDates.push(parts[2] || '');
+          parsedMusicTracks.push(parts[3] || '');
+          parsedMusicArtists.push(parts[4] || '');
+          parsedMusicPreviews.push(parts[5] || '');
+          parsedMusicOffsets.push(parts[6] || '0');
         } else {
           cleanImages.push(img);
           parsedCaptions.push((profile.captions && profile.captions[idx]) || '');
           parsedDates.push('');
+          parsedMusicTracks.push('');
+          parsedMusicArtists.push('');
+          parsedMusicPreviews.push('');
+          parsedMusicOffsets.push('0');
         }
       });
     }
     profile.images = cleanImages;
     profile.captions = parsedCaptions;
     profile.dates = parsedDates;
+    profile.musicTracks = parsedMusicTracks;
+    profile.musicArtists = parsedMusicArtists;
+    profile.musicPreviews = parsedMusicPreviews;
+    profile.musicOffsets = parsedMusicOffsets;
 
     // Exclude password from response
     const { password, ...safeProfile } = profile;
@@ -63,7 +79,7 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { name, age, location, instagram, niche, bio, message, images, captions, dates } = body;
+    const { name, age, location, instagram, niche, bio, message, images, captions, dates, musicTracks, musicArtists, musicPreviews, musicOffsets } = body;
 
     if (!name || !instagram || !niche) {
       return NextResponse.json({ error: 'Name, Instagram, and Niche are required' }, { status: 400 });
@@ -74,8 +90,13 @@ export async function POST(req) {
       images.forEach((img, idx) => {
         const caption = (captions && captions[idx]) || '';
         const date = (dates && dates[idx]) || '';
-        if (caption || date) {
-          mergedImages.push(`${img}||${caption}||${date}`);
+        const track = (musicTracks && musicTracks[idx]) || '';
+        const artist = (musicArtists && musicArtists[idx]) || '';
+        const preview = (musicPreviews && musicPreviews[idx]) || '';
+        const offset = (musicOffsets && musicOffsets[idx]) || '0';
+
+        if (caption || date || track || artist || preview || offset !== '0') {
+          mergedImages.push(`${img}||${caption}||${date}||${track}||${artist}||${preview}||${offset}`);
         } else {
           mergedImages.push(img);
         }

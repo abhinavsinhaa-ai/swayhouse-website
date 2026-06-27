@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Instagram, X, ArrowUpRight, Sparkles, Heart, Play } from 'lucide-react';
+import { ArrowLeft, Instagram, X, ArrowUpRight, Sparkles, Heart, Play, Volume2, VolumeX } from 'lucide-react';
 import { ROSTER } from '@/utils/roster';
 import { supabase } from '@/utils/supabase';
 import { useRef } from 'react';
@@ -65,6 +65,11 @@ export default function CreatorDashboard({ params }) {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [lightboxCaption, setLightboxCaption] = useState('');
   const [lightboxDate, setLightboxDate] = useState('');
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+
+  const [isMuted, setIsMuted] = useState(true);
+  const [currentAudio, setCurrentAudio] = useState(null);
+  const [playingIndex, setPlayingIndex] = useState(null);
 
   useEffect(() => {
     async function loadCreator() {
@@ -88,6 +93,10 @@ export default function CreatorDashboard({ params }) {
           const cleanImages = [];
           const parsedCaptions = [];
           const parsedDates = [];
+          const parsedMusicTracks = [];
+          const parsedMusicArtists = [];
+          const parsedMusicPreviews = [];
+          const parsedMusicOffsets = [];
           if (creatorData.images) {
             creatorData.images.forEach((img, idx) => {
               if (img && img.includes('||')) {
@@ -95,16 +104,28 @@ export default function CreatorDashboard({ params }) {
                 cleanImages.push(parts[0]);
                 parsedCaptions.push(parts[1] || '');
                 parsedDates.push(parts[2] || '');
+                parsedMusicTracks.push(parts[3] || '');
+                parsedMusicArtists.push(parts[4] || '');
+                parsedMusicPreviews.push(parts[5] || '');
+                parsedMusicOffsets.push(parts[6] || '0');
               } else {
                 cleanImages.push(img);
                 parsedCaptions.push((creatorData.captions && creatorData.captions[idx]) || '');
                 parsedDates.push('');
+                parsedMusicTracks.push('');
+                parsedMusicArtists.push('');
+                parsedMusicPreviews.push('');
+                parsedMusicOffsets.push('0');
               }
             });
           }
           creatorData.images = cleanImages;
           creatorData.captions = parsedCaptions;
           creatorData.dates = parsedDates;
+          creatorData.musicTracks = parsedMusicTracks;
+          creatorData.musicArtists = parsedMusicArtists;
+          creatorData.musicPreviews = parsedMusicPreviews;
+          creatorData.musicOffsets = parsedMusicOffsets;
           setCreator(creatorData);
           return;
         }
@@ -144,10 +165,89 @@ export default function CreatorDashboard({ params }) {
     "Confidence in every detail."
   ];
 
-  const handleOpenLightbox = (src, caption, date) => {
+  useEffect(() => {
+    return () => {
+      if (currentAudio) {
+        currentAudio.pause();
+      }
+    };
+  }, [currentAudio]);
+
+  const playAudioForIndex = (index) => {
+    if (!creator || !creator.musicPreviews || !creator.musicPreviews[index]) {
+      stopAudio();
+      return;
+    }
+
+    const previewUrl = creator.musicPreviews[index];
+    const offset = parseInt(creator.musicOffsets[index]) || 0;
+
+    if (currentAudio) {
+      currentAudio.pause();
+    }
+
+    const audio = new Audio(previewUrl);
+    audio.currentTime = offset;
+    audio.loop = true;
+    audio.volume = isMuted ? 0 : 0.6;
+
+    audio.play().catch(err => console.log('Audio autoplay blocked:', err));
+
+    audio.ontimeupdate = () => {
+      if (audio.currentTime >= offset + 15 || audio.currentTime >= audio.duration) {
+        audio.currentTime = offset;
+      }
+    };
+
+    setCurrentAudio(audio);
+    setPlayingIndex(index);
+  };
+
+  const stopAudio = () => {
+    if (currentAudio) {
+      currentAudio.pause();
+      setCurrentAudio(null);
+    }
+    setPlayingIndex(null);
+  };
+
+  const toggleMute = () => {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    if (currentAudio) {
+      currentAudio.volume = nextMuted ? 0 : 0.6;
+      if (!nextMuted && currentAudio.paused) {
+        currentAudio.play().catch(e => console.log(e));
+      }
+    }
+  };
+
+  const handleMouseEnter = (originalIndex) => {
+    if (lightboxImage === null) {
+      playAudioForIndex(originalIndex);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (lightboxImage === null) {
+      stopAudio();
+    }
+  };
+
+  const handleOpenLightbox = (src, caption, date, index) => {
     setLightboxImage(src);
     setLightboxCaption(caption || '');
     setLightboxDate(date || '');
+    setLightboxIndex(index);
+    playAudioForIndex(index);
+  };
+
+  const handleCloseLightbox = () => {
+    setLightboxImage(null);
+    setLightboxCaption('');
+    setLightboxDate('');
+    setLightboxIndex(null);
+    stopAudio();
   };
 
   return (
@@ -311,6 +411,7 @@ export default function CreatorDashboard({ params }) {
                 const originalIndex = index + 1;
                 const caption = creator.captions ? (creator.captions[originalIndex] || '') : galleryCaptions[index % galleryCaptions.length];
                 const date = creator.dates ? (creator.dates[originalIndex] || 'JUN 2026') : 'JUN 2026';
+                const hasMusic = creator.musicPreviews && creator.musicPreviews[originalIndex];
                 const isVideo = src && src.includes('&&');
                 const videoUrl = isVideo ? src.split('&&')[0] : '';
                 const posterUrl = isVideo ? src.split('&&')[1] : src;
@@ -318,6 +419,8 @@ export default function CreatorDashboard({ params }) {
                 return (
                   <div 
                     key={index} 
+                    onMouseEnter={() => handleMouseEnter(originalIndex)}
+                    onMouseLeave={handleMouseLeave}
                     className="break-inside-avoid mb-6 relative group overflow-hidden rounded-xl border border-near-black/5 bg-neutral-100 shadow-md cursor-pointer clickable"
                   >
                     {isVideo ? (
@@ -325,10 +428,10 @@ export default function CreatorDashboard({ params }) {
                         videoSrc={videoUrl} 
                         posterSrc={posterUrl} 
                         alt={`${creator.name} Gallery Video ${index + 1}`} 
-                        onClick={() => handleOpenLightbox(src, caption, date)}
+                        onClick={() => handleOpenLightbox(src, caption, date, originalIndex)}
                       />
                     ) : (
-                      <div onClick={() => handleOpenLightbox(src, caption, date)}>
+                      <div onClick={() => handleOpenLightbox(src, caption, date, originalIndex)}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
                           src={src} 
@@ -339,7 +442,21 @@ export default function CreatorDashboard({ params }) {
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4 pointer-events-none">
-                      <div className="flex justify-end w-full">
+                      <div className="flex justify-between items-start w-full">
+                        {hasMusic ? (
+                          <div className="flex items-center gap-1 bg-black/45 backdrop-blur-sm px-2.5 py-1 rounded-full text-white">
+                            <span className="text-[7px] font-bold tracking-widest uppercase truncate max-w-[80px]">
+                              🎵 {creator.musicTracks[originalIndex]}
+                            </span>
+                            {playingIndex === originalIndex && !isMuted ? (
+                              <div className="flex gap-[1px] items-end h-1.5 w-1.5 pb-0.5 animate-pulse">
+                                <div className="w-[1px] bg-coral h-full" />
+                                <div className="w-[1px] bg-coral h-[60%]" />
+                                <div className="w-[1px] bg-coral h-[80%]" />
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : <div />}
                         {date && (
                           <span className="text-white text-[8px] font-bold uppercase tracking-widest bg-black/35 backdrop-blur-sm px-2.5 py-1 rounded-full">
                             {date}
@@ -388,12 +505,12 @@ export default function CreatorDashboard({ params }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setLightboxImage(null)}
+            onClick={handleCloseLightbox}
             className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 cursor-zoom-out"
           >
             {/* Close Lightbox */}
             <button 
-              onClick={() => setLightboxImage(null)}
+              onClick={handleCloseLightbox}
               className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 rounded-full text-white transition-all"
             >
               <X className="w-5 h-5" />
@@ -428,9 +545,23 @@ export default function CreatorDashboard({ params }) {
               )}
             </motion.div>
 
-            {/* Lightbox Caption & Date */}
-            {(lightboxCaption || lightboxDate) && (
-              <div className="text-center mt-6 max-w-md px-4 flex flex-col gap-1.5">
+            {/* Lightbox Caption & Date & Music */}
+            {(lightboxCaption || lightboxDate || (lightboxIndex !== null && creator.musicTracks && creator.musicTracks[lightboxIndex])) && (
+              <div className="text-center mt-6 max-w-md px-4 flex flex-col items-center gap-1.5 select-none">
+                {lightboxIndex !== null && creator.musicTracks && creator.musicTracks[lightboxIndex] && (
+                  <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur px-3 py-1 rounded-full text-white/90 border border-white/10 mb-1">
+                    <span className="text-[8px] font-bold tracking-widest uppercase">
+                      🎵 {creator.musicTracks[lightboxIndex]} - {creator.musicArtists[lightboxIndex]}
+                    </span>
+                    {!isMuted ? (
+                      <div className="flex gap-[1px] items-end h-1.5 w-1.5 pb-0.5 animate-pulse">
+                        <div className="w-[1px] bg-coral h-full" />
+                        <div className="w-[1px] bg-coral h-[60%]" />
+                        <div className="w-[1px] bg-coral h-[80%]" />
+                      </div>
+                    ) : null}
+                  </div>
+                )}
                 {lightboxDate && (
                   <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 font-inter">
                     {lightboxDate}
@@ -446,6 +577,23 @@ export default function CreatorDashboard({ params }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Floating Sound Toggle Control */}
+      {creator && creator.musicPreviews && creator.musicPreviews.some(p => p) && (
+        <div 
+          onClick={toggleMute}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-[#FBF9F6]/90 border border-near-black/5 backdrop-blur-md px-3.5 py-2.5 rounded-full shadow-lg select-none cursor-pointer group"
+        >
+          {isMuted ? (
+            <VolumeX className="w-4 h-4 text-neutral-400 group-hover:text-coral transition-colors" />
+          ) : (
+            <Volume2 className="w-4 h-4 text-coral animate-pulse" />
+          )}
+          <span className="text-[8px] font-extrabold uppercase tracking-widest text-neutral-500 font-inter">
+            {isMuted ? 'Mute' : 'Sound On'}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
