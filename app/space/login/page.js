@@ -43,6 +43,18 @@ export default function SpaceLogin() {
     checkSession();
   }, [router]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('mode');
+      if (mode === 'signup') {
+        setIsLogin(false);
+      } else if (mode === 'login') {
+        setIsLogin(true);
+      }
+    }
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!username || !password) return;

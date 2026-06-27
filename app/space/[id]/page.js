@@ -429,7 +429,7 @@ export default function SwaySpace({ params }) {
           <span className="text-[9px] font-bold uppercase tracking-widest text-coral mb-3">Sway Spaces</span>
           
           <h3 className="font-cormorant text-2xl md:text-3xl font-light text-near-black leading-snug mb-3">
-            Want your own premium visual grid?
+            Get your own SwaySpace for free
           </h3>
           <p className="text-xs text-neutral-400 max-w-[500px] leading-relaxed mb-8">
             Ditch basic links. Elevate your bio with a gorgeous, high-end VSCO-style portfolio powered by SwayHouse.
@@ -437,17 +437,17 @@ export default function SwaySpace({ params }) {
 
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <Link 
-              href="/"
-              className="px-6 py-3 rounded-full bg-near-black text-white text-[10px] font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all shadow-md active:scale-95 flex items-center gap-1"
+              href="/space/login?mode=signup"
+              className="px-6 py-3 rounded-full bg-near-black text-white text-[10px] font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all shadow-md active:scale-95 flex items-center gap-1.5"
             >
-              <span>Explore SwayHouse</span>
-              <ExternalLink className="w-3 h-3" />
+              <span>Create new SwaySpace</span>
+              <Sparkles className="w-3 h-3 text-coral" />
             </Link>
             <Link 
-              href="/#contact"
+              href="/space/login?mode=login"
               className="px-6 py-3 rounded-full bg-white border border-near-black/10 text-near-black text-[10px] font-bold uppercase tracking-wider hover:border-coral transition-all active:scale-95"
             >
-              Apply For Management
+              Login
             </Link>
           </div>
         </section>
