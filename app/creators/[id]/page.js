@@ -37,10 +37,17 @@ function LazyVideoPlayer({ videoSrc, posterSrc, alt, onClick }) {
 
   useEffect(() => {
     if (videoRef.current) {
-      if (isIntersecting) {
-        videoRef.current.play().catch(() => {});
-      } else {
-        videoRef.current.pause();
+      try {
+        if (isIntersecting) {
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {});
+          }
+        } else {
+          videoRef.current.pause();
+        }
+      } catch (err) {
+        console.warn('HTML5 Video play/pause failed or blocked:', err);
       }
     }
   }, [isIntersecting]);

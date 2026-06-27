@@ -1,12 +1,36 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 
 export default function Error({ error, reset }) {
-  // Log the error for diagnostics
-  if (typeof window !== 'undefined') {
+  useEffect(() => {
+    // Log the error locally in the browser console
     console.error('[SwayHouse Error Boundary]', error);
-  }
+
+    // Send the error details to the server console (e.g., Vercel Realtime Logs)
+    const reportError = async () => {
+      try {
+        await fetch('/api/error-log', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: error?.message || String(error),
+            stack: error?.stack || '',
+            digest: error?.digest || '',
+            url: typeof window !== 'undefined' ? window.location.href : '',
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+          }),
+        });
+      } catch (err) {
+        console.error('Failed to report client-side error to server:', err);
+      }
+    };
+
+    reportError();
+  }, [error]);
 
   return (
     <div className="min-h-screen bg-soft-white flex items-center justify-center px-6">

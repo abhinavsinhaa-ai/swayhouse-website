@@ -1,6 +1,33 @@
 'use client';
 
+import { useEffect } from 'react';
+
 export default function GlobalError({ error, reset }) {
+  useEffect(() => {
+    console.error('[SwayHouse Global Error Boundary]', error);
+
+    const reportError = async () => {
+      try {
+        await fetch('/api/error-log', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: error?.message || String(error),
+            stack: error?.stack || '',
+            digest: error?.digest || '',
+            url: typeof window !== 'undefined' ? window.location.href : '',
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+          }),
+        });
+      } catch (err) {
+        console.error('Failed to report client-side error to server:', err);
+      }
+    };
+
+    reportError();
+  }, [error]);
   return (
     <html lang="en">
       <body style={{ 
