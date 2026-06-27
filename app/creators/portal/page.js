@@ -569,10 +569,11 @@ export default function CreatorPortal() {
             const newDates = [...dates];
             newDates[0] = '';
             setDates(newDates);
-          } else {
             setImages([...images, simulatedUrl]);
             setCaptions([...captions, cropperCaption || '']);
-            setDates([...dates, new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()]);
+            const uploadDateObj = new Date();
+            const uploadDateStr = `${uploadDateObj.getDate()} ${uploadDateObj.toLocaleString('en-US', { month: 'long' }).toUpperCase()} ${uploadDateObj.getFullYear()}`;
+            setDates([...dates, uploadDateStr]);
           }
         };
         reader.readAsDataURL(file);
@@ -609,7 +610,9 @@ export default function CreatorPortal() {
       } else {
         setImages([...images, publicUrl]);
         setCaptions([...captions, cropperCaption || '']);
-        setDates([...dates, new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()]);
+        const uploadDateObj = new Date();
+        const uploadDateStr = `${uploadDateObj.getDate()} ${uploadDateObj.toLocaleString('en-US', { month: 'long' }).toUpperCase()} ${uploadDateObj.getFullYear()}`;
+        setDates([...dates, uploadDateStr]);
       }
     } catch (err) {
       console.error('Upload failed error:', err);

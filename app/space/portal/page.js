@@ -500,7 +500,9 @@ export default function SpacePortal() {
       // Update states
       setImages([...images, mergedUrl]);
       setCaptions([...captions, '']);
-      setDates([...dates, new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()]);
+      const uploadDateObj = new Date();
+      const uploadDateStr = `${uploadDateObj.getDate()} ${uploadDateObj.toLocaleString('en-US', { month: 'long' }).toUpperCase()} ${uploadDateObj.getFullYear()}`;
+      setDates([...dates, uploadDateStr]);
 
       setSuccessMsg('Video uploaded successfully!');
       setTimeout(() => setSuccessMsg(''), 3000);
@@ -931,10 +933,11 @@ export default function SpacePortal() {
             const newDates = [...dates];
             newDates[0] = '';
             setDates(newDates);
-          } else {
             setImages([...images, simulatedUrl]);
             setCaptions([...captions, cropperCaption || '']);
-            setDates([...dates, new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()]);
+            const uploadDateObj = new Date();
+            const uploadDateStr = `${uploadDateObj.getDate()} ${uploadDateObj.toLocaleString('en-US', { month: 'long' }).toUpperCase()} ${uploadDateObj.getFullYear()}`;
+            setDates([...dates, uploadDateStr]);
           }
         };
         reader.readAsDataURL(file);
@@ -971,7 +974,9 @@ export default function SpacePortal() {
       } else {
         setImages([...images, publicUrl]);
         setCaptions([...captions, cropperCaption || '']);
-        setDates([...dates, new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()]);
+        const uploadDateObj = new Date();
+        const uploadDateStr = `${uploadDateObj.getDate()} ${uploadDateObj.toLocaleString('en-US', { month: 'long' }).toUpperCase()} ${uploadDateObj.getFullYear()}`;
+        setDates([...dates, uploadDateStr]);
       }
     } catch (err) {
       console.error('Upload failed error:', err);
