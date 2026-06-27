@@ -159,6 +159,14 @@ export default function CreatorDashboard({ params }) {
     loadCreator();
   }, [params?.id, router]);
 
+  useEffect(() => {
+    return () => {
+      if (currentAudio) {
+        currentAudio.pause();
+      }
+    };
+  }, [currentAudio]);
+
   if (!creator) {
     return (
       <div className="min-h-screen bg-soft-white flex items-center justify-center">
@@ -178,14 +186,6 @@ export default function CreatorDashboard({ params }) {
     "Vibrant shades and bold choices.",
     "Confidence in every detail."
   ];
-
-  useEffect(() => {
-    return () => {
-      if (currentAudio) {
-        currentAudio.pause();
-      }
-    };
-  }, [currentAudio]);
 
   const playAudioForIndex = (index) => {
     if (!creator || !creator.musicPreviews || !creator.musicPreviews[index]) {

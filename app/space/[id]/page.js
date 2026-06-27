@@ -214,6 +214,14 @@ export default function SwaySpace({ params }) {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (currentAudio) {
+        currentAudio.pause();
+      }
+    };
+  }, [currentAudio]);
+
   if (!profile) {
     return (
       <div className="min-h-screen bg-soft-white flex items-center justify-center">
@@ -233,14 +241,6 @@ export default function SwaySpace({ params }) {
     "Vibrant shades and bold choices.",
     "Confidence in every detail."
   ];
-
-  useEffect(() => {
-    return () => {
-      if (currentAudio) {
-        currentAudio.pause();
-      }
-    };
-  }, [currentAudio]);
 
   const playAudioForIndex = (index) => {
     if (!profile || !profile.musicPreviews || !profile.musicPreviews[index]) {
