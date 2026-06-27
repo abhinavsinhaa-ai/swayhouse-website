@@ -524,7 +524,7 @@ export default function SwaySpace({ params }) {
                         {hasMusic ? (
                           <div className="flex items-center gap-1 bg-black/45 backdrop-blur-sm px-2.5 py-1 rounded-full text-white">
                             <span className="text-[7px] font-bold tracking-widest uppercase truncate max-w-[80px]">
-                              🎵 {profile.musicTracks[originalIndex]}
+                              🎵 {profile.musicTracks?.[originalIndex] || ''}
                             </span>
                             {playingIndex === originalIndex && !isMuted ? (
                               <div className="flex gap-[1px] items-end h-1.5 w-1.5 pb-0.5 animate-pulse">
@@ -655,12 +655,12 @@ export default function SwaySpace({ params }) {
             </motion.div>
 
             {/* Lightbox Caption & Date & Music */}
-            {(lightboxCaption || lightboxDate || (lightboxIndex !== null && profile.musicTracks && profile.musicTracks[lightboxIndex])) && (
+            {(lightboxCaption || lightboxDate || (lightboxIndex !== null && profile?.musicTracks?.[lightboxIndex])) && (
               <div className="text-center mt-6 max-w-md px-4 flex flex-col items-center gap-1.5 select-none">
-                {lightboxIndex !== null && profile.musicTracks && profile.musicTracks[lightboxIndex] && (
+                {lightboxIndex !== null && profile?.musicTracks?.[lightboxIndex] && (
                   <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur px-3 py-1 rounded-full text-white/90 border border-white/10 mb-1">
                     <span className="text-[8px] font-bold tracking-widest uppercase">
-                      🎵 {profile.musicTracks[lightboxIndex]} - {profile.musicArtists[lightboxIndex]}
+                      🎵 {profile.musicTracks?.[lightboxIndex]} - {profile.musicArtists?.[lightboxIndex] || ''}
                     </span>
                     {!isMuted ? (
                       <div className="flex gap-[1px] items-end h-1.5 w-1.5 pb-0.5 animate-pulse">
