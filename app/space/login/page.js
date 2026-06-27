@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, ShieldAlert, Check, ArrowLeft } from 'lucide-react';
+import { Lock, ShieldAlert, Check, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SpaceLogin() {
@@ -24,6 +24,11 @@ export default function SpaceLogin() {
   const [resetStatus, setResetStatus] = useState('');
   const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [otpVerifying, setOtpVerifying] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [error, setError] = useState('');
   const [signupSuccess, setSignupSuccess] = useState('');
@@ -209,6 +214,11 @@ export default function SpaceLogin() {
     }
     if (!resetUsername.trim() || !resetOtp.trim() || !newPassword) return;
 
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match. Please verify.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setResetStatus('');
@@ -237,6 +247,7 @@ export default function SpaceLogin() {
           setResetUsername('');
           setResetOtp('');
           setNewPassword('');
+          setConfirmPassword('');
           setIsOtpVerified(false);
         }, 2000);
       } else {
@@ -371,7 +382,7 @@ export default function SpaceLogin() {
                     </label>
                     <div className="relative w-full">
                       <input
-                        type="password"
+                        type={showNewPassword ? "text" : "password"}
                         placeholder={isOtpVerified ? "••••••••" : "Verify OTP to unlock"}
                         required
                         disabled={!isOtpVerified}
@@ -381,19 +392,46 @@ export default function SpaceLogin() {
                           !isOtpVerified ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400">
-                        {isOtpVerified ? (
-                          <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                          </svg>
-                        ) : (
+                      {isOtpVerified ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-near-black p-1 transition-colors cursor-pointer"
+                        >
+                          {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      ) : (
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400">
                           <svg className="w-4 h-4 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                           </svg>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
+
+                  {isOtpVerified && (
+                    <div className="flex flex-col gap-1.5 relative">
+                      <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Confirm New Password</label>
+                      <div className="relative w-full">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          required
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl pl-4 pr-10 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-near-black p-1 transition-colors cursor-pointer"
+                        >
+                          {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   <button
                     type="submit"
@@ -473,16 +511,25 @@ export default function SpaceLogin() {
                     />
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
+                   <div className="flex flex-col gap-1.5 relative">
                     <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Password</label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-mono"
-                    />
+                    <div className="relative w-full">
+                      <input
+                        type={showLoginPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl pl-4 pr-10 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-near-black p-1 transition-colors cursor-pointer"
+                      >
+                        {showLoginPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex justify-end -mt-2">
@@ -566,16 +613,25 @@ export default function SpaceLogin() {
                     <span className="text-[8.5px] text-neutral-400 italic">One contact info (email or phone) is mandatory</span>
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
+                   <div className="flex flex-col gap-1.5 relative">
                     <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Password</label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-mono"
-                    />
+                    <div className="relative w-full">
+                      <input
+                        type={showSignupPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl pl-4 pr-10 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSignupPassword(!showSignupPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-near-black p-1 transition-colors cursor-pointer"
+                      >
+                        {showSignupPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
                   </div>
 
                   <button

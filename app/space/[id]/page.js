@@ -14,6 +14,11 @@ function LazyVideoPlayer({ videoSrc, posterSrc, alt, onClick }) {
   const [isIntersecting, setIsIntersecting] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || !window.IntersectionObserver) {
+      setIsIntersecting(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsIntersecting(entry.isIntersecting);
@@ -237,21 +242,25 @@ export default function SwaySpace({ params }) {
       currentAudio.pause();
     }
 
-    const audio = new Audio(previewUrl);
-    audio.currentTime = offset;
-    audio.loop = true;
-    audio.volume = isMuted ? 0 : 0.6;
+    try {
+      const audio = new Audio(previewUrl);
+      audio.currentTime = offset;
+      audio.loop = true;
+      audio.volume = isMuted ? 0 : 0.6;
 
-    audio.play().catch(err => console.log('Audio autoplay blocked:', err));
+      audio.play().catch(err => console.log('Audio autoplay blocked:', err));
 
-    audio.ontimeupdate = () => {
-      if (audio.currentTime >= offset + 15 || audio.currentTime >= audio.duration) {
-        audio.currentTime = offset;
-      }
-    };
+      audio.ontimeupdate = () => {
+        if (audio.currentTime >= offset + 15 || audio.currentTime >= audio.duration) {
+          audio.currentTime = offset;
+        }
+      };
 
-    setCurrentAudio(audio);
-    setPlayingIndex(index);
+      setCurrentAudio(audio);
+      setPlayingIndex(index);
+    } catch (err) {
+      console.warn('HTML5 Audio is not supported or blocked in this browser:', err);
+    }
   };
 
   const stopAudio = () => {

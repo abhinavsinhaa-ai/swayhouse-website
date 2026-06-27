@@ -76,21 +76,25 @@ export default function CreatorModal({ creator, onClose }) {
       currentAudio.pause();
     }
 
-    const audio = new Audio(previewUrl);
-    audio.currentTime = offset;
-    audio.loop = true;
-    audio.volume = isMuted ? 0 : 0.6;
+    try {
+      const audio = new Audio(previewUrl);
+      audio.currentTime = offset;
+      audio.loop = true;
+      audio.volume = isMuted ? 0 : 0.6;
 
-    audio.play().catch(err => console.log('Audio autoplay blocked:', err));
+      audio.play().catch(err => console.log('Audio autoplay blocked:', err));
 
-    audio.ontimeupdate = () => {
-      if (audio.currentTime >= offset + 15 || audio.currentTime >= audio.duration) {
-        audio.currentTime = offset;
-      }
-    };
+      audio.ontimeupdate = () => {
+        if (audio.currentTime >= offset + 15 || audio.currentTime >= audio.duration) {
+          audio.currentTime = offset;
+        }
+      };
 
-    setCurrentAudio(audio);
-    setPlayingIndex(index);
+      setCurrentAudio(audio);
+      setPlayingIndex(index);
+    } catch (err) {
+      console.warn('HTML5 Audio is not supported or blocked in this browser:', err);
+    }
   };
 
   const stopAudio = () => {
