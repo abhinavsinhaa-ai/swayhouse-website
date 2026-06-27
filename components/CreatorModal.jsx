@@ -70,7 +70,7 @@ export default function CreatorModal({ creator, onClose }) {
     }
 
     const previewUrl = creator.musicPreviews[index];
-    const offset = parseInt(creator.musicOffsets[index]) || 0;
+    const offset = parseInt(creator.musicOffsets?.[index]) || 0;
 
     if (currentAudio) {
       currentAudio.pause();

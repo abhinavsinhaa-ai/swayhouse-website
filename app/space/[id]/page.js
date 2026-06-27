@@ -80,17 +80,19 @@ export default function SwaySpace({ params }) {
 
   useEffect(() => {
     async function loadProfile() {
+      if (!params || !params.id) return;
+      const cleanParamId = (params.id || '').trim();
       try {
-        const staticProfile = SPACES.find((c) => c.id.toLowerCase().trim() === params.id.toLowerCase().trim());
+        const staticProfile = SPACES.find((c) => c.id && c.id.toLowerCase().trim() === cleanParamId.toLowerCase());
         let query = supabase.from('personal_grids').select('id, name, age, location, instagram, niche, bio, message, images');
         if (staticProfile) {
-          const parts = [`id.ilike.${params.id.trim()}`];
+          const parts = [`id.ilike.${cleanParamId}`];
           if (staticProfile.instagram) {
             parts.push(`instagram.ilike.${staticProfile.instagram.replace('@', '')}`);
           }
           query = query.or(parts.join(','));
         } else {
-          query = query.ilike('id', params.id.trim());
+          query = query.ilike('id', cleanParamId);
         }
 
         const { data: dbProfiles, error } = await query;
@@ -167,7 +169,7 @@ export default function SwaySpace({ params }) {
       }
 
       // Fallback to static SPACES if DB fails or doesn't match
-      const found = SPACES.find((c) => c.id === params.id);
+      const found = SPACES.find((c) => c.id && c.id.toLowerCase().trim() === (params?.id || '').toLowerCase().trim());
       if (found) {
         setProfile({ ...found, designation: 'Creator' });
       } else {
@@ -180,7 +182,7 @@ export default function SwaySpace({ params }) {
         const res = await fetch('/api/space/profile');
         if (res.ok) {
           const json = await res.json();
-          if (json.profile && json.profile.id.toLowerCase() === params.id.toLowerCase()) {
+          if (json.profile && json.profile.id.toLowerCase() === (params?.id || '').toLowerCase()) {
             setIsOwner(true);
           }
         }
@@ -191,7 +193,7 @@ export default function SwaySpace({ params }) {
 
     loadProfile();
     checkOwnership();
-  }, [params.id, router]);
+  }, [params?.id, router]);
 
   const copyLink = () => {
     if (typeof window !== 'undefined') {
@@ -236,7 +238,7 @@ export default function SwaySpace({ params }) {
     }
 
     const previewUrl = profile.musicPreviews[index];
-    const offset = parseInt(profile.musicOffsets[index]) || 0;
+    const offset = parseInt(profile.musicOffsets?.[index]) || 0;
 
     if (currentAudio) {
       currentAudio.pause();

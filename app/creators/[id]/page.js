@@ -78,17 +78,19 @@ export default function CreatorDashboard({ params }) {
 
   useEffect(() => {
     async function loadCreator() {
+      if (!params || !params.id) return;
+      const cleanParamId = (params.id || '').trim();
       try {
-        const staticCreator = ROSTER.find((c) => c.id.toLowerCase().trim() === params.id.toLowerCase().trim());
+        const staticCreator = ROSTER.find((c) => c.id && c.id.toLowerCase().trim() === cleanParamId.toLowerCase());
         let query = supabase.from('creator_profiles').select('id, name, age, location, instagram, niche, bio, message, images');
         if (staticCreator) {
-          const parts = [`id.ilike.${params.id.trim()}`];
+          const parts = [`id.ilike.${cleanParamId}`];
           if (staticCreator.instagram) {
             parts.push(`instagram.ilike.${staticCreator.instagram.replace('@', '')}`);
           }
           query = query.or(parts.join(','));
         } else {
-          query = query.ilike('id', params.id.trim());
+          query = query.ilike('id', cleanParamId);
         }
 
         const { data: dbCreators, error } = await query;
@@ -139,7 +141,7 @@ export default function CreatorDashboard({ params }) {
       }
 
       // Fallback to static ROSTER if DB is not configured or fails
-      const found = ROSTER.find((c) => c.id === params.id);
+      const found = ROSTER.find((c) => c.id && c.id.toLowerCase().trim() === (params?.id || '').toLowerCase().trim());
       if (found) {
         setCreator(found);
       } else {
@@ -148,7 +150,7 @@ export default function CreatorDashboard({ params }) {
     }
 
     loadCreator();
-  }, [params.id, router]);
+  }, [params?.id, router]);
 
   if (!creator) {
     return (
@@ -185,7 +187,7 @@ export default function CreatorDashboard({ params }) {
     }
 
     const previewUrl = creator.musicPreviews[index];
-    const offset = parseInt(creator.musicOffsets[index]) || 0;
+    const offset = parseInt(creator.musicOffsets?.[index]) || 0;
 
     if (currentAudio) {
       currentAudio.pause();
