@@ -351,8 +351,13 @@ export default function CreatorModal({ creator, onClose }) {
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center justify-center">
-                            <span className="text-white text-[10px] font-bold uppercase tracking-wider bg-black/45 backdrop-blur px-4 py-2 rounded-full select-none">
+                          <div className="flex justify-between items-center w-full">
+                            {creator.locations?.[originalIndex] ? (
+                              <span className="text-white text-[7px] font-bold uppercase tracking-widest bg-black/35 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-0.5">
+                                📍 {creator.locations[originalIndex]}
+                              </span>
+                            ) : <div />}
+                            <span className="text-white text-[9px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-2.5 py-1.5 rounded-full select-none">
                               Zoom View
                             </span>
                           </div>
@@ -418,9 +423,15 @@ export default function CreatorModal({ creator, onClose }) {
                     ) : null}
                   </div>
                 )}
-                {lightboxDate && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 font-inter">
-                    {lightboxDate}
+                {(lightboxDate || (lightboxIndex !== null && creator?.locations?.[lightboxIndex])) && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 font-inter flex items-center gap-1.5 justify-center">
+                    {lightboxDate && <span>{lightboxDate}</span>}
+                    {lightboxDate && lightboxIndex !== null && creator?.locations?.[lightboxIndex] && (
+                      <span className="text-neutral-500">&bull;</span>
+                    )}
+                    {lightboxIndex !== null && creator?.locations?.[lightboxIndex] && (
+                      <span>📍 {creator.locations[lightboxIndex]}</span>
+                    )}
                   </span>
                 )}
                 {lightboxCaption && (

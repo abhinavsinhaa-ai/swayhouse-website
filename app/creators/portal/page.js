@@ -35,6 +35,7 @@ export default function CreatorPortal() {
   const [musicArtists, setMusicArtists] = useState([]);
   const [musicPreviews, setMusicPreviews] = useState([]);
   const [musicOffsets, setMusicOffsets] = useState([]);
+  const [locations, setLocations] = useState([]);
 
   // Search & Select Modal States
   const [musicSearchOpen, setMusicSearchOpen] = useState(false);
@@ -100,6 +101,7 @@ export default function CreatorPortal() {
         setMusicArtists(p.musicArtists || []);
         setMusicPreviews(p.musicPreviews || []);
         setMusicOffsets(p.musicOffsets || []);
+        setLocations(p.locations || []);
       } else {
         // Not authenticated, redirect to login
         router.push('/creators/login');
@@ -251,7 +253,8 @@ export default function CreatorPortal() {
           musicTracks,
           musicArtists,
           musicPreviews,
-          musicOffsets
+          musicOffsets,
+          locations
         })
       });
 
@@ -349,6 +352,7 @@ export default function CreatorPortal() {
     setMusicArtists(musicArtists.filter((_, idx) => idx !== indexToDelete));
     setMusicPreviews(musicPreviews.filter((_, idx) => idx !== indexToDelete));
     setMusicOffsets(musicOffsets.filter((_, idx) => idx !== indexToDelete));
+    setLocations(locations.filter((_, idx) => idx !== indexToDelete));
   };
 
   const clampPanAndZoom = (currentZoom, currentPan, box, customRatio = null) => {
@@ -711,6 +715,9 @@ export default function CreatorPortal() {
             const newDates = [...dates];
             newDates[0] = '';
             setDates(newDates);
+            const newLocations = [...locations];
+            newLocations[0] = '';
+            setLocations(newLocations);
 
             const newMusicTracks = [...musicTracks];
             newMusicTracks[0] = '';
@@ -734,6 +741,7 @@ export default function CreatorPortal() {
             setMusicArtists([...musicArtists, '']);
             setMusicPreviews([...musicPreviews, '']);
             setMusicOffsets([...musicOffsets, '0']);
+            setLocations([...locations, '']);
           }
         };
         reader.readAsDataURL(file);
@@ -767,6 +775,9 @@ export default function CreatorPortal() {
         const newDates = [...dates];
         newDates[0] = '';
         setDates(newDates);
+        const newLocations = [...locations];
+        newLocations[0] = '';
+        setLocations(newLocations);
 
         const newMusicTracks = [...musicTracks];
         newMusicTracks[0] = '';
@@ -790,6 +801,7 @@ export default function CreatorPortal() {
         setMusicArtists([...musicArtists, '']);
         setMusicPreviews([...musicPreviews, '']);
         setMusicOffsets([...musicOffsets, '0']);
+        setLocations([...locations, '']);
       }
     } catch (err) {
       console.error('Upload failed error:', err);
@@ -825,6 +837,10 @@ export default function CreatorPortal() {
     const newMusicOffsets = [...musicOffsets];
     newMusicOffsets.shift();
     setMusicOffsets(newMusicOffsets);
+
+    const newLocations = [...locations];
+    newLocations.shift();
+    setLocations(newLocations);
   };
 
   // Reorder cover photo helper (swaps chosen index to index 0)
@@ -871,6 +887,12 @@ export default function CreatorPortal() {
     newMusicOffsets[0] = newMusicOffsets[index];
     newMusicOffsets[index] = tempMusicOffset;
     setMusicOffsets(newMusicOffsets);
+
+    const newLocations = [...locations];
+    const tempLocation = newLocations[0];
+    newLocations[0] = newLocations[index];
+    newLocations[index] = tempLocation;
+    setLocations(newLocations);
   };
 
   if (loading) {
@@ -1277,6 +1299,22 @@ export default function CreatorPortal() {
                                 const newDates = [...dates];
                                 newDates[actualIdx] = e.target.value;
                                 setDates(newDates);
+                              }}
+                              className="w-full bg-white border border-near-black/5 rounded-lg px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-coral"
+                            />
+                          </div>
+
+                          {/* Location block */}
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400">Display Location</span>
+                            <input
+                              type="text"
+                              placeholder="e.g. Bandra, Mumbai"
+                              value={locations[actualIdx] || ''}
+                              onChange={(e) => {
+                                const newLocs = [...locations];
+                                newLocs[actualIdx] = e.target.value;
+                                setLocations(newLocs);
                               }}
                               className="w-full bg-white border border-near-black/5 rounded-lg px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-coral"
                             />

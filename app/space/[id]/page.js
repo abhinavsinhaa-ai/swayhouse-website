@@ -113,6 +113,7 @@ export default function SwaySpace({ params }) {
           const parsedMusicArtists = [];
           const parsedMusicPreviews = [];
           const parsedMusicOffsets = [];
+          const parsedLocations = [];
           if (profileData.images) {
             profileData.images.forEach((img, idx) => {
               if (img && img.includes('||')) {
@@ -124,6 +125,7 @@ export default function SwaySpace({ params }) {
                 parsedMusicArtists.push(parts[4] || '');
                 parsedMusicPreviews.push(parts[5] || '');
                 parsedMusicOffsets.push(parts[6] || '0');
+                parsedLocations.push(parts[7] || '');
               } else {
                 cleanImages.push(img);
                 parsedCaptions.push((profileData.captions && profileData.captions[idx]) || '');
@@ -132,6 +134,7 @@ export default function SwaySpace({ params }) {
                 parsedMusicArtists.push('');
                 parsedMusicPreviews.push('');
                 parsedMusicOffsets.push('0');
+                parsedLocations.push('');
               }
             });
           }
@@ -142,6 +145,7 @@ export default function SwaySpace({ params }) {
           profileData.musicArtists = parsedMusicArtists;
           profileData.musicPreviews = parsedMusicPreviews;
           profileData.musicOffsets = parsedMusicOffsets;
+          profileData.locations = parsedLocations;
 
           // Parse niche and designation
           let cleanNiche = '';
@@ -563,8 +567,13 @@ export default function SwaySpace({ params }) {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center justify-center">
-                        <span className="text-white text-[10px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-3 py-1.5 rounded-full select-none">
+                      <div className="flex justify-between items-center w-full">
+                        {profile.locations?.[originalIndex] ? (
+                          <span className="text-white text-[7px] font-bold uppercase tracking-widest bg-black/35 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-0.5">
+                            📍 {profile.locations[originalIndex]}
+                          </span>
+                        ) : <div />}
+                        <span className="text-white text-[9px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-2.5 py-1.5 rounded-full select-none">
                           Zoom View
                         </span>
                       </div>
@@ -693,9 +702,15 @@ export default function SwaySpace({ params }) {
                     ) : null}
                   </div>
                 )}
-                {lightboxDate && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 font-inter">
-                    {lightboxDate}
+                {(lightboxDate || (lightboxIndex !== null && profile?.locations?.[lightboxIndex])) && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 font-inter flex items-center gap-1.5 justify-center">
+                    {lightboxDate && <span>{lightboxDate}</span>}
+                    {lightboxDate && lightboxIndex !== null && profile?.locations?.[lightboxIndex] && (
+                      <span className="text-neutral-500">&bull;</span>
+                    )}
+                    {lightboxIndex !== null && profile?.locations?.[lightboxIndex] && (
+                      <span>📍 {profile.locations[lightboxIndex]}</span>
+                    )}
                   </span>
                 )}
                 {lightboxCaption && (

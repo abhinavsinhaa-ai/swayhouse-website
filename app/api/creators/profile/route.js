@@ -30,6 +30,7 @@ export async function GET(req) {
     const parsedMusicArtists = [];
     const parsedMusicPreviews = [];
     const parsedMusicOffsets = [];
+    const parsedLocations = [];
     if (profile.images) {
       profile.images.forEach((img, idx) => {
         if (img && img.includes('||')) {
@@ -41,6 +42,7 @@ export async function GET(req) {
           parsedMusicArtists.push(parts[4] || '');
           parsedMusicPreviews.push(parts[5] || '');
           parsedMusicOffsets.push(parts[6] || '0');
+          parsedLocations.push(parts[7] || '');
         } else {
           cleanImages.push(img);
           parsedCaptions.push((profile.captions && profile.captions[idx]) || '');
@@ -49,6 +51,7 @@ export async function GET(req) {
           parsedMusicArtists.push('');
           parsedMusicPreviews.push('');
           parsedMusicOffsets.push('0');
+          parsedLocations.push('');
         }
       });
     }
@@ -59,6 +62,7 @@ export async function GET(req) {
     profile.musicArtists = parsedMusicArtists;
     profile.musicPreviews = parsedMusicPreviews;
     profile.musicOffsets = parsedMusicOffsets;
+    profile.locations = parsedLocations;
 
     // Exclude password from response
     const { password, ...safeProfile } = profile;
@@ -79,7 +83,7 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { name, age, location, instagram, niche, bio, message, images, captions, dates, musicTracks, musicArtists, musicPreviews, musicOffsets } = body;
+    const { name, age, location, instagram, niche, bio, message, images, captions, dates, musicTracks, musicArtists, musicPreviews, musicOffsets, locations } = body;
 
     if (!name || !instagram || !niche) {
       return NextResponse.json({ error: 'Name, Instagram, and Niche are required' }, { status: 400 });
@@ -94,9 +98,10 @@ export async function POST(req) {
         const artist = (musicArtists && musicArtists[idx]) || '';
         const preview = (musicPreviews && musicPreviews[idx]) || '';
         const offset = (musicOffsets && musicOffsets[idx]) || '0';
+        const loc = (locations && locations[idx]) || '';
 
-        if (caption || date || track || artist || preview || offset !== '0') {
-          mergedImages.push(`${img}||${caption}||${date}||${track}||${artist}||${preview}||${offset}`);
+        if (caption || date || track || artist || preview || offset !== '0' || loc) {
+          mergedImages.push(`${img}||${caption}||${date}||${track}||${artist}||${preview}||${offset}||${loc}`);
         } else {
           mergedImages.push(img);
         }

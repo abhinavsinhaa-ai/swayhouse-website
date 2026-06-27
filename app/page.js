@@ -48,22 +48,46 @@ export default function Home() {
           const parsedDbCreators = dbCreators.map(creatorData => {
             const cleanImages = [];
             const parsedCaptions = [];
+            const parsedDates = [];
+            const parsedMusicTracks = [];
+            const parsedMusicArtists = [];
+            const parsedMusicPreviews = [];
+            const parsedMusicOffsets = [];
+            const parsedLocations = [];
             if (creatorData.images) {
               creatorData.images.forEach((img, idx) => {
                 if (img && img.includes('||')) {
                   const parts = img.split('||');
                   cleanImages.push(parts[0]);
                   parsedCaptions.push(parts[1] || '');
+                  parsedDates.push(parts[2] || '');
+                  parsedMusicTracks.push(parts[3] || '');
+                  parsedMusicArtists.push(parts[4] || '');
+                  parsedMusicPreviews.push(parts[5] || '');
+                  parsedMusicOffsets.push(parts[6] || '0');
+                  parsedLocations.push(parts[7] || '');
                 } else {
                   cleanImages.push(img);
-                  parsedCaptions.push('');
+                  parsedCaptions.push((creatorData.captions && creatorData.captions[idx]) || '');
+                  parsedDates.push('');
+                  parsedMusicTracks.push('');
+                  parsedMusicArtists.push('');
+                  parsedMusicPreviews.push('');
+                  parsedMusicOffsets.push('0');
+                  parsedLocations.push('');
                 }
               });
             }
             return {
               ...creatorData,
               images: cleanImages,
-              captions: parsedCaptions
+              captions: parsedCaptions,
+              dates: parsedDates,
+              musicTracks: parsedMusicTracks,
+              musicArtists: parsedMusicArtists,
+              musicPreviews: parsedMusicPreviews,
+              musicOffsets: parsedMusicOffsets,
+              locations: parsedLocations
             };
           });
 

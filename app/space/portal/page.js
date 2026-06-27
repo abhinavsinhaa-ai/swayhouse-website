@@ -39,6 +39,7 @@ export default function SpacePortal() {
   const [musicArtists, setMusicArtists] = useState([]);
   const [musicPreviews, setMusicPreviews] = useState([]);
   const [musicOffsets, setMusicOffsets] = useState([]);
+  const [locations, setLocations] = useState([]);
 
   // Search & Select Modal States
   const [musicSearchOpen, setMusicSearchOpen] = useState(false);
@@ -121,6 +122,7 @@ export default function SpacePortal() {
         setMusicArtists(p.musicArtists || []);
         setMusicPreviews(p.musicPreviews || []);
         setMusicOffsets(p.musicOffsets || []);
+        setLocations(p.locations || []);
         setEmail(p.email || '');
         setPhone(p.phone || '');
         
@@ -285,6 +287,7 @@ export default function SpacePortal() {
           musicArtists,
           musicPreviews,
           musicOffsets,
+          locations,
           designation,
           email: email.trim(),
           phone: phone.trim()
@@ -469,6 +472,7 @@ export default function SpacePortal() {
     setMusicArtists(musicArtists.filter((_, idx) => idx !== indexToDelete));
     setMusicPreviews(musicPreviews.filter((_, idx) => idx !== indexToDelete));
     setMusicOffsets(musicOffsets.filter((_, idx) => idx !== indexToDelete));
+    setLocations(locations.filter((_, idx) => idx !== indexToDelete));
   };
 
   const clampPanAndZoom = (currentZoom, currentPan, box, customRatio = null) => {
@@ -649,6 +653,7 @@ export default function SpacePortal() {
       setMusicArtists([...musicArtists, '']);
       setMusicPreviews([...musicPreviews, '']);
       setMusicOffsets([...musicOffsets, '0']);
+      setLocations([...locations, '']);
 
       setSuccessMsg('Video uploaded successfully!');
       setTimeout(() => setSuccessMsg(''), 3000);
@@ -806,10 +811,14 @@ export default function SpacePortal() {
     if (e.target) e.target.value = '';
   };
 
-  const handleProfilePicRemove = () => {
+   const handleProfilePicRemove = () => {
     const newImages = [...images];
     newImages.shift();
     setImages(newImages);
+
+    const newLocations = [...locations];
+    newLocations.shift();
+    setLocations(newLocations);
   };
 
   const handleMakeCover = (index) => {
@@ -855,6 +864,12 @@ export default function SpacePortal() {
     newMusicOffsets[0] = newMusicOffsets[index];
     newMusicOffsets[index] = tempMusicOffset;
     setMusicOffsets(newMusicOffsets);
+
+    const newLocations = [...locations];
+    const tempLocation = newLocations[0];
+    newLocations[0] = newLocations[index];
+    newLocations[index] = tempLocation;
+    setLocations(newLocations);
   };
 
   // Dragging and Resizing event handlers
@@ -1103,6 +1118,9 @@ export default function SpacePortal() {
             const newDates = [...dates];
             newDates[0] = '';
             setDates(newDates);
+            const newLocations = [...locations];
+            newLocations[0] = '';
+            setLocations(newLocations);
 
             const newMusicTracks = [...musicTracks];
             newMusicTracks[0] = '';
@@ -1126,6 +1144,7 @@ export default function SpacePortal() {
             setMusicArtists([...musicArtists, '']);
             setMusicPreviews([...musicPreviews, '']);
             setMusicOffsets([...musicOffsets, '0']);
+            setLocations([...locations, '']);
           }
         };
         reader.readAsDataURL(file);
@@ -1159,6 +1178,9 @@ export default function SpacePortal() {
         const newDates = [...dates];
         newDates[0] = '';
         setDates(newDates);
+        const newLocations = [...locations];
+        newLocations[0] = '';
+        setLocations(newLocations);
 
         const newMusicTracks = [...musicTracks];
         newMusicTracks[0] = '';
@@ -1182,6 +1204,7 @@ export default function SpacePortal() {
         setMusicArtists([...musicArtists, '']);
         setMusicPreviews([...musicPreviews, '']);
         setMusicOffsets([...musicOffsets, '0']);
+        setLocations([...locations, '']);
       }
     } catch (err) {
       console.error('Upload failed error:', err);
@@ -1662,6 +1685,22 @@ export default function SpacePortal() {
                                 const newDates = [...dates];
                                 newDates[actualIndex] = e.target.value;
                                 setDates(newDates);
+                              }}
+                              className="w-full bg-white border border-near-black/5 rounded-lg px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-coral"
+                            />
+                          </div>
+
+                          {/* Location block */}
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400">Display Location</span>
+                            <input
+                              type="text"
+                              placeholder="e.g. Bandra, Mumbai"
+                              value={locations[actualIndex] || ''}
+                              onChange={(e) => {
+                                const newLocs = [...locations];
+                                newLocs[actualIndex] = e.target.value;
+                                setLocations(newLocs);
                               }}
                               className="w-full bg-white border border-near-black/5 rounded-lg px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-coral"
                             />
