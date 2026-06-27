@@ -307,10 +307,10 @@ export default function SpaceLogin() {
                   className="w-full flex flex-col gap-4 mt-2"
                 >
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Your Space Username</label>
+                    <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Space Username or Registered Email</label>
                     <input
                       type="text"
-                      placeholder="e.g. aanyagarg"
+                      placeholder="e.g. aanyagarg or email@example.com"
                       required
                       value={resetUsername}
                       onChange={(e) => setResetUsername(e.target.value)}

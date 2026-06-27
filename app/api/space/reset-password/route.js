@@ -10,20 +10,50 @@ export async function POST(req) {
     const { action, username, otp, newPassword } = body;
 
     if (!username) {
-      return NextResponse.json({ error: 'Username is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Username or Email is required' }, { status: 400 });
     }
 
-    const cleanId = username.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    let space = null;
+    let cleanId = '';
 
-    // Fetch space profile from database
-    const { data: space, error: fetchError } = await supabase
-      .from('personal_grids')
-      .select('id, name, message')
-      .eq('id', cleanId)
-      .maybeSingle();
+    const isEmail = username.includes('@');
+    if (isEmail) {
+      const cleanEmail = username.trim().toLowerCase();
+      const { data: spaces, error: fetchError } = await supabase
+        .from('personal_grids')
+        .select('id, name, message')
+        .ilike('message', `%[contact:${cleanEmail}%`);
 
-    if (fetchError || !space) {
-      return NextResponse.json({ error: 'Username not found' }, { status: 404 });
+      if (fetchError) {
+        console.error('Error querying space by email:', fetchError);
+        return NextResponse.json({ error: 'Failed to search account' }, { status: 500 });
+      }
+
+      if (!spaces || spaces.length === 0) {
+        return NextResponse.json({ error: 'No account found with this email' }, { status: 404 });
+      }
+
+      space = spaces[0];
+      cleanId = space.id;
+    } else {
+      const parsedId = username.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      const { data: dbSpace, error: fetchError } = await supabase
+        .from('personal_grids')
+        .select('id, name, message')
+        .eq('id', parsedId)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error('Error querying space by username:', fetchError);
+        return NextResponse.json({ error: 'Failed to search account' }, { status: 500 });
+      }
+
+      if (!dbSpace) {
+        return NextResponse.json({ error: 'Username not found' }, { status: 404 });
+      }
+
+      space = dbSpace;
+      cleanId = space.id;
     }
 
     if (action === 'request_otp') {
