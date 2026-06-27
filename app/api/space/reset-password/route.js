@@ -27,17 +27,13 @@ export async function POST(req) {
     }
 
     if (action === 'request_otp') {
-      // Parse email from message field
+      // Parse email from message field using robust regex
       const cleanMessage = space.message || '';
       let email = '';
-      if (cleanMessage.includes('[contact:')) {
-        const index = cleanMessage.indexOf('\n\n[contact:');
-        if (index !== -1) {
-          const marker = cleanMessage.substring(index);
-          const content = marker.replace('\n\n[contact:', '').replace(']', '');
-          const parts = content.split('||');
-          email = parts[0] || '';
-        }
+      const contactMatch = cleanMessage.match(/\[contact:([^\]]+)\]/);
+      if (contactMatch) {
+        const parts = contactMatch[1].split('||');
+        email = parts[0] || '';
       }
 
       if (!email) {
@@ -104,11 +100,22 @@ export async function POST(req) {
           if (!emailResponse.ok) {
             const errText = await emailResponse.text();
             console.error('Failed to send email via Resend API:', errText);
+            let parsedErr = errText;
+            try {
+              const errJson = JSON.parse(errText);
+              parsedErr = errJson.message || errText;
+            } catch (e) {}
+            return NextResponse.json({ 
+              error: `Email delivery failed: ${parsedErr}. Please check your Resend configuration.` 
+            }, { status: 502 });
           } else {
             console.log(`Successfully sent real reset email to ${email} via Resend.`);
           }
         } catch (mailErr) {
           console.error('Error executing Resend email fetch:', mailErr);
+          return NextResponse.json({ 
+            error: `Failed to connect to Resend API: ${mailErr.message}` 
+          }, { status: 502 });
         }
       } else {
         console.log(`[MOCK EMAIL] Sent password reset OTP "${generatedOtp}" to ${email}`);
@@ -125,20 +132,16 @@ export async function POST(req) {
         return NextResponse.json({ error: 'OTP code is required' }, { status: 400 });
       }
 
-      // Parse OTP and expiry from message field
+      // Parse OTP and expiry from message field using robust regex
       const cleanMessage = space.message || '';
       let savedOtp = '';
       let expiry = 0;
       
-      if (cleanMessage.includes('[otp:')) {
-        const index = cleanMessage.indexOf('\n\n[otp:');
-        if (index !== -1) {
-          const marker = cleanMessage.substring(index);
-          const content = marker.replace('\n\n[otp:', '').replace(']', '');
-          const parts = content.split('||');
-          savedOtp = parts[0] || '';
-          expiry = parseInt(parts[1]) || 0;
-        }
+      const otpMatch = cleanMessage.match(/\[otp:([^\]]+)\]/);
+      if (otpMatch) {
+        const parts = otpMatch[1].split('||');
+        savedOtp = parts[0] || '';
+        expiry = parseInt(parts[1]) || 0;
       }
 
       if (!savedOtp || Date.now() > expiry) {
@@ -157,20 +160,16 @@ export async function POST(req) {
         return NextResponse.json({ error: 'OTP and New Password are required' }, { status: 400 });
       }
 
-      // Parse OTP and expiry from message field
+      // Parse OTP and expiry from message field using robust regex
       const cleanMessage = space.message || '';
       let savedOtp = '';
       let expiry = 0;
       
-      if (cleanMessage.includes('[otp:')) {
-        const index = cleanMessage.indexOf('\n\n[otp:');
-        if (index !== -1) {
-          const marker = cleanMessage.substring(index);
-          const content = marker.replace('\n\n[otp:', '').replace(']', '');
-          const parts = content.split('||');
-          savedOtp = parts[0] || '';
-          expiry = parseInt(parts[1]) || 0;
-        }
+      const otpMatch = cleanMessage.match(/\[otp:([^\]]+)\]/);
+      if (otpMatch) {
+        const parts = otpMatch[1].split('||');
+        savedOtp = parts[0] || '';
+        expiry = parseInt(parts[1]) || 0;
       }
 
       if (!savedOtp || Date.now() > expiry) {
