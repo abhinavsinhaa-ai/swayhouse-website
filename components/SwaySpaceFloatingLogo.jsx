@@ -10,6 +10,7 @@ export default function SwaySpaceFloatingLogo() {
 
   // Hide callout on scroll
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const handleScroll = () => {
       if (window.scrollY > 150) {
         setShowCallout(false);

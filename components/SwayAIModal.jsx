@@ -188,9 +188,13 @@ export default function SwayAIModal({ isOpen, onClose }) {
   };
 
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    setCopiedText(true);
-    setTimeout(() => setCopiedText(false), 2000);
+    try {
+      navigator.clipboard.writeText(text);
+      setCopiedText(true);
+      setTimeout(() => setCopiedText(false), 2000);
+    } catch {
+      // Clipboard API blocked in restricted webviews
+    }
   };
 
   const parseInlineBold = (str) => {

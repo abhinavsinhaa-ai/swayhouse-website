@@ -60,6 +60,7 @@ export default function SwayAI() {
 
   // Listen to custom toggle events from the navbar links
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const handleOpenAI = () => {
       setIsOpen(true);
       setShowCallout(false);
@@ -70,6 +71,7 @@ export default function SwayAI() {
 
   // Hide callout bubble on scroll
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const handleScroll = () => {
       if (window.scrollY > 150) {
         setShowCallout(false);

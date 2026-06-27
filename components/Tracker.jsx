@@ -11,10 +11,20 @@ export default function Tracker() {
     if (typeof window === 'undefined') return;
 
     // 1. Get or create a persistent anonymous visitor ID
-    let visitorId = localStorage.getItem('swayhouse_visitor_id');
-    if (!visitorId) {
-      visitorId = 'visitor_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now().toString(36);
-      localStorage.setItem('swayhouse_visitor_id', visitorId);
+    // Wrapped in try/catch because Instagram's in-app browser (and other
+    // restricted webviews) can block localStorage access entirely,
+    // throwing a SecurityError / DOMException even though `window` exists.
+    let visitorId = null;
+    try {
+      visitorId = localStorage.getItem('swayhouse_visitor_id');
+      if (!visitorId) {
+        visitorId = 'visitor_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now().toString(36);
+        localStorage.setItem('swayhouse_visitor_id', visitorId);
+      }
+    } catch {
+      // localStorage is blocked (e.g. Instagram in-app browser, private mode, iframe sandbox).
+      // Generate a session-only ID so analytics still work for this pageview.
+      visitorId = 'anon_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now().toString(36);
     }
 
     // 2. Prevent duplicate logging on double-mounts in React strict mode

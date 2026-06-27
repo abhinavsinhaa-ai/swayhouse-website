@@ -196,10 +196,14 @@ export default function SwaySpace({ params }) {
   }, [params?.id, router]);
 
   const copyLink = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') return;
+    try {
       navigator.clipboard.writeText(window.location.href);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard API blocked (e.g. Instagram in-app browser)
+      setCopied(false);
     }
   };
 

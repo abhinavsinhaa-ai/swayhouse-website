@@ -1200,9 +1200,13 @@ export default function SpacePortal() {
   };
 
   const copyLink = () => {
-    navigator.clipboard.writeText(getPublicUrl());
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      navigator.clipboard.writeText(getPublicUrl());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard API blocked in restricted webviews
+    }
   };
 
   if (loading) {
