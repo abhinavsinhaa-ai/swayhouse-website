@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Lock, ShieldAlert, Sparkles } from 'lucide-react';
+import { Lock, ShieldAlert, Sparkles, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CreatorLogin() {
@@ -12,6 +12,7 @@ export default function CreatorLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -86,14 +87,27 @@ export default function CreatorLogin() {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all font-mono"
-            />
+            <div className="relative w-full">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl pl-4 pr-11 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all ${showPassword ? 'font-sans' : 'font-mono'}`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-near-black transition-colors focus:outline-none cursor-pointer"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4.5 h-4.5" />
+                ) : (
+                  <Eye className="w-4.5 h-4.5" />
+                )}
+              </button>
+            </div>
           </div>
 
           <button

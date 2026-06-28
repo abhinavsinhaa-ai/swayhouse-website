@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lock, ShieldAlert, Sparkles, TrendingUp, MessageSquare, Inbox, LogOut, 
-  Compass, Mail, Instagram, Check, Calendar, User, Eye, Users
+  Compass, Mail, Instagram, Check, Calendar, User, Eye, EyeOff, Users
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const [passcode, setPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
+  const [showPasscode, setShowPasscode] = useState(false);
 
   // Dashboard Data States
   const [dataLoading, setDataLoading] = useState(true);
@@ -312,14 +313,29 @@ export default function AdminDashboard() {
           <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Security Passcode</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                autoFocus
-                className="w-full bg-soft-white border border-near-black/5 rounded-xl px-4 py-3 text-center text-sm outline-none focus:ring-1 focus:ring-coral transition-all font-mono tracking-widest"
-              />
+              <div className="relative w-full">
+                <input
+                  type={showPasscode ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value)}
+                  autoFocus
+                  className={`w-full bg-soft-white border border-near-black/5 rounded-xl pl-4 pr-11 py-3 text-center text-sm outline-none focus:ring-1 focus:ring-coral transition-all ${
+                    showPasscode ? 'font-sans tracking-normal' : 'font-mono tracking-widest'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasscode(!showPasscode)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-near-black transition-colors focus:outline-none cursor-pointer"
+                >
+                  {showPasscode ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <button
