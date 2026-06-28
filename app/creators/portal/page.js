@@ -37,6 +37,11 @@ export default function CreatorPortal() {
   const [musicOffsets, setMusicOffsets] = useState([]);
   const [locations, setLocations] = useState([]);
 
+  // Location autocomplete search states
+  const [activeLocationIndex, setActiveLocationIndex] = useState(null);
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [searchingLocation, setSearchingLocation] = useState(false);
+
   // Search & Select Modal States
   const [musicSearchOpen, setMusicSearchOpen] = useState(false);
   const [musicIndex, setMusicIndex] = useState(null);
@@ -111,6 +116,26 @@ export default function CreatorPortal() {
       setErrorMsg('Failed to sync profile data from server.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLocationChange = async (val, index) => {
+    setActiveLocationIndex(index);
+    if (!val || val.trim().length < 2) {
+      setLocationSuggestions([]);
+      return;
+    }
+    setSearchingLocation(true);
+    try {
+      const res = await fetch(`/api/location/search?q=${encodeURIComponent(val)}`);
+      if (res.ok) {
+        const json = await res.json();
+        setLocationSuggestions(json.results || []);
+      }
+    } catch (err) {
+      console.error('Error searching location:', err);
+    } finally {
+      setSearchingLocation(false);
     }
   };
 
@@ -1305,19 +1330,59 @@ export default function CreatorPortal() {
                           </div>
 
                           {/* Location block */}
-                          <div className="flex flex-col gap-1">
+                          <div className="flex flex-col gap-1 relative">
                             <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400">Display Location</span>
-                            <input
-                              type="text"
-                              placeholder="e.g. Bandra, Mumbai"
-                              value={locations[actualIdx] || ''}
-                              onChange={(e) => {
-                                const newLocs = [...locations];
-                                newLocs[actualIdx] = e.target.value;
-                                setLocations(newLocs);
-                              }}
-                              className="w-full bg-white border border-near-black/5 rounded-lg px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-coral"
-                            />
+                            <div className="relative">
+                              <input
+                                type="text"
+                                placeholder="e.g. Bandra, Mumbai"
+                                value={locations[actualIdx] || ''}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  const newLocs = [...locations];
+                                  newLocs[actualIdx] = val;
+                                  setLocations(newLocs);
+                                  handleLocationChange(val, actualIdx);
+                                }}
+                                onFocus={() => {
+                                  if (locations[actualIdx]) {
+                                    handleLocationChange(locations[actualIdx], actualIdx);
+                                  }
+                                }}
+                                onBlur={() => {
+                                  setTimeout(() => {
+                                    setActiveLocationIndex(null);
+                                  }, 250);
+                                }}
+                                className="w-full bg-white border border-near-black/5 rounded-lg pl-2 pr-6 py-1 text-[10px] outline-none focus:ring-1 focus:ring-coral"
+                              />
+                              {searchingLocation && activeLocationIndex === actualIdx && (
+                                <Loader2 className="w-2.5 h-2.5 animate-spin absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400" />
+                              )}
+                            </div>
+
+                            {/* Suggestions Dropdown */}
+                            {activeLocationIndex === actualIdx && locationSuggestions.length > 0 && (
+                              <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-near-black/10 rounded-lg shadow-lg z-[99] max-h-36 overflow-y-auto">
+                                {locationSuggestions.map((suggestion, sIdx) => (
+                                  <button
+                                    key={sIdx}
+                                    type="button"
+                                    onClick={() => {
+                                      const newLocs = [...locations];
+                                      newLocs[actualIdx] = suggestion.formatted;
+                                      setLocations(newLocs);
+                                      setLocationSuggestions([]);
+                                      setActiveLocationIndex(null);
+                                    }}
+                                    className="w-full text-left px-2.5 py-1.5 hover:bg-neutral-50 text-[9.5px] text-neutral-600 border-b border-near-black/5 last:border-0 truncate flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <span>📍</span>
+                                    <span>{suggestion.formatted}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
 
                           {/* Music block */}

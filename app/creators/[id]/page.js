@@ -78,6 +78,7 @@ export default function CreatorDashboard({ params }) {
   const [lightboxCaption, setLightboxCaption] = useState('');
   const [lightboxDate, setLightboxDate] = useState('');
   const [lightboxIndex, setLightboxIndex] = useState(null);
+  const [mapLocation, setMapLocation] = useState(null);
 
   const [isMuted, setIsMuted] = useState(true);
   const [currentAudio, setCurrentAudio] = useState(null);
@@ -487,9 +488,16 @@ export default function CreatorDashboard({ params }) {
                       </div>
                       <div className="flex justify-between items-center w-full">
                         {creator.locations?.[originalIndex] ? (
-                          <span className="text-white text-[7px] font-bold uppercase tracking-widest bg-black/35 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-0.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMapLocation(creator.locations[originalIndex]);
+                            }}
+                            className="text-white text-[7px] font-bold uppercase tracking-widest bg-black/45 hover:bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-0.5 pointer-events-auto transition-all cursor-pointer"
+                          >
                             📍 {creator.locations[originalIndex]}
-                          </span>
+                          </button>
                         ) : <div />}
                         <span className="text-white text-[9px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur px-2.5 py-1.5 rounded-full select-none">
                           Zoom View
@@ -590,15 +598,24 @@ export default function CreatorDashboard({ params }) {
                   </div>
                 )}
                 {(lightboxDate || (lightboxIndex !== null && creator?.locations?.[lightboxIndex])) && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 font-inter flex items-center gap-1.5 justify-center">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 font-inter flex items-center gap-1.5 justify-center">
                     {lightboxDate && <span>{lightboxDate}</span>}
                     {lightboxDate && lightboxIndex !== null && creator?.locations?.[lightboxIndex] && (
                       <span className="text-neutral-500">&bull;</span>
                     )}
                     {lightboxIndex !== null && creator?.locations?.[lightboxIndex] && (
-                      <span>📍 {creator.locations[lightboxIndex]}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMapLocation(creator.locations[lightboxIndex]);
+                        }}
+                        className="hover:text-coral transition-colors flex items-center gap-0.5 cursor-pointer"
+                      >
+                        📍 {creator.locations[lightboxIndex]}
+                      </button>
                     )}
-                  </span>
+                  </div>
                 )}
                 {lightboxCaption && (
                   <p className="text-white/80 font-cormorant italic text-lg md:text-xl leading-normal">
@@ -627,6 +644,80 @@ export default function CreatorDashboard({ params }) {
           </span>
         </div>
       )}
+
+      {/* ===== MAP PREVIEW MODAL ===== */}
+      <AnimatePresence>
+        {mapLocation && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMapLocation(null)}
+            className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 cursor-zoom-out"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="bg-white rounded-3xl p-6 w-full max-w-[480px] shadow-2xl border border-near-black/5 flex flex-col gap-5 relative cursor-default"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close button */}
+              <button
+                type="button"
+                onClick={() => setMapLocation(null)}
+                className="absolute top-4 right-4 w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-near-black flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div>
+                <h3 className="font-cormorant text-2xl font-bold text-near-black leading-none mb-1">
+                  Location Map
+                </h3>
+                <p className="text-[10px] text-neutral-400 uppercase tracking-widest font-semibold flex items-center gap-1">
+                  📍 {mapLocation}
+                </p>
+              </div>
+
+              {/* Map Embed Container */}
+              <div className="w-full h-64 rounded-2xl overflow-hidden border border-near-black/5 relative shadow-inner bg-neutral-100">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  frameBorder="0"
+                  marginHeight="0"
+                  marginWidth="0"
+                  title="Location Map"
+                  scrolling="no"
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(mapLocation)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                  className="w-full h-full block filter contrast-[1.05]"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMapLocation(null)}
+                  className="flex-1 py-3 border border-near-black/5 hover:bg-neutral-50 rounded-xl text-[10px] font-bold uppercase tracking-wider text-neutral-500 transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapLocation)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-3 bg-coral hover:bg-coral-hover text-white rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer shadow-sm text-center flex items-center justify-center gap-1"
+                >
+                  Navigate in Maps
+                </a>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
