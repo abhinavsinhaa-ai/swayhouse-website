@@ -32,6 +32,8 @@ export default function SwaySpaceModal({ isOpen, onClose }) {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Disable main body scroll when modal is open
   useEffect(() => {
@@ -201,6 +203,11 @@ export default function SwaySpaceModal({ isOpen, onClose }) {
     }
     if (!resetUsername.trim() || !resetOtp.trim() || !newPassword) return;
 
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match. Please verify.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setResetStatus('');
@@ -229,6 +236,7 @@ export default function SwaySpaceModal({ isOpen, onClose }) {
           setResetUsername('');
           setResetOtp('');
           setNewPassword('');
+          setConfirmPassword('');
           setIsOtpVerified(false);
         }, 2000);
       } else {
@@ -508,6 +516,35 @@ export default function SwaySpaceModal({ isOpen, onClose }) {
                             )}
                           </div>
                         </div>
+
+                        {isOtpVerified && (
+                          <div className="flex flex-col gap-1.5 relative">
+                            <label className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Confirm New Password</label>
+                            <div className="relative w-full">
+                              <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                placeholder="••••••••"
+                                required
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className={`w-full bg-[#FBF9F6] border border-near-black/5 rounded-xl pl-4 pr-11 py-3 text-xs outline-none focus:ring-1 focus:ring-coral transition-all ${
+                                  showConfirmPassword ? 'font-sans' : 'font-mono'
+                                }`}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-near-black transition-colors focus:outline-none cursor-pointer"
+                              >
+                                {showConfirmPassword ? (
+                                  <EyeOff className="w-4 h-4" />
+                                ) : (
+                                  <Eye className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        )}
 
                         <button
                           type="submit"
